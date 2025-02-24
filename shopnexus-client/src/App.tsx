@@ -1,37 +1,22 @@
-// App.tsx
-import React, { useState } from 'react';
-import Login from './components/Login';
-import Register from './components/Register';
-import Cart from './components/Cart';
-import Home from './components/Home';
-import FeaturedProducts from './components/FeaturedProducts';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Home from './app/Home/Home';
+import Login from './app/Login_Resigter/Login';
+import Register from './app/Login_Resigter/Register';
+import Cart from './app/Cart/Cart';
+import FeaturedProducts from './app/Product/FeaturedProducts';
+import ProductDetail from './app/Product/ProductDetail';
+
 const App: React.FC = () => {
   return (
-    <div>
-      <Home>
-
-      </Home>
-{/* 
-      <Cart>
-        
-      </Cart>
-
-      <FeaturedProducts>
-        
-      </FeaturedProducts>
-
-      <Login>
-
-      </Login>
-
-      <Register>
-
-      </Register> */}
-
-      
-
-
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/products" element={<FeaturedProducts />} />
+      <Route path='/product/:id' element={<ProductDetail/>}/>
+    </Routes>
   );
 };
 

@@ -1,33 +1,41 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "./firebase"
-import Button from "./ui/Button"
-import Input from "./ui/Input"
-import Checkbox from "./ui/Checkbox"
-import Card, { CardHeader, CardBody } from "./ui/Card"
+import React, { useState } from "react"
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth"
+import { auth } from "../firebase"
+import Button from "../../components/ui/Button"
+import Input from "../../components/ui/Input"
+import Card, { CardHeader, CardBody } from "../../components/ui/Card"
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (password !== confirmPassword) {
+      setError("Mật khẩu không khớp")
+      return
+    }
     try {
-      await signInWithEmailAndPassword(auth, email, password)
+      await createUserWithEmailAndPassword(auth, email, password)
+      // Đăng ký thành công, có thể chuyển hướng người dùng hoặc cập nhật UI
     } catch (err: any) {
       setError(err.message)
     }
   }
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider)
-      // Handle successful Google login
+      const provider = new GoogleAuthProvider()
+      await signInWithPopup(auth, provider)
+      // Đăng ký/Đăng nhập thành công bằng Google, xử lý chuyển hướng hoặc cập nhật UI
     } catch (err: any) {
       setError(err.message)
     }
@@ -37,15 +45,18 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-center">Đăng nhập</h2>
+          <h2 className="text-2xl font-bold text-center">Đăng ký</h2>
         </CardHeader>
         <CardBody>
           {error && (
-            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+            <div
+              className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg"
+              role="alert"
+            >
               {error}
             </div>
           )}
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
             <Input
               label="Email"
               type="email"
@@ -62,30 +73,29 @@ const Login: React.FC = () => {
               placeholder="••••••••"
               required
             />
-            <div className="flex items-center justify-between">
-              <Checkbox
-                label="Ghi nhớ đăng nhập"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <a href="#" className="text-sm text-blue-600 hover:underline">
-                Quên mật khẩu?
-              </a>
-            </div>
+            <Input
+              label="Xác nhận mật khẩu"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
             <Button type="submit" className="w-full">
-              Đăng nhập
+              Đăng ký
             </Button>
           </form>
-          <div className="mt-6">
+          
+          <div className="mt-4">
             <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500">Hoặc tiếp tục với</span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Hoặc tiếp tục với</span>
-              </div>
-            </div>
-            <Button variant="outline" className="mt-4 w-full" onClick={handleGoogleLogin}>
+              <Button variant="outline" className="mt-4 w-full" onClick={handleGoogleSignIn}>
               <svg className="w-5 h-5 mr-2 inline-block" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -114,5 +124,4 @@ const Login: React.FC = () => {
   )
 }
 
-export default Login
-
+export default Register
