@@ -1,10 +1,10 @@
-import ProductCard from "./ProductCard"
+import ProductCard from "../../components/ProductCard"
 
 const featuredProducts = [
-  { id: 1, name: "Classic Sneakers", price: 89.99, image: "/placeholder.svg?height=300&width=300&text=Sneakers" },
-  { id: 2, name: "Running Shoes", price: 129.99, image: "/placeholder.svg?height=300&width=300&text=Running" },
-  { id: 3, name: "Casual Loafers", price: 79.99, image: "/placeholder.svg?height=300&width=300&text=Loafers" },
-  { id: 4, name: "Dress Shoes", price: 149.99, image: "/placeholder.svg?height=300&width=300&text=Dress" },
+  { id: 1, name: "Classic Sneakers", price: 89.99, image: "/placeholder.jpeg?height=300&width=300&text=Sneakers" },
+  { id: 2, name: "Running Shoes", price: 129.99, image: "/placeholder.jpeg?height=300&width=300&text=Running" },
+  { id: 3, name: "Casual Loafers", price: 79.99, image: "/placeholder.jpeg?height=300&width=300&text=Loafers" },
+  { id: 4, name: "Dress Shoes", price: 149.99, image: "/placeholder.jpeg?height=300&width=300&text=Dress" },
 ]
 
 export default function FeaturedProducts() {

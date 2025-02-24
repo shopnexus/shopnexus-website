@@ -1,38 +1,42 @@
-
-import  Button  from "./ui/Button"
+import { Link } from "react-router-dom";
+import Button from "./ui/Button";
 
 interface ProductCardProps {
-  id: number
-  name: string
-  price: number
-  image: string
+  id: number;
+  name: string;
+  price: number;
+  image?: string; // Dấu ? để cho phép giá trị undefined
 }
 
 export default function ProductCard({ id, name, price, image }: ProductCardProps) {
   return (
-    <div className="group relative">
-      <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+    <div className="group relative rounded-lg p-4 shadow-md hover:shadow-xl transition duration-300 transform hover:scale-105">
+      {/* Hình ảnh sản phẩm */}
+      <Link 
+        to={`/product/${id}`} 
+        className="block w-full overflow-hidden rounded-md bg-gray-200 aspect-square group-hover:opacity-80 transition duration-300"
+      >
         <img
-          src={image || "/placeholder.svg"}
+          src={image || "/placeholder.jpeg"}
           alt={name}
           width={300}
           height={300}
-          className="h-full w-full object-cover object-center lg:h-full lg:w-full"
+          className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:border-4 group-hover:border-gray-300 group-hover:rotate-2"
         />
-      </div>
-      <div className="mt-4 flex justify-between">
-        <div>
-          <h3 className="text-sm text-gray-700">
-            <a href={`/product/${id}`}>
-              <span aria-hidden="true" className="absolute inset-0" />
-              {name}
-            </a>
-          </h3>
-        </div>
+      </Link>
+
+      {/* Thông tin sản phẩm */}
+      <div className="mt-4 flex justify-between items-center">
+        <h3 className="text-sm font-semibold text-gray-800">
+          <Link to={`/product/${id}`}>
+            {name}
+          </Link>
+        </h3>
         <p className="text-sm font-medium text-gray-900">${price.toFixed(2)}</p>
       </div>
+
+      {/* Nút Add to Cart */}
       <Button className="mt-2 w-full">Add to Cart</Button>
     </div>
-  )
+  );
 }
-

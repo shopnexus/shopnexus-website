@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import  Button  from "./ui/Button"
+import  Button  from "../../components/ui/Button"
 import CartItem from "./CartItem"
 
 export default function Cart() {
