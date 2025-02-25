@@ -3,23 +3,32 @@ import Button from "../../components/ui/Button";
 import FeaturedProducts from "../Product/FeaturedProducts";
 import Newsletter from "../../components/Newsletter";
 import NavigationBar from "../../components/NavigationBar";
+import SplitText from "../../blocks/TextAnimations/SplitText/SplitText";
 
 
 const category=["Men", "Women", "Kids", "Sport"];
 
-
+const handleAnimationComplete = () => {
+  console.log('All letters have animated!');
+};
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
-
-
-
       
 
       {/* Hero Section */}
       <section className="w-full max-w-7xl mx-auto text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Step into Style</h1>
+        <SplitText
+          text="Welcome to ShopNexus!!"
+          className="text-2xl font-semibold text-center sm:text-6xl"
+          delay={70}
+          animationFrom={{ opacity: 0, transform: 'translate3d(0,50px,0)' }}
+          animationTo={{ opacity: 1, transform: 'translate3d(0,0,0)' }}
+          threshold={0.2}
+          rootMargin="-50px"
+          onLetterAnimationComplete={handleAnimationComplete}
+        />
         <p className="mt-6 text-lg leading-8 text-gray-600">Discover the perfect pair for every occasion.</p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <Button>
