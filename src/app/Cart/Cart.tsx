@@ -12,14 +12,14 @@ export default function Cart() {
       name: "Running Shoes",
       price: 99.99,
       quantity: 1,
-      image: "/placeholder.svg?height=100&width=100&text=Shoes",
+      image: "/placeholder.jpeg?height=100&width=100&text=Shoes",
     },
     {
       id: 2,
       name: "Casual Sneakers",
       price: 79.99,
       quantity: 2,
-      image: "/placeholder.svg?height=100&width=100&text=Sneakers",
+      image: "/placeholder.jpeg?height=100&width=100&text=Sneakers",
     },
   ])
 

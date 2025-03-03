@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import FeaturedProducts from "../Product/FeaturedProducts";
 import Newsletter from "../../components/Newsletter";
-import NavigationBar from "../../components/NavigationBar";
 import SplitText from "../../blocks/TextAnimations/SplitText/SplitText";
+import StarBorder from "../../blocks/Animations/StarBorder/StarBorder";
 
 
 const category=["Men", "Women", "Kids", "Sport"];
@@ -30,10 +30,15 @@ export default function Home() {
           onLetterAnimationComplete={handleAnimationComplete}
         />
         <p className="mt-6 text-lg leading-8 text-gray-600">Discover the perfect pair for every occasion.</p>
-        <div className="mt-10 flex items-center justify-center gap-x-6">
-          <Button>
+        <div className="mt-10 flex items-center justify-center gap-x-6 ">
+          <StarBorder
+            as="button"
+            className="custom-class "
+            color="cyan"
+            speed="5s"
+          >
             <Link to="/products">Shop Now</Link>
-          </Button>
+          </StarBorder>
           <Button variant="outline">
             <Link to="/about">
               Learn more <span aria-hidden="true">→</span>
@@ -69,7 +74,7 @@ export default function Home() {
       {/* Newsletter */}
       <Newsletter />
 
-      <NavigationBar></NavigationBar>
+      
     </div>
   );
 }

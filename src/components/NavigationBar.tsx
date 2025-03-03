@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { VscHome, VscArchive, VscAccount, VscSettingsGear } from "react-icons/vsc";
 import { CiShoppingCart } from "react-icons/ci";
 import Dock from "../blocks/Components/Dock/Dock";
@@ -7,6 +8,7 @@ const NavigationBar = () => {
     const [visibility, setVisibility] = useState("full");
     const lastScrollY = useRef(typeof window !== "undefined" ? window.scrollY : 0);
     const [isHovered, setIsHovered] = useState(false);
+    const navigate = useNavigate(); // Hook để điều hướng trang
 
     useEffect(() => {
         const handleScroll = () => {
@@ -25,12 +27,17 @@ const NavigationBar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isHovered]);
 
+    // Hàm xử lý click cho từng mục
+    const handleNavigate = (path: string) => {
+        navigate(path);
+    };
+
     const items = [
-        { icon: <VscHome size={18} className="text-white" />, label: "Home", onClick: () => alert("Home!") },
-        { icon: <VscArchive size={18} className="text-white" />, label: "Archive", onClick: () => alert("Archive!") },
-        { icon: <VscAccount size={18} className="text-white" />, label: "Profile", onClick: () => alert("Profile!") },
-        { icon: <VscSettingsGear size={18} className="text-white" />, label: "Settings", onClick: () => alert("Settings!") },
-        { icon: <CiShoppingCart size={18} className="text-white" />, label: "Your Cart", onClick: () => alert("Your Cart") },
+        { icon: <VscHome size={18} className="text-white" />, label: "Home", onClick: () => handleNavigate("/") },
+        { icon: <VscArchive size={18} className="text-white" />, label: "Archive", onClick: () => handleNavigate("/archive") },
+        { icon: <VscAccount size={18} className="text-white" />, label: "Profile", onClick: () => handleNavigate("/profile") },
+        { icon: <VscSettingsGear size={18} className="text-white" />, label: "Settings", onClick: () => handleNavigate("/settings") },
+        { icon: <CiShoppingCart size={18} className="text-white" />, label: "Your Cart", onClick: ()=> handleNavigate("/cart") },
     ];
 
     return (
