@@ -22,7 +22,7 @@ const AdminTopBar = () => {
       <div className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
+            <img src="/placeholder3.jpeg" alt="Logo" className="h-8 w-auto" />
           </div>
           
           <div className="flex items-center space-x-4">

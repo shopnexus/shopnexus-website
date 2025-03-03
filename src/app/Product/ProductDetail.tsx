@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Stack from '../../blocks/Components/Stack/Stack';
 
 // Mock product data for frontend development
 const MOCK_PRODUCT = {
@@ -8,22 +9,23 @@ const MOCK_PRODUCT = {
   description: 'This is a sample product description. It includes all the important details about the product that a customer might want to know.',
   price: 99.99,
   images: [
-    'https://via.placeholder.com/500x500?text=Product+Image+1',
-    'https://via.placeholder.com/500x500?text=Product+Image+2',
-    'https://via.placeholder.com/500x500?text=Product+Image+3',
-    'https://via.placeholder.com/500x500?text=Product+Image+4'
+    'https://placehold.co/300x300/orange/white?text=placeholder1',
+    'https://placehold.co/300x300/orange/white?text=placeholder2',
+    'https://placehold.co/300x300/orange/white?text=placeholder3',
+    'https://placehold.co/300x300/orange/white?text=placeholder4'
   ],
   stock: 10,
   category: 'Electronics',
   tags: ['New', 'Featured', 'Sale'],
-  avatar: 'https://via.placeholder.com/500x500?text=Product+Avatar',
+  avatar: 'https://placehold.co/300x300/orange/white?text=avartar',
   additionalImages: [
-    'https://via.placeholder.com/500x500?text=Additional+Image+1',
-    'https://via.placeholder.com/500x500?text=Additional+Image+2',
-    'https://via.placeholder.com/500x500?text=Additional+Image+3',
-    'https://via.placeholder.com/500x500?text=Additional+Image+4'
+    'https://placehold.co/300x300/orange/white?text=placeholder1',
+    'https://placehold.co/300x300/orange/white?text=placeholder2',
+    'https://placehold.co/300x300/orange/white?text=placeholder3',
+    'https://placehold.co/300x300/orange/white?text=placeholder4'
   ]
 };
+
 
 interface Product {
   id: string;
@@ -43,6 +45,39 @@ const ProductDetail: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cards, setCards] = useState<{ id: number; img: string }[]>([]); // State cho stack
+
+  useEffect(() => {
+    if (id === MOCK_PRODUCT.id) {
+      setProduct(MOCK_PRODUCT);
+      const initialCards = [MOCK_PRODUCT.avatar, ...MOCK_PRODUCT.additionalImages].map(
+        (img, index) => ({ id: index + 1, img })
+      );
+      setCards(initialCards);
+      setSelectedImage(MOCK_PRODUCT.avatar); // Hình mặc định
+    } else {
+      setError('Product not found');
+    }
+  }, [id]);
+
+  // Khi stack thay đổi, cập nhật selectedImage
+  const handleCardChange = (topCard: { id: number; img: string }) => {
+    setSelectedImage(topCard.img);
+  };
+
+  // Khi chọn thumbnail, cập nhật stack và selectedImage
+  const handleThumbnailClick = (image: string) => {
+    setSelectedImage(image);
+    setCards((prev) => {
+      const newCards = [...prev];
+      const index = newCards.findIndex((card) => card.img === image);
+      if (index !== -1) {
+        const [card] = newCards.splice(index, 1); // Lấy card được chọn ra
+        newCards.push(card); // Đưa card lên trên cùng
+      }
+      return newCards;
+    });
+  };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
@@ -58,29 +93,30 @@ const ProductDetail: React.FC = () => {
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
   if (!product) return <div className="text-center p-4">Product not found</div>;
 
-  // Combine avatar and additional images for the gallery
   const allImages = [product.avatar, ...product.additionalImages];
-  const currentImage = selectedImage || product.avatar;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Images */}
         <div className="space-y-4">
-          <div className="aspect-w-1 aspect-h-1 w-full">
-            <img
-              src={currentImage}
-              alt={product.name}
-              className="object-cover w-full h-full rounded-lg"
-            />
-          </div>
+          <Stack
+            randomRotation={true}
+            sensitivity={180}
+            sendToBackOnClick={false}
+            cardDimensions={{ width: 300, height: 300 }}
+            cardsData={cards}
+            onCardChange={handleCardChange}
+          />
+
+          {/* Chọn image nhanh */}
           <div className="grid grid-cols-6 gap-2">
             {allImages.map((image, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedImage(image)}
+                onClick={() => handleThumbnailClick(image)}
                 className={`border-2 rounded ${
-                  currentImage === image ? 'border-blue-500' : 'border-gray-200'
+                  selectedImage === image ? 'border-blue-500' : 'border-gray-200'
                 }`}
               >
                 <img
@@ -106,10 +142,7 @@ const ProductDetail: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-2">
               {product.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 text-sm bg-gray-100 rounded-full"
-                >
+                <span key={tag} className="px-2 py-1 text-sm bg-gray-100 rounded-full">
                   {tag}
                 </span>
               ))}
@@ -139,12 +172,11 @@ const ProductDetail: React.FC = () => {
           <button
             onClick={handleAddToCart}
             disabled={!product.stock}
-            className={`w-full py-3 px-6 rounded-lg text-white font-medium
-              ${
-                product.stock
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
+            className={`w-full py-3 px-6 rounded-lg text-white font-medium ${
+              product.stock
+                ? 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
           >
             {product.stock ? 'Add to Cart' : 'Out of Stock'}
           </button>
