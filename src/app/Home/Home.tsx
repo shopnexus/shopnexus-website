@@ -4,6 +4,7 @@ import FeaturedProducts from "../Product/FeaturedProducts";
 import Newsletter from "../../components/Newsletter";
 import SplitText from "../../blocks/TextAnimations/SplitText/SplitText";
 import StarBorder from "../../blocks/Animations/StarBorder/StarBorder";
+import NewProducts from "../Product/NewProducts";
 
 
 const category=["Men", "Women", "Kids", "Sport"];
@@ -49,6 +50,9 @@ export default function Home() {
 
       {/* Featured Products */}
       <FeaturedProducts />
+
+      {/* New Products */}
+      <NewProducts />
 
       {/* Categories */}
       <section className="w-full max-w-7xl mx-auto mt-24">

@@ -1,12 +1,6 @@
 import { useListProductModel } from "../../core/product-models/product-model.query"
 import ProductCard from "../../components/ProductCard"
 
-type FeaturedProductsProps = {
-	title?: string
-	limit?: number
-	className?: string
-}
-
 export default function FeaturedProducts({
 	title = "Best seller",
 	limit = 4,
