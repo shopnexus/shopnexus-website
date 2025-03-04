@@ -1,22 +1,25 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './app/Home/Home';
-import Login from './app/Login_Resigter/Login';
-import Register from './app/Login_Resigter/Register';
+import Login from './app/Auth/Login';
+import Register from './app/Auth/Register';
 import Cart from './app/Cart/Cart';
 import FeaturedProducts from './app/Product/FeaturedProducts';
 import ProductDetail from './app/Product/ProductDetail';
 import NavigationBar from './components/NavigationBar';
-import Profile from './app/Profile/Profile'
-import ProductManagement from './app/Admin/Pages/ProductManagement';
+import Profile from './app/Profile/Profile';
+import Search from './app/Search/Search';
+import Archive from './app/Archive/Archive';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './app/Admin/Layout/AdminLayout';
 import AdminDashboard from './app/Admin/Pages/AdminDashboard';
+import ProductManagement from './app/Admin/Pages/ProductManagement';
 import TagManagement from './app/Admin/Pages/TagManagement';
 import SalesManagement from './app/Admin/Pages/SalesManagement';
 import SettingManager from './app/Admin/Pages/SettingManager';
 import CustomerManager from './app/Admin/Pages/CustomerManager';
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -28,11 +31,9 @@ const App: React.FC = () => {
         <Route path="/products" element={<FeaturedProducts />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/profile" element={<Profile/>} />
-        <Route path="/admin" element={
-          
-            <AdminLayout />
-          
-        }>
+        <Route path="/search" element={<Search />} />
+        <Route path="/archive" element={<Archive />} />
+        <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<ProductManagement />} />
           <Route path="tags" element={<TagManagement />} />
