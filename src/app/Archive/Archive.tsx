@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Package, RefreshCcw, Clock, CheckCircle, Truck, MapPin, X } from 'lucide-react';
+import  { useState } from 'react';
+import { X } from 'lucide-react';
 import Card from '../../components/ui/Card';
 
 interface OrderItem {

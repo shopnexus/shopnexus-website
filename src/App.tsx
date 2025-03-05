@@ -3,9 +3,11 @@ import React from "react"
 import { Routes, Route } from "react-router-dom"
 import { QueryClientProvider } from "@tanstack/react-query"
 import Home from "./app/Home/Home"
-import Login from "./app/Login_Resigter/Login"
-import Register from "./app/Login_Resigter/Register"
+import Login from "./app/Auth/Login"
+import Register from "./app/Auth/Register"
 import Cart from "./app/Cart/Cart"
+import Search from "./app/Search/Search"
+import Archive from "./app/Archive/Archive"
 import FeaturedProducts from "./app/Product/FeaturedProducts"
 import ProductDetail from "./app/Product/ProductDetail"
 import NavigationBar from "./components/NavigationBar"
@@ -30,6 +32,8 @@ const App: React.FC = () => {
 					<Route path="/login" element={<Login />} />
 					<Route path="/register" element={<Register />} />
 					<Route path="/cart" element={<Cart />} />
+					<Route path="/search" element={<Search/>}/>
+					<Route path="archive" element={<Archive/>}/>
 					<Route path="/products" element={<FeaturedProducts />} />
 					<Route path="/product/:id" element={<ProductDetail />} />
 					<Route path="/profile" element={<Profile />} />

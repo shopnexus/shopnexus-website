@@ -38,7 +38,6 @@ type FilterKey = keyof Omit<FilterState, 'priceRange'>;
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 1000],
     sizes: [],
@@ -196,10 +195,11 @@ const Search = () => {
               .map(product => (
                 <ProductCard
                   key={product.id}
-                  id={product.id}
+                  id={String(product.id)}
                   name={product.name}
                   price={product.price}
                   image={product.image}
+                 
                 />
               ))}
           </div>
