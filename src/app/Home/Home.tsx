@@ -5,6 +5,7 @@ import Newsletter from "../../components/Newsletter";
 import SplitText from "../../blocks/TextAnimations/SplitText/SplitText";
 import StarBorder from "../../blocks/Animations/StarBorder/StarBorder";
 import NewProducts from "../Product/NewProducts";
+import InforFooter from "../../components/InfoFooter";
 
 
 const category=["Men", "Women", "Kids", "Sport"];
@@ -77,7 +78,8 @@ export default function Home() {
 
       {/* Newsletter */}
       <Newsletter />
-
+        
+      <InforFooter/>
       
     </div>
   );

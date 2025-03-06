@@ -10,6 +10,8 @@ import { auth } from "../firebase"
 import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
 import Card, { CardHeader, CardBody } from "../../components/ui/Card"
+import { getOpacity } from "@mui/material/styles/createColorScheme"
+import { hover } from "framer-motion"
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("")
@@ -20,7 +22,7 @@ const Register: React.FC = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      setError("Mật khẩu không khớp")
+      setError("Password is wrong!")
       return
     }
     try {
@@ -40,12 +42,21 @@ const Register: React.FC = () => {
       setError(err.message)
     }
   }
+  const handleFacebookSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider()
+      await signInWithPopup(auth, provider)
+      // Đăng ký/Đăng nhập thành công bằng Google, xử lý chuyển hướng hoặc cập nhật UI
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-center">Đăng ký</h2>
+          <h2 className="text-2xl font-bold text-center">Register</h2>
         </CardHeader>
         <CardBody>
           {error && (
@@ -66,7 +77,7 @@ const Register: React.FC = () => {
               required
             />
             <Input
-              label="Mật khẩu"
+              label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -74,15 +85,15 @@ const Register: React.FC = () => {
               required
             />
             <Input
-              label="Xác nhận mật khẩu"
+              label="Confirm your password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               required
             />
-            <Button type="submit" className="w-full">
-              Đăng ký
+            <Button type="submit" className="w-full cursor-pointer">
+              Confirm
             </Button>
           </form>
           
@@ -92,10 +103,10 @@ const Register: React.FC = () => {
                   <span className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Hoặc tiếp tục với</span>
+                  <span className="bg-white px-2 text-gray-500">Or</span>
                 </div>
               </div>
-              <Button variant="outline" className="mt-4 w-full" onClick={handleGoogleSignIn}>
+              <Button variant="outline" className="mt-4 w-full cursor-pointer" onClick={handleGoogleSignIn}>
               <svg className="w-5 h-5 mr-2 inline-block" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -115,8 +126,9 @@ const Register: React.FC = () => {
                 />
                 <path d="M1 1h22v22H1z" fill="none" />
               </svg>
-              Đăng nhập bằng Google
+              With Google
             </Button>
+
           </div>
         </CardBody>
       </Card>
