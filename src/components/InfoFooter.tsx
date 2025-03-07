@@ -15,7 +15,9 @@ export default function InforFooter(){
                 <p> Khi cần bạn hãy liên hệ theo số sau:
                 </p>
                 <p>+ 84 1234567899</p>
-                <p>+ Hoặc liên hệ các trang mạng xã hội của chúng tôi.</p>
+                <p>+ Hoặc liên hệ các trang mạng xã hội của chúng tôi.
+                  đâsdasdas
+                </p>
             </p>
           </div>
   
