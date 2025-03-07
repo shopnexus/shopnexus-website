@@ -16,7 +16,6 @@ export default function InforFooter(){
                 </p>
                 <p>+ 84 1234567899</p>
                 <p>+ Hoặc liên hệ các trang mạng xã hội của chúng tôi.
-                  đâsdasdas
                 </p>
             </p>
           </div>
