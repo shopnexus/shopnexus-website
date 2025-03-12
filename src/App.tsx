@@ -8,8 +8,8 @@ import Register from "./app/Auth/Register"
 import Cart from "./app/Cart/Cart"
 import Search from "./app/Search/Search"
 import Archive from "./app/Archive/Archive"
-import FeaturedProducts from "./app/Product/FeaturedProducts"
-import ProductDetail from "./app/Product/ProductDetail"
+import FeaturedProducts from "./app/Products/FeaturedProducts"
+import ProductDetail from "./app/Products/ProductDetail"
 import NavigationBar from "./components/NavigationBar"
 import Profile from "./app/Profile/Profile"
 import ProductManagement from "./app/Admin/Pages/ProductManagement"
@@ -21,6 +21,7 @@ import TagManagement from "./app/Admin/Pages/TagManagement"
 import SalesManagement from "./app/Admin/Pages/SalesManagement"
 import SettingManager from "./app/Admin/Pages/SettingManager"
 import CustomerManager from "./app/Admin/Pages/CustomerManager"
+import RefundProduct from "./app/Products/Product/RefundProduct"
 import { queryClient } from "./core/query-client"
 
 const App: React.FC = () => {
@@ -37,6 +38,8 @@ const App: React.FC = () => {
 					<Route path="/products" element={<FeaturedProducts />} />
 					<Route path="/product/:id" element={<ProductDetail />} />
 					<Route path="/profile" element={<Profile />} />
+					<Route path="/refund" element={<RefundProduct/>} />
+
 					<Route path="/admin" element={<AdminLayout />}>
 						<Route index element={<AdminDashboard />} />
 						<Route path="products" element={<ProductManagement />} />

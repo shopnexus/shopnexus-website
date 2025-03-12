@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import Button from "../../components/ui/Button";
-import FeaturedProducts from "../Product/FeaturedProducts";
+import FeaturedProducts from "../Products/FeaturedProducts";
 import Newsletter from "../../components/Newsletter";
 import SplitText from "../../blocks/TextAnimations/SplitText/SplitText";
 import StarBorder from "../../blocks/Animations/StarBorder/StarBorder";
-import NewProducts from "../Product/NewProducts";
+import NewProducts from "../Products/NewProducts";
 import InforFooter from "../../components/InfoFooter";
 
 
