@@ -1,4 +1,3 @@
-
 import React from "react"
 import { Routes, Route } from "react-router-dom"
 import { QueryClientProvider } from "@tanstack/react-query"
@@ -22,36 +21,39 @@ import SalesManagement from "./app/Admin/Pages/SalesManagement"
 import SettingManager from "./app/Admin/Pages/SettingManager"
 import CustomerManager from "./app/Admin/Pages/CustomerManager"
 import RefundProduct from "./app/Products/Product/RefundProduct"
-import { queryClient } from "./core/query-client"
+import { finalTransport, queryClient } from "./core/query-client"
+import { TransportProvider } from "@connectrpc/connect-query"
 
 const App: React.FC = () => {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<AuthProvider>
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/register" element={<Register />} />
-					<Route path="/cart" element={<Cart />} />
-					<Route path="/search" element={<Search/>}/>
-					<Route path="archive" element={<Archive/>}/>
-					<Route path="/products" element={<FeaturedProducts />} />
-					<Route path="/product/:id" element={<ProductDetail />} />
-					<Route path="/profile" element={<Profile />} />
-					<Route path="/refund" element={<RefundProduct/>} />
+		<TransportProvider transport={finalTransport}>
+			<QueryClientProvider client={queryClient}>
+				<AuthProvider>
+					<Routes>
+						<Route path="/" element={<Home />} />
+						<Route path="/login" element={<Login />} />
+						<Route path="/register" element={<Register />} />
+						<Route path="/cart" element={<Cart />} />
+						<Route path="/search" element={<Search />} />
+						<Route path="archive" element={<Archive />} />
+						<Route path="/products" element={<FeaturedProducts />} />
+						<Route path="/product/:id" element={<ProductDetail />} />
+						<Route path="/profile" element={<Profile />} />
+						<Route path="/refund" element={<RefundProduct />} />
 
-					<Route path="/admin" element={<AdminLayout />}>
-						<Route index element={<AdminDashboard />} />
-						<Route path="products" element={<ProductManagement />} />
-						<Route path="tags" element={<TagManagement />} />
-						<Route path="sales" element={<SalesManagement />} />
-						<Route path="settings" element={<SettingManager />} />
-						<Route path="customers" element={<CustomerManager />} />
-					</Route>
-				</Routes>
-				{!location.pathname.startsWith("/admin") && <NavigationBar />}
-			</AuthProvider>
-		</QueryClientProvider>
+						<Route path="/admin" element={<AdminLayout />}>
+							<Route index element={<AdminDashboard />} />
+							<Route path="products" element={<ProductManagement />} />
+							<Route path="tags" element={<TagManagement />} />
+							<Route path="sales" element={<SalesManagement />} />
+							<Route path="settings" element={<SettingManager />} />
+							<Route path="customers" element={<CustomerManager />} />
+						</Route>
+					</Routes>
+					{!location.pathname.startsWith("/admin") && <NavigationBar />}
+				</AuthProvider>
+			</QueryClientProvider>
+		</TransportProvider>
 	)
 }
 
