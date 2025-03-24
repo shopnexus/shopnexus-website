@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom"
 import Button from "./ui/Button"
+import { useMutation } from "@connectrpc/connect-query"
+import { addCartItem } from "shopnexus-protobuf-gen-ts"
 
 interface ProductCardProps {
 	id: string
@@ -16,6 +18,18 @@ export default function ProductCard({
 	image,
 	description,
 }: ProductCardProps) {
+	const { mutateAsync: mutateAddCartItem } = useMutation(addCartItem)
+
+	const handleAddToCart = async () => {
+		try {
+			await mutateAddCartItem({
+				items: [{ itemId: BigInt(id), quantity: BigInt(1) }],
+			})
+		} catch (err: any) {
+			alert(err.message)
+		}
+	}
+
 	return (
 		<div className="group relative rounded-lg p-4 shadow-md hover:shadow-xl transition duration-300 transform hover:scale-105">
 			{/* Hình ảnh sản phẩm */}
@@ -45,7 +59,9 @@ export default function ProductCard({
 			)}
 
 			{/* Nút Add to Cart */}
-			<Button className="mt-2 w-full">Add to Cart</Button>
+			<Button className="mt-2 w-full" onClick={handleAddToCart}>
+				Add to Cart
+			</Button>
 		</div>
 	)
 }
