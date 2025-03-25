@@ -1,383 +1,529 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import Stack from '../../blocks/Components/Stack/Stack';
-
-//#region Type Definitions
-interface ProductVariant {
-  id: number;
-  color: string;
-  size: number;
-  quantity: number;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  score: number;
-  sold: number;
-  tags: string[];
-  quantity: ProductVariant[];
-  listSize: number[];
-  listColor: string[];
-  avatar: string;
-  additionalImages: string[];
-}
-//#endregion
+import React, { useEffect, useState, useMemo, useCallback } from "react"
+import { useParams } from "react-router-dom"
+import Stack from "../../blocks/Components/Stack/Stack"
+import { callUnaryMethod, useQuery } from "@connectrpc/connect-query"
+import {
+	getProduct,
+	getProductModel,
+	ProductEntity,
+} from "shopnexus-protobuf-gen-ts"
+import { finalTransport } from "../../core/query-client"
 
 //#region Utility Functions
-export const getQuantityByColorAndSize = (products: ProductVariant[]): ProductVariant[] => {
-  return products.map(({ id, color, size, quantity }) => ({ id, color, size, quantity }));
-};
+// Convert Uint8Array metadata to object
+const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
+	try {
+		const decoder = new TextDecoder()
+		const jsonString = decoder.decode(metadata)
+		return JSON.parse(JSON.parse(atob(JSON.parse(jsonString))))
+	} catch (error) {
+		console.error("Error parsing metadata:", error)
+		return {}
+	}
+}
 
-export const getUniqueColors = (products: ProductVariant[]): string[] => {
-  return Array.from(new Set(products.map(({ color }) => color)));
-};
+// Get unique values from product metadata for a specific key
+const getUniqueMetadataValues = (
+	products: ProductEntity[],
+	key: string
+): any[] => {
+	const values = products
+		.map((product) => {
+			const metadata = parseMetadata(product.metadata)
+			return metadata[key]
+		})
+		.filter((value) => value !== undefined)
 
-export const getUniqueSizes = (products: ProductVariant[]): number[] => {
-  return Array.from(new Set(products.map(({ size }) => size))).sort((a, b) => a - b);
-};
-//#endregion
+	// Return unique values
+	return Array.from(new Set(values))
+}
 
-//#region Mock Data
-const demoData = {
-  productModel: {
-    id: 1,
-    name: 'Adidas Sneakers',
-    description: 'High-quality sports shoes',
-    price: 999,
-    sold: 10,
-    score: 9.4,
-    tag: ['adidas', 'sport', 'hot'],
-    listImgae: [
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400?text=Hello+World",
-      "https://placehold.co/600x400/orange/white"
-    ],
-  },
-  product: [
-    { id: 12, quantity: 1, color: 'white', size: 36 },
-    { id: 13, quantity: 20, color: 'white', size: 37 },
-    { id: 14, quantity: 0, color: 'black', size: 36 },
-    { id: 15, quantity: 0, color: 'black', size: 37 },
-  ],
-};
-
-export const MOCK_PRODUCT: Product = {
-  id: demoData.productModel.id,
-  name: demoData.productModel.name,
-  description: demoData.productModel.description,
-  price: demoData.productModel.price,
-  score: demoData.productModel.score,
-  sold: demoData.productModel.sold,
-  tags: demoData.productModel.tag,
-  quantity: getQuantityByColorAndSize(demoData.product),
-  listSize: getUniqueSizes(demoData.product),
-  listColor: getUniqueColors(demoData.product),
-  avatar: demoData.productModel.listImgae[0],
-  additionalImages: demoData.productModel.listImgae,
-};
+// Sort numeric values
+const sortNumeric = (values: any[]): any[] => {
+	return [...values].sort((a, b) => {
+		if (typeof a === "number" && typeof b === "number") {
+			return a - b
+		}
+		return String(a).localeCompare(String(b))
+	})
+}
 //#endregion
 
 //#region Child Components
-
-// Component danh sách thumbnail – được memo để tránh render lại không cần thiết
+// Component for thumbnail list
 const ThumbnailList: React.FC<{
-  images: string[];
-  selectedImage: string;
-  onThumbnailClick: (image: string) => void;
+	images: string[]
+	selectedImage: string
+	onThumbnailClick: (image: string) => void
 }> = React.memo(({ images, selectedImage, onThumbnailClick }) => (
-  <div className="grid grid-cols-6 gap-2">
-    {images.map((image, index) => (
-      <button
-        key={index}
-        onClick={() => onThumbnailClick(image)}
-        className={`border-2 rounded transition duration-150 ease-in-out ${
-          selectedImage === image ? 'border-blue-500' : 'border-gray-200'
-        }`}
-      >
-        <img src={image} alt={`thumbnail ${index + 1}`} loading="lazy" className="object-cover w-full h-full" />
-      </button>
-    ))}
-  </div>
-));
+	<div className="grid grid-cols-6 gap-2">
+		{images.map((image, index) => (
+			<button
+				key={index}
+				onClick={() => onThumbnailClick(image)}
+				className={`border-2 rounded transition duration-150 ease-in-out ${
+					selectedImage === image ? "border-blue-500" : "border-gray-200"
+				}`}
+			>
+				<img
+					src={image}
+					alt={`thumbnail ${index + 1}`}
+					loading="lazy"
+					className="object-cover w-full h-full"
+				/>
+			</button>
+		))}
+	</div>
+))
 
-// Component chọn biến thể sản phẩm
+// Component for variant selection
 interface VariantSelectionProps {
-  product: Product;
-  selectedColor: string | null;
-  selectedSize: number | null;
-  onSelectColor: (color: string | null) => void;
-  onSelectSize: (size: number | null) => void;
-  quantity: number;
-  availableStock: number;
-  onQuantityChange: React.ChangeEventHandler<HTMLInputElement>;
-  onAddToCart: () => void;
+	products: ProductEntity[]
+	selectedVariantOptions: Record<string, any>
+	onSelectVariantOption: (key: string, value: any) => void
+	quantity: number
+	availableStock: number
+	onQuantityChange: React.ChangeEventHandler<HTMLInputElement>
+	onAddToCart: () => void
 }
 
-const VariantSelection: React.FC<VariantSelectionProps> = React.memo(({
-  product,
-  selectedColor,
-  selectedSize,
-  onSelectColor,
-  onSelectSize,
-  quantity,
-  availableStock,
-  onQuantityChange,
-  onAddToCart,
-}) => {
-  const isColorOptionAvailable = useCallback(
-    (color: string): boolean => {
-      if (!selectedSize) {
-        return product.quantity.some(q => q.color === color && q.quantity > 0);
-      } else {
-        return product.quantity.some(q => q.color === color && q.size === selectedSize && q.quantity > 0);
-      }
-    },
-    [product.quantity, selectedSize]
-  );
+const VariantSelection: React.FC<VariantSelectionProps> = React.memo(
+	({
+		products,
+		selectedVariantOptions,
+		onSelectVariantOption,
+		quantity,
+		availableStock,
+		onQuantityChange,
+		onAddToCart,
+	}) => {
+		// Get all possible variant keys from metadata
+		const variantKeys = useMemo(() => {
+			if (products.length === 0) return []
 
-  const isSizeOptionAvailable = useCallback(
-    (size: number): boolean => {
-      if (!selectedColor) {
-        return product.quantity.some(q => q.size === size && q.quantity > 0);
-      } else {
-        return product.quantity.some(q => q.color === selectedColor && q.size === size && q.quantity > 0);
-      }
-    },
-    [product.quantity, selectedColor]
-  );
+			// Collect all unique keys from all products' metadata
+			const allKeys = new Set<string>()
+			products.forEach((product) => {
+				const metadata = parseMetadata(product.metadata)
+				Object.keys(metadata).forEach((key) => allKeys.add(key))
+			})
 
-  return (
-    <div className="space-y-4">
-      {/* Chọn màu */}
-      <div>
-        <h3 className="font-medium">Color:</h3>
-        <div className="flex space-x-2">
-          {product.listColor.map((color) => (
-            <button
-              key={color}
-              disabled={!isColorOptionAvailable(color)}
-              onClick={() => onSelectColor(selectedColor === color ? null : color)}
-              className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
-                selectedColor === color ? 'bg-blue-500 text-white' : 'bg-white text-black'
-              } ${!isColorOptionAvailable(color) ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
-            >
-              {color}
-            </button>
-          ))}
-        </div>
-      </div>
+			return Array.from(allKeys)
+		}, [products])
 
-      {/* Chọn kích cỡ */}
-      <div>
-        <h3 className="font-medium">Size:</h3>
-        <div className="flex space-x-2">
-          {product.listSize.map((size) => (
-            <button
-              key={size}
-              disabled={!isSizeOptionAvailable(size)}
-              onClick={() => onSelectSize(selectedSize === size ? null : size)}
-              className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
-                selectedSize === size ? 'bg-blue-500 text-white' : 'bg-white text-black'
-              } ${!isSizeOptionAvailable(size) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </div>
+		// Check if a variant option is available
+		const isOptionAvailable = useCallback(
+			(key: string, value: any): boolean => {
+				// If no options are selected, all options with stock should be available
+				const hasAnySelection = Object.values(selectedVariantOptions).some(
+					(v) => v !== null
+				)
+				if (!hasAnySelection) {
+					return products.some((product) => {
+						const metadata = parseMetadata(product.metadata)
+						return metadata[key] === value && product.quantity > 0
+					})
+				}
 
-      {availableStock === 0 && <p className="text-red-500">This combination is out of stock</p>}
+				// Create a copy of current selections
+				const selections = { ...selectedVariantOptions }
 
-      {/* Chọn số lượng */}
-      <div className="flex items-center space-x-4">
-        <label htmlFor="quantity" className="font-medium">Quantity:</label>
-        <input
-          type="number"
-          id="quantity"
-          value={quantity}
-          onChange={onQuantityChange}
-          min="1"
-          max={availableStock}
-          disabled={!selectedColor || !selectedSize}
-          className="w-20 px-3 py-2 border rounded"
-        />
-      </div>
-      <p className="text-sm text-gray-500">{availableStock} {(selectedColor&&selectedSize)?"items available for selected color and size":"for all"}</p>
+				// Check if any product matches the current selections with this option
+				return products.some((product) => {
+					const metadata = parseMetadata(product.metadata)
 
-      {/* Nút thêm vào giỏ hàng */}
-      <button
-        onClick={onAddToCart}
-        disabled={!selectedColor || !selectedSize}
-        className={`w-full py-3 px-6 rounded-lg text-white font-medium transition duration-150 ease-in-out ${
-          selectedColor && selectedSize ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
-        }`}
-      >
-        Add to Cart
-      </button>
-    </div>
-  );
-});
+					// Check if this product matches all selected options
+					for (const [k, v] of Object.entries(selections)) {
+						// Skip null values (unselected options)
+						if (v === null) continue
+						// Skip the current key we're checking
+						if (k === key) continue
+
+						// If this option doesn't match, this product doesn't match
+						if (metadata[k] !== v) return false
+					}
+
+					// Check if this product has the value we're testing for this key
+					return metadata[key] === value && product.quantity > 0
+				})
+			},
+			[products, selectedVariantOptions]
+		)
+
+		return (
+			<div className="space-y-4">
+				{/* Render each variant type dynamically from metadata */}
+				{variantKeys.map((key) => (
+					<div key={key}>
+						<h3 className="font-medium capitalize">{key}:</h3>
+						<div className="flex space-x-2">
+							{sortNumeric(getUniqueMetadataValues(products, key)).map(
+								(value) => {
+									// Check if this option is currently selected
+									const isSelected = selectedVariantOptions[key] === value
+									// Only disable if it's not available AND not currently selected
+									const shouldDisable =
+										!isOptionAvailable(key, value) && !isSelected
+
+									return (
+										<button
+											key={`${key}-${value}`}
+											disabled={shouldDisable}
+											onClick={() =>
+												onSelectVariantOption(key, isSelected ? null : value)
+											}
+											className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
+												isSelected
+													? "bg-blue-500 text-white"
+													: "bg-white text-black"
+											} ${
+												shouldDisable
+													? "opacity-50 cursor-not-allowed bg-gray-400"
+													: ""
+											}`}
+										>
+											{value}
+										</button>
+									)
+								}
+							)}
+						</div>
+					</div>
+				))}
+
+				{availableStock === 0 && (
+					<p className="text-red-500">This combination is out of stock</p>
+				)}
+
+				{/* Quantity selection */}
+				<div className="flex items-center space-x-4">
+					<label htmlFor="quantity" className="font-medium">
+						Quantity:
+					</label>
+					<input
+						type="number"
+						id="quantity"
+						value={quantity}
+						onChange={onQuantityChange}
+						min="1"
+						max={availableStock}
+						disabled={availableStock <= 0}
+						className="w-20 px-3 py-2 border rounded"
+					/>
+				</div>
+				<p className="text-sm text-gray-500">
+					{availableStock} items available
+				</p>
+
+				{/* Add to cart button */}
+				<button
+					onClick={onAddToCart}
+					disabled={availableStock <= 0}
+					className={`w-full py-3 px-6 rounded-lg text-white font-medium transition duration-150 ease-in-out ${
+						availableStock > 0
+							? "bg-blue-600 hover:bg-blue-700"
+							: "bg-gray-400 cursor-not-allowed"
+					}`}
+				>
+					Add to Cart
+				</button>
+			</div>
+		)
+	}
+)
 //#endregion
 
 // Main Component
 const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(1);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
-  const [cards, setCards] = useState<{ id: number; img: string }[]>([]);
-  const [error, setError] = useState<string | null>(null);
+	const { id } = useParams<{ id: string }>()
+	const [selectedImage, setSelectedImage] = useState<string>("")
+	const [quantity, setQuantity] = useState<number>(1)
+	const [selectedVariantOptions, setSelectedVariantOptions] = useState<
+		Record<string, any>
+	>({})
+	const [cards, setCards] = useState<{ id: number; img: string }[]>([])
+	const [error, setError] = useState<string | null>(null)
 
-  //#region Load Data & Default Setup
-  useEffect(() => {
-    if (id === String(MOCK_PRODUCT.id)) {
-      setProduct(MOCK_PRODUCT);
-      // Xử lý duplicate images
-      const imageCards = Array.from(new Set([MOCK_PRODUCT.avatar, ...MOCK_PRODUCT.additionalImages])).map((img, index) => ({
-        id: index + 1,
-        img,
-      }));
-      setCards(imageCards);
-      setSelectedImage(MOCK_PRODUCT.avatar);
-    } else {
-      setError('Product not found');
-    }
-  }, [id]);
-  //#endregion
+	// Fetch product model data
+	const {
+		data: productModel,
+		isLoading: isLoadingModel,
+		error: modelError,
+	} = useQuery(
+		getProductModel,
+		{
+			id: id ? BigInt(id) : undefined,
+		},
+		{
+			enabled: !!id,
+		}
+	)
 
-  //#region Stock & Quantity Handling
-  const totalStock = useCallback((prod: Product | null): number => {
-    if (!prod) return 0;
-    return prod.quantity.reduce((sum, item) => sum + item.quantity, 0);
-  }, []);
+	// Fetch product variants
+	const [products, setProducts] = useState<ProductEntity[]>([])
+	const [isLoadingVariants, setIsLoadingVariants] = useState(true)
+	const [variantsError, setVariantsError] = useState<Error | null>(null)
 
-  const getAvailableStock = useCallback((): number => {
-    if (!product) return 0;
-    if (!selectedColor || !selectedSize) return totalStock(product);
-    const variant = product.quantity.find(q => q.color === selectedColor && q.size === selectedSize);
-    return variant?.quantity || 0;
-  }, [product, selectedColor, selectedSize, totalStock]);
+	// Load product variants when product model is available
+	useEffect(() => {
+		if (!productModel?.serialIds?.length) {
+			setIsLoadingVariants(false)
+			return
+		}
 
-  useEffect(() => {
-    const stock = getAvailableStock();
-    if (stock > 0 && quantity > stock) {
-      setQuantity(stock);
-    }
-  }, [selectedColor, selectedSize, quantity, getAvailableStock]);
-  //#endregion
+		setIsLoadingVariants(true)
+		Promise.all(
+			productModel?.serialIds.map(async (serial_id) => {
+				return callUnaryMethod(finalTransport, getProduct, {
+					serialId: serial_id,
+				})
+			})
+		)
+			.then((data) => {
+				const validProducts = data
+					.map((d) => d.data!)
+					.filter((d) => d !== undefined)
+				setProducts(validProducts)
+				setIsLoadingVariants(false)
+			})
+			.catch((error) => {
+				setVariantsError(error)
+				setIsLoadingVariants(false)
+			})
+	}, [productModel])
 
-  //#region Event Handlers (useCallback)
-  const handleCardChange = useCallback((card: { id: number; img: string }) => {
-    setSelectedImage(card.img);
-  }, []);
+	//#region Load Data & Default Setup
+	useEffect(() => {
+		if (productModel && products.length > 0) {
+			try {
+				// Set up image cards from resources
+				const images = productModel?.data?.resources || []
+				if (images.length > 0) {
+					const imageCards = images.map((img, index) => ({
+						id: index + 1,
+						img,
+					}))
+					setCards(imageCards)
+					setSelectedImage(images[0])
+				}
 
-  const handleThumbnailClick = useCallback((image: string) => {
-    setSelectedImage(image);
-    setCards(prevCards => {
-      const newCards = [...prevCards];
-      const index = newCards.findIndex(card => card.img === image);
-      if (index !== -1) {
-        const [card] = newCards.splice(index, 1);
-        newCards.push(card);
-      }
-      return newCards;
-    });
-  }, []);
+				// Reset selections
+				setSelectedVariantOptions({})
+				setQuantity(1)
+			} catch (err) {
+				setError("Error processing product data")
+				console.error(err)
+			}
+		}
+	}, [productModel, products])
+	//#endregion
 
-  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    const stock = getAvailableStock();
-    if (isNaN(value) || value < 1) {
-      setQuantity(1);
-    } else if (value > stock) {
-      setQuantity(stock);
-    } else {
-      setQuantity(value);
-    }
-  }, [getAvailableStock]);
+	//#region Stock & Quantity Handling
+	const totalStock = useCallback((): number => {
+		return products.reduce((sum, item) => sum + Number(item.quantity), 0)
+	}, [products])
+	console.log(products)
 
-  const handleAddToCart = useCallback(() => {
-    if (selectedColor && selectedSize && product) {
-      const variant = product.quantity.find(q => q.color === selectedColor && q.size === selectedSize);
-      if (variant) {
-        console.log('Add to cart:', {
-          variantId: variant.id,
-          quantity,
-          color: selectedColor,
-          size: selectedSize,
-        });
-        // Xử lý thêm vào giỏ hàng, thông báo thành công, v.v.
-      }
-    }
-  }, [selectedColor, selectedSize, quantity, product]);
-  //#endregion
+	const getAvailableStock = useCallback((): number => {
+		// If no variant options are selected, return total stock
+		if (Object.keys(selectedVariantOptions).length === 0) {
+			return totalStock()
+		}
 
-  //#region Derived Data with useMemo
-  const allImages = useMemo(() => {
-    if (!product) return [];
-    return Array.from(new Set([product.avatar, ...product.additionalImages]));
-  }, [product]);
+		// Find products that match all selected variant options
+		const matchingProducts = products.filter((product) => {
+			const metadata = parseMetadata(product.metadata)
 
-  const availableStock = useMemo(() => getAvailableStock(), [getAvailableStock]);
-  //#endregion
+			// Check if this product matches all selected options
+			for (const [key, value] of Object.entries(selectedVariantOptions)) {
+				if (value === null) continue // Skip unselected options
+				if (metadata[key] !== value) return false
+			}
 
-  if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
-  if (!product) return <div className="text-center p-4">Loading...</div>;
+			return true
+		})
+		console.log(matchingProducts)
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Product Images Section */}
-        <div className="space-y-4">
-          <Stack
-            randomRotation={true}
-            sensitivity={180}
-            sendToBackOnClick={false}
-            cardDimensions={{ width: 300, height: 300 }}
-            cardsData={cards}
-            onCardChange={handleCardChange}
-          />
-          <ThumbnailList images={allImages} selectedImage={selectedImage} onThumbnailClick={handleThumbnailClick} />
-        </div>
+		// Sum up quantities of matching products
+		return matchingProducts.reduce(
+			(sum, product) => sum + Number(product.quantity),
+			0
+		)
+	}, [products, selectedVariantOptions, totalStock])
 
-        {/* Product Info Section */}
-        <div className="space-y-6">
-          <h1 className="text-3xl font-bold">{product.name}</h1>
-          <div className="flex items-center space-x-4 text-sm">
-            <span>Score: {product.score}</span>
-            <div className="border-r-2 h-4 border-gray-500" />
-            <span>Sold: {product.sold}</span>
-          </div>
-          <p className="text-2xl font-semibold text-blue-600">${product.price.toFixed(2)}</p>
-          <div className="space-y-2">
-            <p className="text-gray-600">{product.description}</p>
-            <div className="flex flex-wrap gap-2">
-              {product.tags.map(tag => (
-                <span key={tag} className="px-2 py-1 text-sm bg-gray-100 rounded-full">{tag}</span>
-              ))}
-            </div>
-          </div>
+	useEffect(() => {
+		const stock = getAvailableStock()
+		if (stock > 0 && quantity > stock) {
+			setQuantity(stock)
+		}
+	}, [selectedVariantOptions, quantity, getAvailableStock])
+	//#endregion
 
-          <VariantSelection
-            product={product}
-            selectedColor={selectedColor}
-            selectedSize={selectedSize}
-            onSelectColor={setSelectedColor}
-            onSelectSize={setSelectedSize}
-            quantity={quantity}
-            availableStock={availableStock}
-            onQuantityChange={handleQuantityChange}
-            onAddToCart={handleAddToCart}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
+	//#region Event Handlers
+	const handleCardChange = useCallback((card: { id: number; img: string }) => {
+		setSelectedImage(card.img)
+	}, [])
 
-export default ProductDetail;
+	const handleThumbnailClick = useCallback((image: string) => {
+		setSelectedImage(image)
+		setCards((prevCards) => {
+			const newCards = [...prevCards]
+			const index = newCards.findIndex((card) => card.img === image)
+			if (index !== -1) {
+				const [card] = newCards.splice(index, 1)
+				newCards.push(card)
+			}
+			return newCards
+		})
+	}, [])
+
+	const handleQuantityChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const value = parseInt(e.target.value, 10)
+			const stock = getAvailableStock()
+			if (isNaN(value) || value < 1) {
+				setQuantity(1)
+			} else if (value > stock) {
+				setQuantity(stock)
+			} else {
+				setQuantity(value)
+			}
+		},
+		[getAvailableStock]
+	)
+
+	const handleSelectVariantOption = useCallback((key: string, value: any) => {
+		setSelectedVariantOptions((prev) => ({
+			...prev,
+			[key]: value,
+		}))
+	}, [])
+
+	const handleAddToCart = useCallback(() => {
+		// Find the matching product variant
+		const matchingProduct = products.find((product) => {
+			const metadata = parseMetadata(product.metadata)
+
+			// Check if this product matches all selected options
+			for (const [key, value] of Object.entries(selectedVariantOptions)) {
+				if (value === null) return false // All options must be selected
+				if (metadata[key] !== value) return false
+			}
+
+			return true
+		})
+
+		if (matchingProduct) {
+			console.log("Add to cart:", {
+				productId: matchingProduct.id,
+				quantity,
+				metadata: parseMetadata(matchingProduct.metadata),
+			})
+			// Implement actual cart functionality here
+		}
+	}, [selectedVariantOptions, quantity, products])
+	//#endregion
+
+	//#region Derived Data with useMemo
+	const allImages = useMemo(() => {
+		return productModel?.data?.resources || []
+	}, [productModel])
+
+	const availableStock = useMemo(() => getAvailableStock(), [getAvailableStock])
+
+	const formattedPrice = useMemo(() => {
+		if (!productModel?.data?.listPrice) return "$0.00"
+		// Convert bigint to number and format as currency
+		const price = Number(productModel?.data?.listPrice) / 100 // Assuming price is in cents
+		return `$${price.toFixed(2)}`
+	}, [productModel])
+	//#endregion
+
+	if (modelError || variantsError) {
+		return (
+			<div className="text-red-500 text-center p-4">
+				{modelError
+					? "Error loading product details"
+					: "Error loading product variants"}
+			</div>
+		)
+	}
+
+	if (error) return <div className="text-red-500 text-center p-4">{error}</div>
+	if (isLoadingModel || isLoadingVariants || !productModel) {
+		return <div className="text-center p-4">Loading product details...</div>
+	}
+
+	return (
+		<div className="container mx-auto px-4 py-8">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+				{/* Product Images Section */}
+				<div className="space-y-4">
+					{cards.length > 0 && (
+						<>
+							<Stack
+								randomRotation={true}
+								sensitivity={180}
+								sendToBackOnClick={false}
+								cardDimensions={{ width: 300, height: 300 }}
+								cardsData={cards}
+								onCardChange={handleCardChange}
+							/>
+							<ThumbnailList
+								images={allImages}
+								selectedImage={selectedImage}
+								onThumbnailClick={handleThumbnailClick}
+							/>
+						</>
+					)}
+					{cards.length === 0 && (
+						<div className="bg-gray-200 h-64 flex items-center justify-center">
+							<p>No images available</p>
+						</div>
+					)}
+				</div>
+
+				{/* Product Info Section */}
+				<div className="space-y-6">
+					<h1 className="text-3xl font-bold">{productModel?.data?.name}</h1>
+					<div className="flex items-center space-x-4 text-sm">
+						<span>
+							Brand:{" "}
+							{productModel?.data?.brandId
+								? `#${productModel?.data?.brandId}`
+								: "N/A"}
+						</span>
+					</div>
+					<p className="text-2xl font-semibold text-blue-600">
+						{formattedPrice}
+					</p>
+					<div className="space-y-2">
+						<p className="text-gray-600">{productModel?.data?.description}</p>
+						<div className="flex flex-wrap gap-2">
+							{productModel?.data?.tags?.map((tag) => (
+								<span
+									key={tag}
+									className="px-2 py-1 text-sm bg-gray-100 rounded-full"
+								>
+									{tag}
+								</span>
+							))}
+						</div>
+					</div>
+
+					<VariantSelection
+						products={products}
+						selectedVariantOptions={selectedVariantOptions}
+						onSelectVariantOption={handleSelectVariantOption}
+						quantity={quantity}
+						availableStock={availableStock}
+						onQuantityChange={handleQuantityChange}
+						onAddToCart={handleAddToCart}
+					/>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default ProductDetail
