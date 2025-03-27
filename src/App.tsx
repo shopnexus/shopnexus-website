@@ -12,6 +12,7 @@ import ProductDetail from "./app/Products/ProductDetail"
 import NavigationBar from "./components/NavigationBar"
 import Profile from "./app/Profile/Profile"
 import ProductManagement from "./app/Admin/Pages/ProductManagement"
+import ProductModelManagement from "./app/Admin/Pages/ProductModelManagement"
 import { AuthProvider } from "./contexts/AuthContext"
 // import ProtectedRoute from "./components/ProtectedRoute"
 import AdminLayout from "./app/Admin/Layout/AdminLayout"
@@ -44,6 +45,7 @@ const App: React.FC = () => {
 						<Route path="/admin" element={<AdminLayout />}>
 							<Route index element={<AdminDashboard />} />
 							<Route path="products" element={<ProductManagement />} />
+							<Route path="product-models" element={<ProductModelManagement />} />
 							<Route path="tags" element={<TagManagement />} />
 							<Route path="sales" element={<SalesManagement />} />
 							<Route path="settings" element={<SettingManager />} />
