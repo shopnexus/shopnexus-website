@@ -1,8 +1,23 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Plus, Edit2, Trash2, Calendar, Search, Tag } from "lucide-react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
+import {
+	useInfiniteQuery,
+	useMutation,
+	useQuery,
+} from "@connectrpc/connect-query"
+import {
+	createSale,
+	deleteSale,
+	listBrands,
+	listProductModels,
+	listSales,
+	listTags,
+	updateSale,
+} from "shopnexus-protobuf-gen-ts"
+import { SaleEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/sale_pb"
 
 interface Sale {
 	id: string
@@ -18,39 +33,110 @@ interface Sale {
 }
 
 const SalesManagement = () => {
-	const [sales, setSales] = useState<Sale[]>([])
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
+	const [selectedSale, setSelectedSale] = useState<SaleEntity | null>(null)
 	const [searchQuery, setSearchQuery] = useState("")
 	const [formData, setFormData] = useState({
-		name: "",
-		description: "",
-		discountPercentage: 0,
-		startDate: "",
-		endDate: "",
-		products: [] as string[],
+		tag: "",
+		productModelId: undefined as bigint | undefined,
+		brandId: undefined as bigint | undefined,
+		dateStarted: "",
+		dateEnded: "",
+		quantity: 0n,
+		discountPercent: 0,
+		discountPrice: undefined as bigint | undefined,
+		maxDiscountPrice: 0n,
 	})
 
-	const handleOpenModal = (sale?: Sale) => {
+	// Fetch sales with pagination
+	const {
+		data: salesData,
+		fetchNextPage,
+		hasNextPage,
+		isLoading,
+		refetch,
+	} = useInfiniteQuery(
+		listSales,
+		{
+			pagination: {
+				limit: 10,
+				page: 1,
+			},
+		},
+		{
+			getNextPageParam: (lastPage) => {
+				if (!lastPage?.pagination?.nextPage) return undefined
+				return {
+					page: lastPage.pagination.nextPage,
+					limit: lastPage.pagination.limit ?? 10,
+				}
+			},
+			pageParamKey: "pagination",
+		}
+	)
+
+	// Fetch brands and product models for dropdowns
+	const { data: brands } = useQuery(listBrands, {})
+	const { data: productModels } = useQuery(listProductModels, {
+		pagination: { limit: 100, page: 1 },
+	})
+	const { data: tags } = useQuery(listTags, {})
+
+	// Mutations for create, update, delete
+	const { mutateAsync: mutateCreateSale, isPending: isCreating } = useMutation(
+		createSale,
+		{
+			onSuccess: () => refetch(),
+		}
+	)
+	const { mutateAsync: mutateUpdateSale, isPending: isUpdating } = useMutation(
+		updateSale,
+		{
+			onSuccess: () => refetch(),
+		}
+	)
+	const { mutateAsync: mutateDeleteSale, isPending: isDeleting } = useMutation(
+		deleteSale,
+		{
+			onSuccess: () => refetch(),
+		}
+	)
+
+	// Flatten sales data from all pages
+	const sales = useMemo(() => {
+		return salesData?.pages.flatMap((page) => page.data || []) || []
+	}, [salesData])
+
+	const handleOpenModal = (sale?: SaleEntity) => {
 		if (sale) {
 			setSelectedSale(sale)
 			setFormData({
-				name: sale.name,
-				description: sale.description,
-				discountPercentage: sale.discountPercentage,
-				startDate: sale.startDate.split("T")[0],
-				endDate: sale.endDate.split("T")[0],
-				products: sale.products,
+				tag: sale.tag || "",
+				productModelId: sale.productModelId,
+				brandId: sale.brandId,
+				dateStarted: new Date(Number(sale.dateStarted))
+					.toISOString()
+					.split("T")[0],
+				dateEnded: sale.dateEnded
+					? new Date(Number(sale.dateEnded)).toISOString().split("T")[0]
+					: "",
+				quantity: sale.quantity,
+				discountPercent: sale.discountPercent || 0,
+				discountPrice: sale.discountPrice,
+				maxDiscountPrice: sale.maxDiscountPrice,
 			})
 		} else {
 			setSelectedSale(null)
 			setFormData({
-				name: "",
-				description: "",
-				discountPercentage: 0,
-				startDate: "",
-				endDate: "",
-				products: [],
+				tag: "",
+				productModelId: undefined,
+				brandId: undefined,
+				dateStarted: "",
+				dateEnded: "",
+				quantity: 0n,
+				discountPercent: 0,
+				discountPrice: undefined,
+				maxDiscountPrice: 0n,
 			})
 		}
 		setIsModalOpen(true)
@@ -62,63 +148,109 @@ const SalesManagement = () => {
 	}
 
 	const handleChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+		e: React.ChangeEvent<
+			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+		>
 	) => {
 		const { name, value } = e.target
-		setFormData((prev) => ({
-			...prev,
-			[name]: name === "discountPercentage" ? Number(value) : value,
-		}))
+		setFormData((prev) => {
+			const newValue = (() => {
+				if (name === "discountPercent") return Number(value)
+				if (name === "quantity" || name === "maxDiscountPrice")
+					return BigInt(value || 0)
+				if (name === "discountPrice") return value ? BigInt(value) : undefined
+				if (name === "productModelId" || name === "brandId") {
+					return value ? BigInt(value) : undefined
+				}
+				return value
+			})()
+
+			return {
+				...prev,
+				[name]: newValue,
+			}
+		})
 	}
 
 	const handleSubmit = async () => {
-		const status = calculateStatus(formData.startDate, formData.endDate)
-
-		if (selectedSale) {
-			const updatedSales = sales.map((sale) =>
-				sale.id === selectedSale.id
-					? {
-							...sale,
-							...formData,
-							status,
-							productsCount: formData.products.length,
-					  }
-					: sale
-			)
-			setSales(updatedSales)
-		} else {
-			const newSale: Sale = {
-				id: Date.now().toString(),
-				...formData,
-				status,
-				productsCount: formData.products.length,
-				createdAt: new Date().toISOString(),
+		try {
+			const payload = {
+				tag: formData.tag || undefined,
+				productModelId: formData.productModelId,
+				brandId: formData.brandId,
+				dateStarted: BigInt(new Date(formData.dateStarted).getTime()),
+				dateEnded: formData.dateEnded
+					? BigInt(new Date(formData.dateEnded).getTime())
+					: undefined,
+				quantity: BigInt(formData.quantity),
+				discountPercent: formData.discountPercent || undefined,
+				discountPrice: formData.discountPrice,
+				maxDiscountPrice: BigInt(formData.maxDiscountPrice),
 			}
-			setSales([...sales, newSale])
+
+			if (selectedSale) {
+				await mutateUpdateSale({
+					id: selectedSale.id,
+					...payload,
+				})
+			} else {
+				await mutateCreateSale(payload)
+			}
+			handleCloseModal()
+		} catch (error) {
+			console.error("Error saving sale:", error)
+			alert("Failed to save sale. Please try again.")
 		}
-		handleCloseModal()
 	}
 
-	const handleDelete = async (id: string) => {
+	const handleDelete = async (id: bigint) => {
 		if (window.confirm("Are you sure you want to delete this sale?")) {
-			setSales(sales.filter((s) => s.id !== id))
+			try {
+				await mutateDeleteSale({ id })
+			} catch (error) {
+				console.error("Error deleting sale:", error)
+				alert("Failed to delete sale. Please try again.")
+			}
 		}
 	}
 
-	const calculateStatus = (
-		startDate: string,
-		endDate: string
-	): Sale["status"] => {
-		const now = new Date()
-		const start = new Date(startDate)
-		const end = new Date(endDate)
+	const getProductModelName = (id?: bigint) => {
+		if (!id) return "N/A"
+		const model = productModels?.data?.find((m) => m.id === id)
+		return model?.name || id.toString()
+	}
 
-		if (now < start) return "scheduled"
-		if (now > end) return "expired"
+	const getBrandName = (id?: bigint) => {
+		if (!id) return "N/A"
+		const brand = brands?.data?.find((b) => b.id === id)
+		return brand?.name || id.toString()
+	}
+
+	const formatDate = (timestamp?: bigint) => {
+		if (!timestamp) return "N/A"
+		return new Date(Number(timestamp)).toLocaleDateString()
+	}
+
+	const formatCurrency = (amount?: bigint) => {
+		if (amount === undefined) return "N/A"
+		return new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: "USD",
+		}).format(Number(amount) / 100)
+	}
+
+	const getSaleStatus = (sale: SaleEntity) => {
+		const now = Date.now()
+		const startTime = Number(sale.dateStarted)
+		const endTime = sale.dateEnded ? Number(sale.dateEnded) : Infinity
+
+		if (!sale.isActive) return "inactive"
+		if (now < startTime) return "scheduled"
+		if (now > endTime) return "expired"
 		return "active"
 	}
 
-	const getStatusColor = (status: Sale["status"]) => {
+	const getStatusColor = (status: string) => {
 		switch (status) {
 			case "active":
 				return "text-green-600 bg-green-100"
@@ -126,11 +258,15 @@ const SalesManagement = () => {
 				return "text-blue-600 bg-blue-100"
 			case "expired":
 				return "text-gray-600 bg-gray-100"
+			case "inactive":
+				return "text-red-600 bg-red-100"
+			default:
+				return "text-gray-600 bg-gray-100"
 		}
 	}
 
 	const filteredSales = sales.filter((sale) =>
-		sale.name.toLowerCase().includes(searchQuery.toLowerCase())
+		(sale.tag || "").toLowerCase().includes(searchQuery.toLowerCase())
 	)
 
 	return (
@@ -151,6 +287,7 @@ const SalesManagement = () => {
 					<Button
 						onClick={() => handleOpenModal()}
 						className="flex items-center"
+						disabled={isCreating}
 					>
 						<Plus className="w-4 h-4 mr-2" />
 						Add Sale
@@ -160,93 +297,164 @@ const SalesManagement = () => {
 
 			<Card>
 				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200">
+					<table className="w-full table-fixed divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-									Name
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
+									Tag
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
+									Target
+								</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
 									Discount
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
 									Duration
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/8">
+									Quantity
+								</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/8">
 									Status
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-									Products
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">
 									Actions
 								</th>
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-							{filteredSales.map((sale) => (
-								<tr key={sale.id}>
-									<td className="px-6 py-4">
-										<div>
-											<div className="font-medium">{sale.name}</div>
-											<div className="text-sm text-gray-500">
-												{sale.description}
-											</div>
-										</div>
-									</td>
-									<td className="px-6 py-4">
-										<span className="font-medium text-green-600">
-											{sale.discountPercentage}% OFF
-										</span>
-									</td>
-									<td className="px-6 py-4">
-										<div className="flex items-center text-sm text-gray-500">
-											<Calendar className="w-4 h-4 mr-2" />
-											<div>
-												<div>
-													{new Date(sale.startDate).toLocaleDateString()}
-												</div>
-												<div>{new Date(sale.endDate).toLocaleDateString()}</div>
-											</div>
-										</div>
-									</td>
-									<td className="px-6 py-4">
-										<span
-											className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-												sale.status
-											)}`}
-										>
-											{sale.status}
-										</span>
-									</td>
-									<td className="px-6 py-4">
-										<span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-											{sale.productsCount} products
-										</span>
-									</td>
-									<td className="px-6 py-4">
-										<div className="flex space-x-2">
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => handleOpenModal(sale)}
-											>
-												<Edit2 className="w-4 h-4" />
-											</Button>
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => handleDelete(sale.id)}
-											>
-												<Trash2 className="w-4 h-4" />
-											</Button>
-										</div>
+							{isLoading ? (
+								<tr>
+									<td colSpan={7} className="px-4 py-4 text-center">
+										Loading sales...
 									</td>
 								</tr>
-							))}
+							) : filteredSales.length === 0 ? (
+								<tr>
+									<td colSpan={7} className="px-4 py-4 text-center">
+										No sales found
+									</td>
+								</tr>
+							) : (
+								filteredSales.map((sale) => {
+									const status = getSaleStatus(sale)
+									return (
+										<tr key={sale.id.toString()}>
+											<td className="px-4 py-4 truncate">
+												<span className="inline-flex items-center">
+													<Tag className="w-4 h-4 mr-1 text-gray-400" />
+													{sale.tag || "No tag"}
+												</span>
+											</td>
+											<td className="px-4 py-4">
+												<div className="space-y-1">
+													{sale.productModelId && (
+														<div className="text-sm">
+															<span className="font-medium">Product:</span>{" "}
+															{getProductModelName(sale.productModelId)}
+														</div>
+													)}
+													{sale.brandId && (
+														<div className="text-sm">
+															<span className="font-medium">Brand:</span>{" "}
+															{getBrandName(sale.brandId)}
+														</div>
+													)}
+													{!sale.productModelId && !sale.brandId && (
+														<div className="text-sm text-gray-500">
+															All products
+														</div>
+													)}
+												</div>
+											</td>
+											<td className="px-4 py-4">
+												<div className="space-y-1">
+													{sale.discountPercent && (
+														<div className="font-medium text-green-600">
+															{sale.discountPercent}% OFF
+														</div>
+													)}
+													{sale.discountPrice && (
+														<div className="font-medium text-green-600">
+															Fixed price: {formatCurrency(sale.discountPrice)}
+														</div>
+													)}
+													<div className="text-xs text-gray-500">
+														Max: {formatCurrency(sale.maxDiscountPrice)}
+													</div>
+												</div>
+											</td>
+											<td className="px-4 py-4">
+												<div className="flex items-center text-sm text-gray-500">
+													<Calendar className="w-4 h-4 mr-2" />
+													<div>
+														<div>From: {formatDate(sale.dateStarted)}</div>
+														{sale.dateEnded && (
+															<div>To: {formatDate(sale.dateEnded)}</div>
+														)}
+													</div>
+												</div>
+											</td>
+											<td className="px-4 py-4">
+												<div className="text-sm">
+													<span className="font-medium">
+														{sale.used.toString()}
+													</span>
+													{" / "}
+													<span>{sale.quantity.toString()}</span>
+												</div>
+											</td>
+											<td className="px-4 py-4">
+												<span
+													className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+														status
+													)}`}
+												>
+													{status}
+												</span>
+											</td>
+											<td className="px-4 py-4">
+												<div className="flex space-x-1">
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => handleOpenModal(sale)}
+														className="p-1"
+														disabled={isUpdating}
+													>
+														<Edit2 className="w-3 h-3" />
+													</Button>
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => handleDelete(sale.id)}
+														className="p-1"
+														disabled={isDeleting}
+													>
+														<Trash2 className="w-3 h-3" />
+													</Button>
+												</div>
+											</td>
+										</tr>
+									)
+								})
+							)}
 						</tbody>
 					</table>
 				</div>
+
+				{hasNextPage && (
+					<div className="flex justify-center mt-4">
+						<Button
+							variant="outline"
+							onClick={() => fetchNextPage()}
+							disabled={isLoading}
+						>
+							Load More
+						</Button>
+					</div>
+				)}
 			</Card>
 
 			<Modal
@@ -257,46 +465,54 @@ const SalesManagement = () => {
 				<div className="space-y-4">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Sale Name
+							Tag
 						</label>
 						<input
 							type="text"
-							name="name"
-							value={formData.name}
+							name="tag"
+							value={formData.tag}
 							onChange={handleChange}
 							className="w-full px-3 py-2 border rounded-lg"
-							placeholder="Enter sale name"
+							placeholder="Enter sale tag (optional)"
 						/>
 					</div>
 
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Description
+							Target Product Model (optional)
 						</label>
-						<textarea
-							name="description"
-							value={formData.description}
+						<select
+							name="productModelId"
+							value={formData.productModelId?.toString() || ""}
 							onChange={handleChange}
-							rows={3}
 							className="w-full px-3 py-2 border rounded-lg"
-							placeholder="Enter sale description"
-						/>
+						>
+							<option value="">Select a product model</option>
+							{productModels?.data?.map((model) => (
+								<option key={model.id.toString()} value={model.id.toString()}>
+									{model.name}
+								</option>
+							))}
+						</select>
 					</div>
 
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Discount Percentage
+							Target Brand (optional)
 						</label>
-						<input
-							type="number"
-							name="discountPercentage"
-							value={formData.discountPercentage}
+						<select
+							name="brandId"
+							value={formData.brandId?.toString() || ""}
 							onChange={handleChange}
-							min="0"
-							max="100"
 							className="w-full px-3 py-2 border rounded-lg"
-							placeholder="Enter discount percentage"
-						/>
+						>
+							<option value="">Select a brand</option>
+							{brands?.data?.map((brand) => (
+								<option key={brand.id.toString()} value={brand.id.toString()}>
+									{brand.name}
+								</option>
+							))}
+						</select>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
@@ -306,25 +522,89 @@ const SalesManagement = () => {
 							</label>
 							<input
 								type="date"
-								name="startDate"
-								value={formData.startDate}
+								name="dateStarted"
+								value={formData.dateStarted}
 								onChange={handleChange}
 								className="w-full px-3 py-2 border rounded-lg"
+								required
 							/>
 						</div>
 
 						<div>
 							<label className="block text-sm font-medium text-gray-700 mb-1">
-								End Date
+								End Date (optional)
 							</label>
 							<input
 								type="date"
-								name="endDate"
-								value={formData.endDate}
+								name="dateEnded"
+								value={formData.dateEnded}
 								onChange={handleChange}
 								className="w-full px-3 py-2 border rounded-lg"
 							/>
 						</div>
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-1">
+							Quantity
+						</label>
+						<input
+							type="number"
+							name="quantity"
+							value={formData.quantity.toString()}
+							onChange={handleChange}
+							min="0"
+							className="w-full px-3 py-2 border rounded-lg"
+							required
+						/>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Discount Percentage (%)
+							</label>
+							<input
+								type="number"
+								name="discountPercent"
+								value={formData.discountPercent}
+								onChange={handleChange}
+								min="0"
+								max="100"
+								className="w-full px-3 py-2 border rounded-lg"
+								placeholder="Enter discount percentage"
+							/>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Fixed Price (cents)
+							</label>
+							<input
+								type="number"
+								name="discountPrice"
+								value={formData.discountPrice?.toString() || ""}
+								onChange={handleChange}
+								min="0"
+								className="w-full px-3 py-2 border rounded-lg"
+								placeholder="Enter fixed price (in cents)"
+							/>
+						</div>
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-1">
+							Maximum Discount (cents)
+						</label>
+						<input
+							type="number"
+							name="maxDiscountPrice"
+							value={formData.maxDiscountPrice.toString()}
+							onChange={handleChange}
+							min="0"
+							className="w-full px-3 py-2 border rounded-lg"
+							required
+						/>
 					</div>
 				</div>
 
@@ -332,7 +612,7 @@ const SalesManagement = () => {
 					<Button variant="outline" onClick={handleCloseModal}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit}>
+					<Button onClick={handleSubmit} disabled={isCreating || isUpdating}>
 						{selectedSale ? "Update" : "Add"} Sale
 					</Button>
 				</div>
