@@ -500,7 +500,7 @@ const ProductModelManagement = () => {
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<h1 className="text-2xl font-bold">Product Models</h1>
-				<div className="flex items-center space-x-4">
+				<div className="flex items-center space-x-4 ">
 					<div className="relative">
 						<Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
 						<input
@@ -511,7 +511,7 @@ const ProductModelManagement = () => {
 							className="pl-10 pr-4 py-2 border rounded-lg w-64"
 						/>
 					</div>
-					<Button onClick={() => openModal()}>
+					<Button onClick={() => openModal()} className="flex items-center">
 						<Plus className="w-4 h-4 mr-2" />
 						Add Model
 					</Button>
