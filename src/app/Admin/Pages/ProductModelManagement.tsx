@@ -496,6 +496,31 @@ const ProductModelManagement = () => {
 		navigate(`/admin/products?modelId=${modelId}`)
 	}
 
+	// Get brand and type names for display
+	const getBrandName = useCallback(
+		(brandId: bigint) => {
+			const brand = brands?.data?.find((b) => b.id === brandId)
+			return brand?.name || brandId.toString()
+		},
+		[brands?.data]
+	)
+
+	const getTypeName = useCallback(
+		(typeId: bigint) => {
+			const type = productTypes?.data?.find((t) => t.id === typeId)
+			return type?.name || typeId.toString()
+		},
+		[productTypes?.data]
+	)
+
+	// Format currency for display
+	const formatCurrency = (amount: bigint) => {
+		return new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: "USD",
+		}).format(Number(amount))
+	}
+
 	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
@@ -520,28 +545,28 @@ const ProductModelManagement = () => {
 
 			<Card>
 				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200">
+					<table className="w-full table-fixed divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/10">
 									Image
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/4">
 									Name
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/8">
 									Brand
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/8">
 									List Price
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/12">
 									Type
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
 									Tags
 								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">
 									Actions
 								</th>
 							</tr>
@@ -553,35 +578,66 @@ const ProductModelManagement = () => {
 								)
 								.map((model) => (
 									<tr key={model.id.toString()}>
-										<td className="px-6 py-4">
-											<img
-												src={model.resources[0]}
-												alt={model.name}
-												className="w-16 h-16 object-cover rounded-lg"
-											/>
+										<td className="px-4 py-4">
+											{model.resources.length > 0 ? (
+												<img
+													src={model.resources[0]}
+													alt={model.name}
+													className="w-16 h-16 object-cover rounded-lg"
+													onError={(e) => {
+														;(e.target as HTMLImageElement).src =
+															"https://via.placeholder.com/150?text=No+Image"
+													}}
+												/>
+											) : (
+												<div className="w-16 h-16 bg-gray-100 flex items-center justify-center rounded-lg">
+													<span className="text-xs text-gray-400">
+														No image
+													</span>
+												</div>
+											)}
 										</td>
-										<td className="px-6 py-4">
-											<div className="font-medium">{model.name}</div>
-											<div className="text-sm text-gray-500 truncate max-w-xs">
+										<td className="px-4 py-4">
+											<div
+												className="font-medium truncate max-w-[200px]"
+												title={model.name}
+											>
+												{model.name}
+											</div>
+											<div
+												className="text-sm text-gray-500 truncate max-w-[200px]"
+												title={model.description}
+											>
 												{model.description}
 											</div>
 										</td>
-										<td className="px-6 py-4">{model.brandId.toString()}</td>
-										<td className="px-6 py-4">${model.listPrice.toString()}</td>
-										<td className="px-6 py-4">{model.type.toString()}</td>
-										<td className="px-6 py-4">
+										<td className="px-4 py-4">{getBrandName(model.brandId)}</td>
+										<td className="px-4 py-4">
+											{formatCurrency(model.listPrice)}
+										</td>
+										<td className="px-4 py-4">{getTypeName(model.type)}</td>
+										<td className="px-4 py-4">
 											<div className="flex flex-wrap gap-1">
-												{model.tags.map((tag, index) => (
-													<span
-														key={index}
-														className="px-2 py-1 text-xs bg-gray-100 rounded-full"
-													>
-														{tag}
+												{model.tags.length > 0 ? (
+													model.tags.slice(0, 3).map((tag, index) => (
+														<span
+															key={index}
+															className="px-2 py-1 text-xs bg-gray-100 rounded-full"
+														>
+															{tag}
+														</span>
+													))
+												) : (
+													<span className="text-gray-400 text-sm">No tags</span>
+												)}
+												{model.tags.length > 3 && (
+													<span className="px-2 py-1 text-xs bg-gray-100 rounded-full">
+														+{model.tags.length - 3} more
 													</span>
-												))}
+												)}
 											</div>
 										</td>
-										<td className="px-6 py-4">
+										<td className="px-4 py-4">
 											<div className="flex space-x-2">
 												<Button
 													variant="outline"
