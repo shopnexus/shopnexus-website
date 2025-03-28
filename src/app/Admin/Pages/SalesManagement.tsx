@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import { Plus, Edit2, Trash2, Calendar, Search, Tag } from "lucide-react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
@@ -19,30 +19,149 @@ import {
 } from "shopnexus-protobuf-gen-ts"
 import { SaleEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/sale_pb"
 
-interface Sale {
-	id: string
+type SaleFormData = {
+	id: bigint
+	tag?: string
+	productModelId?: bigint
+	brandId?: bigint
+	dateStarted: bigint
+	dateEnded?: bigint
+	quantity: bigint
+	used: bigint
+	isActive: boolean
+	discountPercent?: number
+	discountPrice?: bigint
+	maxDiscountPrice: bigint
+}
+
+type AutocompleteProps<T> = {
+	options: T[]
+	value: string
+	onChange: (value: string) => void
+	getOptionLabel: (option: T) => string
+	getOptionValue: (option: T) => string
+	placeholder: string
+	label: string
 	name: string
-	description: string
-	discountPercentage: number
-	startDate: string
-	endDate: string
-	status: "active" | "scheduled" | "expired"
-	productsCount: number
-	products: string[] // Product IDs
-	createdAt: string
+	allowCustomValues?: boolean
+}
+
+function Autocomplete<T>({
+	options,
+	value,
+	onChange,
+	getOptionLabel,
+	getOptionValue,
+	placeholder,
+	label,
+	name,
+	allowCustomValues = true,
+}: AutocompleteProps<T>) {
+	const [inputValue, setInputValue] = useState(value)
+	const [isOpen, setIsOpen] = useState(false)
+	const [filteredOptions, setFilteredOptions] = useState<T[]>([])
+	const inputRef = useRef<HTMLInputElement>(null)
+	const dropdownRef = useRef<HTMLDivElement>(null)
+
+	// Filter options based on input value
+	useEffect(() => {
+		if (!inputValue.trim()) {
+			setFilteredOptions(options)
+			return
+		}
+
+		const filtered = options.filter((option) =>
+			getOptionLabel(option).toLowerCase().includes(inputValue.toLowerCase())
+		)
+		setFilteredOptions(filtered)
+	}, [inputValue, options, getOptionLabel])
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(event.target as Node) &&
+				inputRef.current &&
+				!inputRef.current.contains(event.target as Node)
+			) {
+				setIsOpen(false)
+			}
+		}
+
+		document.addEventListener("mousedown", handleClickOutside)
+		return () => document.removeEventListener("mousedown", handleClickOutside)
+	}, [])
+
+	// Handle input change
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = e.target.value
+		setInputValue(newValue)
+		if (allowCustomValues) {
+			onChange(newValue)
+		}
+		setIsOpen(true)
+	}
+
+	// Handle option selection
+	const handleSelectOption = (option: T) => {
+		const newValue = getOptionValue(option)
+		setInputValue(getOptionLabel(option))
+		onChange(newValue)
+		setIsOpen(false)
+		inputRef.current?.blur()
+	}
+
+	return (
+		<div className="relative">
+			<label className="block text-sm font-medium text-gray-700 mb-1">
+				{label}
+			</label>
+			<input
+				ref={inputRef}
+				type="text"
+				name={name}
+				value={inputValue}
+				onChange={handleInputChange}
+				onFocus={() => setIsOpen(true)}
+				placeholder={placeholder}
+				className="w-full px-3 py-2 border rounded-lg"
+				autoComplete="off"
+			/>
+			{isOpen && filteredOptions.length > 0 && (
+				<div
+					ref={dropdownRef}
+					className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
+				>
+					{filteredOptions.map((option, index) => (
+						<div
+							key={index}
+							onClick={() => handleSelectOption(option)}
+							className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
+						>
+							{getOptionLabel(option)}
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	)
 }
 
 const SalesManagement = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [selectedSale, setSelectedSale] = useState<SaleEntity | null>(null)
 	const [searchQuery, setSearchQuery] = useState("")
-	const [formData, setFormData] = useState({
+	const [formData, setFormData] = useState<SaleFormData>({
+		id: 0n,
 		tag: "",
 		productModelId: undefined as bigint | undefined,
 		brandId: undefined as bigint | undefined,
-		dateStarted: "",
-		dateEnded: "",
+		dateStarted: 0n,
+		dateEnded: 0n,
 		quantity: 0n,
+		used: 0n,
+		isActive: false,
 		discountPercent: 0,
 		discountPrice: undefined as bigint | undefined,
 		maxDiscountPrice: 0n,
@@ -76,11 +195,15 @@ const SalesManagement = () => {
 	)
 
 	// Fetch brands and product models for dropdowns
-	const { data: brands } = useQuery(listBrands, {})
+	const { data: brands } = useQuery(listBrands, {
+		pagination: { limit: 100, page: 1 },
+	})
 	const { data: productModels } = useQuery(listProductModels, {
 		pagination: { limit: 100, page: 1 },
 	})
-	const { data: tags } = useQuery(listTags, {})
+	const { data: tags } = useQuery(listTags, {
+		pagination: { limit: 100, page: 1 },
+	})
 
 	// Mutations for create, update, delete
 	const { mutateAsync: mutateCreateSale, isPending: isCreating } = useMutation(
@@ -111,16 +234,15 @@ const SalesManagement = () => {
 		if (sale) {
 			setSelectedSale(sale)
 			setFormData({
+				id: sale.id,
 				tag: sale.tag || "",
 				productModelId: sale.productModelId,
 				brandId: sale.brandId,
-				dateStarted: new Date(Number(sale.dateStarted))
-					.toISOString()
-					.split("T")[0],
-				dateEnded: sale.dateEnded
-					? new Date(Number(sale.dateEnded)).toISOString().split("T")[0]
-					: "",
+				dateStarted: sale.dateStarted,
+				dateEnded: sale.dateEnded || 0n,
 				quantity: sale.quantity,
+				used: sale.used,
+				isActive: sale.isActive,
 				discountPercent: sale.discountPercent || 0,
 				discountPrice: sale.discountPrice,
 				maxDiscountPrice: sale.maxDiscountPrice,
@@ -128,12 +250,15 @@ const SalesManagement = () => {
 		} else {
 			setSelectedSale(null)
 			setFormData({
+				id: 0n,
 				tag: "",
 				productModelId: undefined,
 				brandId: undefined,
-				dateStarted: "",
-				dateEnded: "",
+				dateStarted: 0n,
+				dateEnded: 0n,
 				quantity: 0n,
+				used: 0n,
+				isActive: false,
 				discountPercent: 0,
 				discountPrice: undefined,
 				maxDiscountPrice: 0n,
@@ -162,6 +287,10 @@ const SalesManagement = () => {
 				if (name === "productModelId" || name === "brandId") {
 					return value ? BigInt(value) : undefined
 				}
+				if (name === "dateStarted" || name === "dateEnded") {
+					console.log(value)
+					return value ? BigInt(value) : undefined
+				}
 				return value
 			})()
 
@@ -178,10 +307,8 @@ const SalesManagement = () => {
 				tag: formData.tag || undefined,
 				productModelId: formData.productModelId,
 				brandId: formData.brandId,
-				dateStarted: BigInt(new Date(formData.dateStarted).getTime()),
-				dateEnded: formData.dateEnded
-					? BigInt(new Date(formData.dateEnded).getTime())
-					: undefined,
+				dateStarted: formData.dateStarted,
+				dateEnded: formData.dateEnded,
 				quantity: BigInt(formData.quantity),
 				discountPercent: formData.discountPercent || undefined,
 				discountPrice: formData.discountPrice,
@@ -215,24 +342,24 @@ const SalesManagement = () => {
 	}
 
 	const getProductModelName = (id?: bigint) => {
-		if (!id) return "N/A"
+		if (!id) return ""
 		const model = productModels?.data?.find((m) => m.id === id)
 		return model?.name || id.toString()
 	}
 
 	const getBrandName = (id?: bigint) => {
-		if (!id) return "N/A"
+		if (!id) return ""
 		const brand = brands?.data?.find((b) => b.id === id)
 		return brand?.name || id.toString()
 	}
 
 	const formatDate = (timestamp?: bigint) => {
-		if (!timestamp) return "N/A"
+		if (!timestamp) return ""
 		return new Date(Number(timestamp)).toLocaleDateString()
 	}
 
 	const formatCurrency = (amount?: bigint) => {
-		if (amount === undefined) return "N/A"
+		if (amount === undefined) return ""
 		return new Intl.NumberFormat("en-US", {
 			style: "currency",
 			currency: "USD",
@@ -269,6 +396,149 @@ const SalesManagement = () => {
 		(sale.tag || "").toLowerCase().includes(searchQuery.toLowerCase())
 	)
 
+	// Helper function to render table content based on loading state and data
+	const renderTableContent = () => {
+		if (isLoading) {
+			return (
+				<tr>
+					<td colSpan={6} className="px-4 py-4 text-center">
+						Loading sales...
+					</td>
+				</tr>
+			)
+		}
+
+		if (filteredSales.length === 0) {
+			return (
+				<tr>
+					<td colSpan={6} className="px-4 py-4 text-center">
+						No sales found
+					</td>
+				</tr>
+			)
+		}
+
+		return filteredSales.map((sale) => {
+			const status = getSaleStatus(sale)
+			return (
+				<tr key={sale.id.toString()}>
+					<td className="px-4 py-4">
+						<div className="space-y-1">
+							{sale.tag && (
+								<div className="text-sm flex items-center">
+									<Tag className="w-4 h-4 mr-1 text-gray-400" />
+									<span className="font-medium">{sale.tag}</span>
+								</div>
+							)}
+							{sale.productModelId !== undefined && (
+								<div className="text-sm">
+									<span className="font-medium">Product:</span>{" "}
+									{getProductModelName(sale.productModelId)}
+								</div>
+							)}
+							{sale.brandId !== undefined && (
+								<div className="text-sm">
+									<span className="font-medium">Brand:</span>{" "}
+									{getBrandName(sale.brandId)}
+								</div>
+							)}
+							{!sale.tag && !sale.productModelId && !sale.brandId && (
+								<div className="text-sm text-gray-500">All products</div>
+							)}
+						</div>
+					</td>
+					<td className="px-4 py-4">
+						<div className="space-y-1">
+							{sale.discountPercent ? (
+								<div className="font-medium text-green-600">
+									Percentage: {sale.discountPercent}% OFF
+								</div>
+							) : null}
+							{sale.discountPrice != undefined ? (
+								<div className="font-medium text-green-600">
+									Fixed price: {formatCurrency(sale.discountPrice)}
+								</div>
+							) : null}
+							<div className="text-xs text-gray-500">
+								Max discount: {formatCurrency(sale.maxDiscountPrice)}
+							</div>
+						</div>
+					</td>
+					<td className="px-4 py-4">
+						<div className="flex items-center text-sm text-gray-500">
+							<Calendar className="w-4 h-4 mr-2" />
+							<div>
+								<div>From: {formatDate(sale.dateStarted)}</div>
+								{sale.dateEnded ? (
+									<div>To: {formatDate(sale.dateEnded)}</div>
+								) : (
+									<div className="text-green-600">No end date</div>
+								)}
+							</div>
+						</div>
+					</td>
+					<td className="px-4 py-4">
+						<div className="text-sm">
+							<span className="font-medium">{sale.used.toString()}</span>
+							{" / "}
+							<span>{sale.quantity.toString()}</span>
+						</div>
+					</td>
+					<td className="px-4 py-4">
+						<span
+							className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+								status
+							)}`}
+						>
+							{status}
+						</span>
+					</td>
+					<td className="px-4 py-4">
+						<div className="flex space-x-1">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => handleOpenModal(sale)}
+								className="p-1"
+								disabled={isUpdating}
+							>
+								<Edit2 className="w-3 h-3" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => handleDelete(sale.id)}
+								className="p-1"
+								disabled={isDeleting}
+							>
+								<Trash2 className="w-3 h-3" />
+							</Button>
+						</div>
+					</td>
+				</tr>
+			)
+		})
+	}
+
+	// Add these helper functions for the autocomplete components
+	const handleTagChange = (value: string) => {
+		setFormData((prev) => ({ ...prev, tag: value }))
+	}
+
+	const handleProductModelChange = (value: string) => {
+		setFormData((prev) => ({
+			...prev,
+			productModelId: value ? BigInt(value) : undefined,
+		}))
+	}
+
+	const handleBrandChange = (value: string) => {
+		setFormData((prev) => ({
+			...prev,
+			brandId: value ? BigInt(value) : undefined,
+		}))
+	}
+
 	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
@@ -300,16 +570,13 @@ const SalesManagement = () => {
 					<table className="w-full table-fixed divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
-									Tag
-								</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/5">
 									Target
 								</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/5">
 									Discount
 								</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/5">
 									Duration
 								</th>
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/8">
@@ -324,122 +591,7 @@ const SalesManagement = () => {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-							{isLoading ? (
-								<tr>
-									<td colSpan={7} className="px-4 py-4 text-center">
-										Loading sales...
-									</td>
-								</tr>
-							) : filteredSales.length === 0 ? (
-								<tr>
-									<td colSpan={7} className="px-4 py-4 text-center">
-										No sales found
-									</td>
-								</tr>
-							) : (
-								filteredSales.map((sale) => {
-									const status = getSaleStatus(sale)
-									return (
-										<tr key={sale.id.toString()}>
-											<td className="px-4 py-4 truncate">
-												<span className="inline-flex items-center">
-													<Tag className="w-4 h-4 mr-1 text-gray-400" />
-													{sale.tag || "No tag"}
-												</span>
-											</td>
-											<td className="px-4 py-4">
-												<div className="space-y-1">
-													{sale.productModelId && (
-														<div className="text-sm">
-															<span className="font-medium">Product:</span>{" "}
-															{getProductModelName(sale.productModelId)}
-														</div>
-													)}
-													{sale.brandId && (
-														<div className="text-sm">
-															<span className="font-medium">Brand:</span>{" "}
-															{getBrandName(sale.brandId)}
-														</div>
-													)}
-													{!sale.productModelId && !sale.brandId && (
-														<div className="text-sm text-gray-500">
-															All products
-														</div>
-													)}
-												</div>
-											</td>
-											<td className="px-4 py-4">
-												<div className="space-y-1">
-													{sale.discountPercent && (
-														<div className="font-medium text-green-600">
-															{sale.discountPercent}% OFF
-														</div>
-													)}
-													{sale.discountPrice && (
-														<div className="font-medium text-green-600">
-															Fixed price: {formatCurrency(sale.discountPrice)}
-														</div>
-													)}
-													<div className="text-xs text-gray-500">
-														Max: {formatCurrency(sale.maxDiscountPrice)}
-													</div>
-												</div>
-											</td>
-											<td className="px-4 py-4">
-												<div className="flex items-center text-sm text-gray-500">
-													<Calendar className="w-4 h-4 mr-2" />
-													<div>
-														<div>From: {formatDate(sale.dateStarted)}</div>
-														{sale.dateEnded && (
-															<div>To: {formatDate(sale.dateEnded)}</div>
-														)}
-													</div>
-												</div>
-											</td>
-											<td className="px-4 py-4">
-												<div className="text-sm">
-													<span className="font-medium">
-														{sale.used.toString()}
-													</span>
-													{" / "}
-													<span>{sale.quantity.toString()}</span>
-												</div>
-											</td>
-											<td className="px-4 py-4">
-												<span
-													className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-														status
-													)}`}
-												>
-													{status}
-												</span>
-											</td>
-											<td className="px-4 py-4">
-												<div className="flex space-x-1">
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() => handleOpenModal(sale)}
-														className="p-1"
-														disabled={isUpdating}
-													>
-														<Edit2 className="w-3 h-3" />
-													</Button>
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() => handleDelete(sale.id)}
-														className="p-1"
-														disabled={isDeleting}
-													>
-														<Trash2 className="w-3 h-3" />
-													</Button>
-												</div>
-											</td>
-										</tr>
-									)
-								})
-							)}
+							{renderTableContent()}
 						</tbody>
 					</table>
 				</div>
@@ -463,57 +615,41 @@ const SalesManagement = () => {
 				title={selectedSale ? "Edit Sale" : "Add New Sale"}
 			>
 				<div className="space-y-4">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Tag
-						</label>
-						<input
-							type="text"
-							name="tag"
-							value={formData.tag}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded-lg"
-							placeholder="Enter sale tag (optional)"
-						/>
-					</div>
+					<Autocomplete
+						options={tags?.data || []}
+						value={formData.tag || ""}
+						onChange={handleTagChange}
+						getOptionLabel={(tag) => tag.tag}
+						getOptionValue={(tag) => tag.tag}
+						placeholder="Select or enter a tag (optional)"
+						label="Tag"
+						name="tag"
+						allowCustomValues={true}
+					/>
 
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Target Product Model (optional)
-						</label>
-						<select
-							name="productModelId"
-							value={formData.productModelId?.toString() || ""}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded-lg"
-						>
-							<option value="">Select a product model</option>
-							{productModels?.data?.map((model) => (
-								<option key={model.id.toString()} value={model.id.toString()}>
-									{model.name}
-								</option>
-							))}
-						</select>
-					</div>
+					<Autocomplete
+						options={productModels?.data || []}
+						value={getProductModelName(formData.productModelId)}
+						onChange={handleProductModelChange}
+						getOptionLabel={(model) => model.name}
+						getOptionValue={(model) => model.id.toString()}
+						placeholder="Select a product model (optional)"
+						label="Target Product Model (optional)"
+						name="productModelId"
+						allowCustomValues={false}
+					/>
 
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Target Brand (optional)
-						</label>
-						<select
-							name="brandId"
-							value={formData.brandId?.toString() || ""}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded-lg"
-						>
-							<option value="">Select a brand</option>
-							{brands?.data?.map((brand) => (
-								<option key={brand.id.toString()} value={brand.id.toString()}>
-									{brand.name}
-								</option>
-							))}
-						</select>
-					</div>
+					<Autocomplete
+						options={brands?.data || []}
+						value={getBrandName(formData.brandId)}
+						onChange={handleBrandChange}
+						getOptionLabel={(brand) => brand.name}
+						getOptionValue={(brand) => brand.id.toString()}
+						placeholder="Select a brand (optional)"
+						label="Target Brand (optional)"
+						name="brandId"
+						allowCustomValues={false}
+					/>
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
@@ -523,7 +659,7 @@ const SalesManagement = () => {
 							<input
 								type="date"
 								name="dateStarted"
-								value={formData.dateStarted}
+								value={formData.dateStarted.toString()}
 								onChange={handleChange}
 								className="w-full px-3 py-2 border rounded-lg"
 								required
@@ -537,7 +673,7 @@ const SalesManagement = () => {
 							<input
 								type="date"
 								name="dateEnded"
-								value={formData.dateEnded}
+								value={formData.dateEnded?.toString() || ""}
 								onChange={handleChange}
 								className="w-full px-3 py-2 border rounded-lg"
 							/>

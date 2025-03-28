@@ -867,44 +867,71 @@ const ProductModelManagement = () => {
 						</div>
 					</div>
 
-					<div ref={typeDropdownRef} className="relative">
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Type
-						</label>
-						<div className="relative">
+					<div className="grid grid-cols-2 gap-4">
+						<div ref={typeDropdownRef} className="relative">
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Type
+							</label>
+							<div className="relative">
+								<input
+									type="text"
+									value={typeSearchQuery}
+									onChange={(e) => {
+										setTypeSearchQuery(e.target.value)
+										setShowTypeDropdown(true)
+									}}
+									onFocus={() => setShowTypeDropdown(true)}
+									className="w-full px-3 py-2 border rounded-lg pr-10"
+									placeholder="Search for a product type..."
+								/>
+								<ChevronDown
+									className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 cursor-pointer"
+									onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+								/>
+							</div>
+							{showTypeDropdown && (
+								<div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border max-h-60 overflow-auto">
+									{filteredTypes.length > 0 ? (
+										filteredTypes.map((type) => (
+											<div
+												key={type.id}
+												className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+												onClick={() => handleTypeSelect(type)}
+											>
+												{type.name}
+											</div>
+										))
+									) : (
+										<div className="px-4 py-2 text-gray-500">
+											No types found
+										</div>
+									)}
+								</div>
+							)}
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Date Manufactured
+							</label>
 							<input
-								type="text"
-								value={typeSearchQuery}
+								type="date"
+								name="dateManufactured"
+								value={
+									new Date(formData.dateManufactured)
+										.toISOString()
+										.split("T")[0]
+								}
 								onChange={(e) => {
-									setTypeSearchQuery(e.target.value)
-									setShowTypeDropdown(true)
+									const date = new Date(e.target.value)
+									setFormData((prev) => ({
+										...prev,
+										dateManufactured: date.getTime(),
+									}))
 								}}
-								onFocus={() => setShowTypeDropdown(true)}
-								className="w-full px-3 py-2 border rounded-lg pr-10"
-								placeholder="Search for a product type..."
-							/>
-							<ChevronDown
-								className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 cursor-pointer"
-								onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+								className="w-full px-3 py-2 border rounded-lg"
 							/>
 						</div>
-						{showTypeDropdown && (
-							<div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border max-h-60 overflow-auto">
-								{filteredTypes.length > 0 ? (
-									filteredTypes.map((type) => (
-										<div
-											key={type.id}
-											className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-											onClick={() => handleTypeSelect(type)}
-										>
-											{type.name}
-										</div>
-									))
-								) : (
-									<div className="px-4 py-2 text-gray-500">No types found</div>
-								)}
-							</div>
-						)}
 					</div>
 
 					<div ref={tagDropdownRef} className="relative">

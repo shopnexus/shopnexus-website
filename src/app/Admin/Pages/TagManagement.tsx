@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Plus, Edit2, Trash2, Search, Tag } from "lucide-react"
+import { Plus, Edit2, Trash2, Search } from "lucide-react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
@@ -10,24 +10,19 @@ import {
 	listTags,
 	updateTag,
 } from "shopnexus-protobuf-gen-ts"
+import { TagEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/tag_pb"
 
-interface Tag {
-	id: string
-	name: string
+type Tag = {
+	tag: string
 	description: string
 	productCount: number
-	color: string
-	createdAt: string
 }
 
 const TagManagement = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [selectedTag, setSelectedTag] = useState<Tag | null>(null)
 	const [searchQuery, setSearchQuery] = useState("")
-	const [tag, setTag] = useState({
-		name: "",
-		description: "",
-	})
+	const [tag, setTag] = useState<Tag | undefined>()
+	const [newTag, setNewTag] = useState<string>("")
 
 	const { data, fetchNextPage, hasNextPage, isLoading, refetch } =
 		useInfiniteQuery(
@@ -66,18 +61,14 @@ const TagManagement = () => {
 		onSuccess: () => refetch(),
 	})
 
-	const handleOpenModal = (existingTag?: Tag) => {
+	const handleOpenModal = (existingTag?: TagEntity) => {
 		if (existingTag) {
-			setSelectedTag(existingTag)
-			setTag({
-				name: existingTag.name,
-				description: existingTag.description,
-			})
+			setTag(existingTag)
 		} else {
-			setSelectedTag(null)
 			setTag({
-				name: "",
+				tag: "",
 				description: "",
+				productCount: 0,
 			})
 		}
 		setIsModalOpen(true)
@@ -85,32 +76,35 @@ const TagManagement = () => {
 
 	const handleCloseModal = () => {
 		setIsModalOpen(false)
-		setSelectedTag(null)
 	}
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
 	) => {
 		const { name, value } = e.target
-		setTag((prev) => ({
-			...prev,
-			[name]: value,
-		}))
+		setTag((prev) => {
+			if (!prev) return undefined
+			return {
+				...prev,
+				[name]: value,
+			}
+		})
 	}
 
 	const handleSubmit = async () => {
 		try {
-			if (selectedTag) {
+			if (tag?.tag) {
 				// Update existing tag
 				await mutateUpdateTag({
-					tag: tag.name,
+					tag: tag.tag,
+					newTag: newTag,
 					description: tag.description,
 				})
 			} else {
 				// Add new tag
 				await mutateCreateTag({
-					tag: tag.name,
-					description: tag.description,
+					tag: newTag,
+					description: tag?.description,
 				})
 			}
 			handleCloseModal()
@@ -120,10 +114,10 @@ const TagManagement = () => {
 		}
 	}
 
-	const handleDelete = async () => {
+	const handleDelete = async (tag: string) => {
 		if (window.confirm("Are you sure you want to delete this tag?")) {
 			try {
-				await mutateDeleteTag({ tag: tag.name })
+				await mutateDeleteTag({ tag })
 			} catch (error) {
 				console.error("Error deleting tag:", error)
 				alert("Failed to delete tag. Please try again.")
@@ -160,14 +154,11 @@ const TagManagement = () => {
 		}
 
 		return tags.map((tag) => (
-			<tr key={tag.id}>
+			<tr key={tag.tag}>
 				<td className="px-6 py-4">
 					<div className="flex items-center space-x-2">
-						<span
-							className="w-3 h-3 rounded-full"
-							style={{ backgroundColor: tag.color }}
-						/>
-						<span className="font-medium">{tag.name}</span>
+						<span className="w-3 h-3 rounded-full" />
+						<span className="font-medium">{tag.tag}</span>
 					</div>
 				</td>
 				<td className="px-6 py-4 text-gray-500">{tag.description}</td>
@@ -175,9 +166,6 @@ const TagManagement = () => {
 					<span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
 						{tag.productCount} products
 					</span>
-				</td>
-				<td className="px-6 py-4 text-gray-500">
-					{new Date(tag.createdAt).toLocaleDateString()}
 				</td>
 				<td className="px-6 py-4">
 					<div className="flex space-x-2">
@@ -191,7 +179,7 @@ const TagManagement = () => {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => handleDelete(tag.id)}
+							onClick={() => handleDelete(tag.tag)}
 						>
 							<Trash2 className="w-4 h-4" />
 						</Button>
@@ -241,9 +229,6 @@ const TagManagement = () => {
 									Products
 								</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-									Created
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
 									Actions
 								</th>
 							</tr>
@@ -270,7 +255,7 @@ const TagManagement = () => {
 			<Modal
 				isOpen={isModalOpen}
 				onClose={handleCloseModal}
-				title={selectedTag ? "Edit Tag" : "Add New Tag"}
+				title={tag?.tag ? "Edit Tag" : "Add New Tag"}
 			>
 				<div className="space-y-4">
 					<div>
@@ -279,9 +264,9 @@ const TagManagement = () => {
 						</label>
 						<input
 							type="text"
-							name="name"
-							value={tag.name}
-							onChange={handleChange}
+							name="tag"
+							defaultValue={tag?.tag}
+							onChange={(e) => setNewTag(e.target.value)}
 							className="w-full px-3 py-2 border rounded-lg"
 							placeholder="Enter tag name"
 						/>
@@ -293,7 +278,7 @@ const TagManagement = () => {
 						</label>
 						<textarea
 							name="description"
-							value={tag.description}
+							value={tag?.description}
 							onChange={handleChange}
 							rows={3}
 							className="w-full px-3 py-2 border rounded-lg"
@@ -307,7 +292,7 @@ const TagManagement = () => {
 						Cancel
 					</Button>
 					<Button onClick={handleSubmit}>
-						{selectedTag ? "Update" : "Add"} Tag
+						{tag?.tag ? "Update" : "Add"} Tag
 					</Button>
 				</div>
 			</Modal>
