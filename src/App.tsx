@@ -24,6 +24,7 @@ import CustomerManager from "./app/Admin/Pages/CustomerManager"
 import RefundProduct from "./app/Products/Product/RefundProduct"
 import { finalTransport, queryClient } from "./core/query-client"
 import { TransportProvider } from "@connectrpc/connect-query"
+import AdminLogin from "./app/Auth/AdminLogin"
 
 const App: React.FC = () => {
 	return (
@@ -33,6 +34,7 @@ const App: React.FC = () => {
 					<Routes>
 						<Route path="/" element={<Home />} />
 						<Route path="/login" element={<Login />} />
+						<Route path="/admin-login" element={<AdminLogin />} />
 						<Route path="/register" element={<Register />} />
 						<Route path="/cart" element={<Cart />} />
 						<Route path="/search" element={<Search />} />
@@ -45,7 +47,10 @@ const App: React.FC = () => {
 						<Route path="/admin" element={<AdminLayout />}>
 							<Route index element={<AdminDashboard />} />
 							<Route path="products" element={<ProductManagement />} />
-							<Route path="product-models" element={<ProductModelManagement />} />
+							<Route
+								path="product-models"
+								element={<ProductModelManagement />}
+							/>
 							<Route path="tags" element={<TagManagement />} />
 							<Route path="sales" element={<SalesManagement />} />
 							<Route path="settings" element={<SettingManager />} />
