@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Button from "./ui/Button"
+import { useCart } from "../app/Cart/CartContext"
 
 interface ProductCardProps {
-	id: string
+	id: number
 	name: string
 	price: number
 	image?: string
@@ -16,6 +17,12 @@ export default function ProductCard({
 	image,
 	description,
 }: ProductCardProps) {
+
+	const navigate = useNavigate(); 
+	const handleAddToCart = () => {
+		navigate(`/product/${id}`); 
+	};
+
 	return (
 		<div className="group relative rounded-lg p-4 shadow-md hover:shadow-xl transition duration-300 transform hover:scale-105">
 			{/* Hình ảnh sản phẩm */}
@@ -45,7 +52,7 @@ export default function ProductCard({
 			)}
 
 			{/* Nút Add to Cart */}
-			<Button className="mt-2 w-full">Add to Cart</Button>
+			<Button className="mt-2 w-full" onClick={handleAddToCart} >Add to Cart</Button>
 		</div>
 	)
 }

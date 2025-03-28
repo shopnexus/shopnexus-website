@@ -2,21 +2,29 @@ import { Trash2 } from "lucide-react"
 import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
 
+export interface ItemInCart {
+  id: number; 
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  variantId: number; 
+  color: string;
+  size: number;
+  stockQuantity:number
+}
 interface CartItemProps {
-  item: {
-    id: number
-    name: string
-    price: number
-    quantity: number
-    image: string
-  }
+  item: ItemInCart
+  selected: boolean
+  onSelect: ()=>void
   onRemove: () => void
   onUpdateQuantity: (newQuantity: number) => void
 }
 
-export default function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
+export default function CartItem({ item,selected,onSelect, onRemove, onUpdateQuantity }: CartItemProps) {
   return (
     <div className="flex items-center py-6 border-b">
+      <input type="checkbox" checked={selected} onChange={onSelect} className="mr-4 w-5 h-5" />
       <img src={item.image || "/placeholder.svg"} alt={item.name} width={100} height={100} className="rounded-md" />
       <div className="ml-4 flex-grow">
         <h3 className="text-lg font-medium">{item.name}</h3>
@@ -25,6 +33,7 @@ export default function CartItem({ item, onRemove, onUpdateQuantity }: CartItemP
           <Input
             type="number"
             min="1"
+            max={item.stockQuantity}
             value={String(item.quantity)}
             onChange={(e) => onUpdateQuantity(Number.parseInt(e.target.value))}
             className="w-20 text-center mr-4"

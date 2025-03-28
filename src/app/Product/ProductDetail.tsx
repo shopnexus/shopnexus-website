@@ -1,9 +1,16 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Stack from '../../blocks/Components/Stack/Stack';
+import FeedBack from '../../components/FeedBack';
+import FeaturedProducts from './FeaturedProducts';
+import NewProducts from './NewProducts';
+import { useCart } from '../Cart/CartContext';
+import { getQuantityByColorAndSize, getUniqueColors, getUniqueSizes } from '../../utils/validators';
+import { MOCK_PRODUCT } from './ProductMock';
+import { VariantSelection } from './VariantSelection';
 
 //#region Type Definitions
-interface ProductVariant {
+export interface ProductVariant {
   id: number;
   color: string;
   size: number;
@@ -26,59 +33,6 @@ export interface Product {
 }
 //#endregion
 
-//#region Utility Functions
-export const getQuantityByColorAndSize = (products: ProductVariant[]): ProductVariant[] => {
-  return products.map(({ id, color, size, quantity }) => ({ id, color, size, quantity }));
-};
-
-export const getUniqueColors = (products: ProductVariant[]): string[] => {
-  return Array.from(new Set(products.map(({ color }) => color)));
-};
-
-export const getUniqueSizes = (products: ProductVariant[]): number[] => {
-  return Array.from(new Set(products.map(({ size }) => size))).sort((a, b) => a - b);
-};
-//#endregion
-
-//#region Mock Data
-const demoData = {
-  productModel: {
-    id: 1,
-    name: 'Adidas Sneakers',
-    description: 'High-quality sports shoes',
-    price: 999,
-    sold: 10,
-    score: 9.4,
-    tag: ['adidas', 'sport', 'hot'],
-    listImgae: [
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400?text=Hello+World",
-      "https://placehold.co/600x400/orange/white"
-    ],
-  },
-  product: [
-    { id: 12, quantity: 1, color: 'white', size: 36 },
-    { id: 13, quantity: 20, color: 'white', size: 37 },
-    { id: 14, quantity: 0, color: 'black', size: 36 },
-    { id: 15, quantity: 0, color: 'black', size: 37 },
-  ],
-};
-
-export const MOCK_PRODUCT: Product = {
-  id: demoData.productModel.id,
-  name: demoData.productModel.name,
-  description: demoData.productModel.description,
-  price: demoData.productModel.price,
-  score: demoData.productModel.score,
-  sold: demoData.productModel.sold,
-  tags: demoData.productModel.tag,
-  quantity: getQuantityByColorAndSize(demoData.product),
-  listSize: getUniqueSizes(demoData.product),
-  listColor: getUniqueColors(demoData.product),
-  avatar: demoData.productModel.listImgae[0],
-  additionalImages: demoData.productModel.listImgae,
-};
-//#endregion
 
 //#region Child Components
 
@@ -103,124 +57,7 @@ const ThumbnailList: React.FC<{
   </div>
 ));
 
-// Component chọn biến thể sản phẩm
-interface VariantSelectionProps {
-  product: Product;
-  selectedColor: string | null;
-  selectedSize: number | null;
-  onSelectColor: (color: string | null) => void;
-  onSelectSize: (size: number | null) => void;
-  quantity: number;
-  availableStock: number;
-  onQuantityChange: React.ChangeEventHandler<HTMLInputElement>;
-  onAddToCart: () => void;
-}
 
-const VariantSelection: React.FC<VariantSelectionProps> = React.memo(({
-  product,
-  selectedColor,
-  selectedSize,
-  onSelectColor,
-  onSelectSize,
-  quantity,
-  availableStock,
-  onQuantityChange,
-  onAddToCart,
-}) => {
-  const isColorOptionAvailable = useCallback(
-    (color: string): boolean => {
-      if (!selectedSize) {
-        return product.quantity.some(q => q.color === color && q.quantity > 0);
-      } else {
-        return product.quantity.some(q => q.color === color && q.size === selectedSize && q.quantity > 0);
-      }
-    },
-    [product.quantity, selectedSize]
-  );
-
-  const isSizeOptionAvailable = useCallback(
-    (size: number): boolean => {
-      if (!selectedColor) {
-        return product.quantity.some(q => q.size === size && q.quantity > 0);
-      } else {
-        return product.quantity.some(q => q.color === selectedColor && q.size === size && q.quantity > 0);
-      }
-    },
-    [product.quantity, selectedColor]
-  );
-
-  return (
-    <div className="space-y-4">
-      {/* Chọn màu */}
-      <div>
-        <h3 className="font-medium">Color:</h3>
-        <div className="flex space-x-2">
-          {product.listColor.map((color) => (
-            <button
-              key={color}
-              disabled={!isColorOptionAvailable(color)}
-              onClick={() => onSelectColor(selectedColor === color ? null : color)}
-              className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
-                selectedColor === color ? 'bg-blue-500 text-white' : 'bg-white text-black'
-              } ${!isColorOptionAvailable(color) ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
-            >
-              {color}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chọn kích cỡ */}
-      <div>
-        <h3 className="font-medium">Size:</h3>
-        <div className="flex space-x-2">
-          {product.listSize.map((size) => (
-            <button
-              key={size}
-              disabled={!isSizeOptionAvailable(size)}
-              onClick={() => onSelectSize(selectedSize === size ? null : size)}
-              className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
-                selectedSize === size ? 'bg-blue-500 text-white' : 'bg-white text-black'
-              } ${!isSizeOptionAvailable(size) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {availableStock === 0 && <p className="text-red-500">This combination is out of stock</p>}
-
-      {/* Chọn số lượng */}
-      <div className="flex items-center space-x-4">
-        <label htmlFor="quantity" className="font-medium">Quantity:</label>
-        <input
-          type="number"
-          id="quantity"
-          value={quantity}
-          onChange={onQuantityChange}
-          min="1"
-          max={availableStock}
-          disabled={!selectedColor || !selectedSize}
-          className="w-20 px-3 py-2 border rounded"
-        />
-      </div>
-      <p className="text-sm text-gray-500">{availableStock} {(selectedColor&&selectedSize)?"items available for selected color and size":"for all"}</p>
-
-      {/* Nút thêm vào giỏ hàng */}
-      <button
-        onClick={onAddToCart}
-        disabled={!selectedColor || !selectedSize}
-        className={`w-full py-3 px-6 rounded-lg text-white font-medium transition duration-150 ease-in-out ${
-          selectedColor && selectedSize ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
-        }`}
-      >
-        Add to Cart
-      </button>
-    </div>
-  );
-});
-//#endregion
 
 // Main Component
 const ProductDetail: React.FC = () => {
@@ -232,6 +69,8 @@ const ProductDetail: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [cards, setCards] = useState<{ id: number; img: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [message,setMessage]=useState<String|null>(null);
+  const {addToCart} =useCart();
 
   //#region Load Data & Default Setup
   useEffect(() => {
@@ -311,10 +150,23 @@ const ProductDetail: React.FC = () => {
           color: selectedColor,
           size: selectedSize,
         });
-        // Xử lý thêm vào giỏ hàng, thông báo thành công, v.v.
+        // Truyền số lượng tồn kho hiện tại (dựa trên biến thể được chọn) làm đối số thứ hai
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity,
+          image: product.avatar,
+          variantId: variant.id,
+          color: selectedColor,
+          size: selectedSize,
+          stockQuantity:getAvailableStock()
+        });
+        setMessage('Added to cart successfully');
+        setTimeout(() => setMessage(null), 3000);
       }
     }
-  }, [selectedColor, selectedSize, quantity, product]);
+  }, [selectedColor, selectedSize, quantity, product, getAvailableStock, addToCart]);
   //#endregion
 
   //#region Derived Data with useMemo
@@ -373,9 +225,15 @@ const ProductDetail: React.FC = () => {
             availableStock={availableStock}
             onQuantityChange={handleQuantityChange}
             onAddToCart={handleAddToCart}
+            
           />
         </div>
       </div>
+      
+      <FeedBack></FeedBack>
+      <FeaturedProducts></FeaturedProducts>
+      <NewProducts></NewProducts>
+
     </div>
   );
 };
