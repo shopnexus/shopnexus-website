@@ -288,8 +288,7 @@ const SalesManagement = () => {
 					return value ? BigInt(value) : undefined
 				}
 				if (name === "dateStarted" || name === "dateEnded") {
-					console.log(value)
-					return value ? BigInt(value) : undefined
+					return value ? BigInt(new Date(value).getTime()) : undefined
 				}
 				return value
 			})()
@@ -392,6 +391,19 @@ const SalesManagement = () => {
 		}
 	}
 
+	const getDiscountDisplay = (sale: SaleEntity) => {
+		if (sale.discountPercent && sale.discountPrice) {
+			return <div className="text-red-600 font-medium">Invalid: Both discount types set</div>
+		}
+		if (sale.discountPercent) {
+			return <div className="font-medium text-green-600">{sale.discountPercent}% OFF</div>
+		}
+		if (sale.discountPrice) {
+			return <div className="font-medium text-green-600">Fixed: {formatCurrency(sale.discountPrice)}</div>
+		}
+		return <div className="text-gray-500">No discount set</div>
+	}
+
 	const filteredSales = sales.filter((sale) =>
 		(sale.tag || "").toLowerCase().includes(searchQuery.toLowerCase())
 	)
@@ -449,30 +461,27 @@ const SalesManagement = () => {
 					</td>
 					<td className="px-4 py-4">
 						<div className="space-y-1">
-							{sale.discountPercent ? (
-								<div className="font-medium text-green-600">
-									Percentage: {sale.discountPercent}% OFF
-								</div>
-							) : null}
-							{sale.discountPrice != undefined ? (
-								<div className="font-medium text-green-600">
-									Fixed price: {formatCurrency(sale.discountPrice)}
-								</div>
-							) : null}
+							{getDiscountDisplay(sale)}
 							<div className="text-xs text-gray-500">
 								Max discount: {formatCurrency(sale.maxDiscountPrice)}
 							</div>
 						</div>
 					</td>
 					<td className="px-4 py-4">
-						<div className="flex items-center text-sm text-gray-500">
-							<Calendar className="w-4 h-4 mr-2" />
+						<div className="flex items-center text-sm">
+							<Calendar className="w-4 h-4 mr-2 text-gray-400" />
 							<div>
-								<div>From: {formatDate(sale.dateStarted)}</div>
+								<div className="text-gray-900">
+									Starts: {formatDate(sale.dateStarted)}
+								</div>
 								{sale.dateEnded ? (
-									<div>To: {formatDate(sale.dateEnded)}</div>
+									<div className="text-gray-600">
+										Ends: {formatDate(sale.dateEnded)}
+									</div>
 								) : (
-									<div className="text-green-600">No end date</div>
+									<div className="text-green-600 font-medium">
+										No end date (∞)
+									</div>
 								)}
 							</div>
 						</div>
@@ -537,6 +546,13 @@ const SalesManagement = () => {
 			...prev,
 			brandId: value ? BigInt(value) : undefined,
 		}))
+	}
+
+	// Add this helper function near your other helper functions
+	const timestampToDateString = (timestamp?: bigint) => {
+		if (!timestamp) return ""
+		const date = new Date(Number(timestamp))
+		return date.toISOString().split('T')[0]
 	}
 
 	return (
@@ -659,7 +675,7 @@ const SalesManagement = () => {
 							<input
 								type="date"
 								name="dateStarted"
-								value={formData.dateStarted.toString()}
+								value={timestampToDateString(formData.dateStarted)}
 								onChange={handleChange}
 								className="w-full px-3 py-2 border rounded-lg"
 								required
@@ -673,7 +689,7 @@ const SalesManagement = () => {
 							<input
 								type="date"
 								name="dateEnded"
-								value={formData.dateEnded?.toString() || ""}
+								value={timestampToDateString(formData.dateEnded)}
 								onChange={handleChange}
 								className="w-full px-3 py-2 border rounded-lg"
 							/>
