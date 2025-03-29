@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from "react"
-import { Plus, Edit2, Trash2, Calendar, Search, Tag } from "lucide-react"
+import { Plus, Edit2, Trash2, Calendar, Search } from "lucide-react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
@@ -425,9 +425,9 @@ const SalesManagement = () => {
 					<td className="px-4 py-4">
 						<div className="space-y-1">
 							{sale.tag && (
-								<div className="text-sm flex items-center">
-									<Tag className="w-4 h-4 mr-1 text-gray-400" />
-									<span className="font-medium">{sale.tag}</span>
+								<div className="text-sm">
+									<span className="font-medium">Tag:</span>{" "}
+									{sale.tag}
 								</div>
 							)}
 							{sale.productModelId !== undefined && (
