@@ -97,7 +97,7 @@ const TagManagement = () => {
 				// Update existing tag
 				await mutateUpdateTag({
 					tag: tag.tag,
-					newTag: newTag,
+					newTag: newTag === "" ? undefined : newTag,
 					description: tag.description,
 				})
 			} else {
