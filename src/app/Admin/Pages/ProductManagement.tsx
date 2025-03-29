@@ -401,6 +401,7 @@ const ProductManagement = () => {
 					addPrice: BigInt(formData.addPrice),
 					isActive: formData.isActive,
 					metadata: metadataBuffer,
+					resources: formData.resources,
 				})
 			} else {
 				// Create new product
