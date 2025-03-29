@@ -5,16 +5,12 @@ import {
 	Trash2,
 	Search,
 	X,
-	Upload,
 	ChevronDown,
-	ChevronLeft,
-	ChevronRight,
 	List,
 } from "lucide-react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
-import * as tus from "tus-js-client"
 import { ProductModelEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/product_model_pb"
 import {
 	useInfiniteQuery,
@@ -31,6 +27,8 @@ import {
 	deleteProductModel,
 } from "shopnexus-protobuf-gen-ts"
 import { useNavigate } from "react-router-dom"
+import Pagination from "../../../components/ui/Pagination"
+import FileUpload from "../../../components/ui/FileUpload"
 
 interface ProductModelFormData {
 	name: string
@@ -66,11 +64,6 @@ const ProductModelManagement = () => {
 		resources: [],
 		tags: [],
 	})
-	const [uploadProgress, setUploadProgress] = useState<{
-		[key: string]: number
-	}>({})
-	const [isUploading, setIsUploading] = useState(false)
-	const fileInputRef = useRef<HTMLInputElement>(null)
 	const { data: brands } = useQuery(listBrands, {
 		pagination: { page: 1, limit: 100 },
 	})
@@ -80,6 +73,8 @@ const ProductModelManagement = () => {
 	const { data: productTypes } = useQuery(listProductTypes, {
 		pagination: { page: 1, limit: 100 },
 	})
+
+  const itemsPerPage= 10
 	const {
 		data: productModelsData,
 		fetchNextPage,
@@ -91,7 +86,7 @@ const ProductModelManagement = () => {
 		{
 			pagination: {
 				page: 1,
-				limit: 100,
+				limit: itemsPerPage,
 			},
 		},
 		{
@@ -117,7 +112,6 @@ const ProductModelManagement = () => {
 	const typeDropdownRef = useRef<HTMLDivElement>(null)
 	const tagDropdownRef = useRef<HTMLDivElement>(null)
 	const [currentPage, setCurrentPage] = useState(1)
-	const [itemsPerPage] = useState(10)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -283,140 +277,27 @@ const ProductModelManagement = () => {
 		setTagSearchQuery(e.target.value)
 	}
 
-	const uploadFile = useCallback(async (file: File) => {
-		return new Promise<string>((resolve, reject) => {
-			const upload = new tus.Upload(file, {
-				endpoint: "http://localhost:50051/files/",
-				retryDelays: [0, 3000, 5000, 10000, 20000],
-				metadata: {
-					filename: file.name,
-					filetype: file.type,
-				},
-				onError: (error) => {
-					console.error("Failed to upload:", error)
-					reject(error)
-				},
-				onProgress: (bytesUploaded, bytesTotal) => {
-					const percentage = Math.round((bytesUploaded / bytesTotal) * 100)
-					setUploadProgress((prev) => ({
-						...prev,
-						[file.name]: percentage,
-					}))
-				},
-				onSuccess: () => {
-					resolve(upload.url || "")
-				},
-			})
-			upload.start()
-		})
-	}, [])
-
-	const handleFileSelect = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = e.target.files
-			if (!files || files.length === 0) return
-
-			setIsUploading(true)
-			const uploadedUrls: string[] = []
-
-			try {
-				for (let i = 0; i < files.length; i++) {
-					const file = files[i]
-					const url = await uploadFile(file)
-					uploadedUrls.push(url)
-				}
-
-				setFormData((prev) => ({
-					...prev,
-					resources: [...prev.resources, ...uploadedUrls],
-				}))
-			} catch (error) {
-				console.error("Error uploading files:", error)
-			} finally {
-				setIsUploading(false)
-				setUploadProgress({})
-				if (fileInputRef.current) {
-					fileInputRef.current.value = ""
-				}
-			}
-		},
-		[uploadFile]
-	)
-
-	const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault()
-		e.stopPropagation()
-	}, [])
-
-	const handleDrop = useCallback(
-		async (e: React.DragEvent<HTMLDivElement>) => {
-			e.preventDefault()
-			e.stopPropagation()
-
-			const files = e.dataTransfer.files
-			if (!files || files.length === 0) return
-
-			setIsUploading(true)
-			const uploadedUrls: string[] = []
-
-			try {
-				for (let i = 0; i < files.length; i++) {
-					const file = files[i]
-					const url = await uploadFile(file)
-					uploadedUrls.push(url)
-				}
-
-				setFormData((prev) => ({
-					...prev,
-					resources: [...prev.resources, ...uploadedUrls],
-				}))
-			} catch (error) {
-				console.error("Error uploading files:", error)
-			} finally {
-				setIsUploading(false)
-				setUploadProgress({})
-			}
-		},
-		[uploadFile]
-	)
-
-	const removeImage = useCallback((index: number) => {
-		setFormData((prev) => ({
-			...prev,
-			resources: prev.resources.filter((_, i) => i !== index),
-		}))
-	}, [])
-
 	const handleSubmit = async () => {
 		try {
-			if (selectedModel) {
-				// Update existing product model
-				await mutateUpdateProductModel({
-					id: BigInt(selectedModel.id),
-					name: formData.name,
-					description: formData.description,
-					listPrice: BigInt(formData.listPrice),
-					brandId: BigInt(formData.brandId),
-					type: BigInt(formData.type),
-					dateManufactured: BigInt(formData.dateManufactured),
-					// resources: formData.resources,
-					// tags: formData.tags,
-				})
-			} else {
-				// Create new product model
-				await mutateCreateProductModel({
-					name: formData.name,
-					description: formData.description,
-					listPrice: BigInt(formData.listPrice),
-					brandId: BigInt(formData.brandId),
-					type: BigInt(formData.type),
-					dateManufactured: BigInt(formData.dateManufactured),
-					resources: formData.resources,
-					tags: formData.tags,
-				})
+			const payload = {
+				name: formData.name,
+				description: formData.description,
+				listPrice: BigInt(formData.listPrice),
+				brandId: BigInt(formData.brandId),
+				type: BigInt(formData.type),
+				dateManufactured: BigInt(formData.dateManufactured),
+				resources: formData.resources,
+				tags: formData.tags,
 			}
 
-			// Close modal after successful operation
+			if (selectedModel) {
+				await mutateUpdateProductModel({
+					id: selectedModel.id,
+					...payload,
+				})
+			} else {
+				await mutateCreateProductModel(payload)
+			}
 			closeModal()
 		} catch (error) {
 			console.error("Error saving product model:", error)
@@ -426,9 +307,7 @@ const ProductModelManagement = () => {
 	const handleDelete = async (id: string) => {
 		if (window.confirm("Are you sure you want to delete this product model?")) {
 			try {
-				await mutateDeleteProductModel({
-					id: BigInt(id),
-				})
+				await mutateDeleteProductModel({ id: BigInt(id) })
 			} catch (error) {
 				console.error("Error deleting product model:", error)
 			}
@@ -439,37 +318,27 @@ const ProductModelManagement = () => {
 		setSearchQuery(e.target.value)
 	}
 
-	const productModels = useMemo(() => {
-		if (!productModelsData) return []
-		return productModelsData.pages.flatMap((page) => page.data || [])
-	}, [productModelsData])
-
-	const totalItems = productModels.length
-	const totalPages = Math.ceil(totalItems / itemsPerPage)
-	const indexOfLastItem = currentPage * itemsPerPage
-	const indexOfFirstItem = indexOfLastItem - itemsPerPage
-	const currentItems = productModels.slice(indexOfFirstItem, indexOfLastItem)
-
-	const goToPage = (pageNumber: number) => {
-		setCurrentPage(pageNumber)
-
-		if (pageNumber > totalPages - 2 && hasNextPage && !isFetchingNextPage) {
-			fetchNextPage()
+	const currentItems = useMemo(() => {
+		if (!productModelsData?.pages) return []
+		
+		const pageIndex = currentPage - 1
+		
+		if (pageIndex < productModelsData.pages.length) {
+			return productModelsData.pages[pageIndex].data || []
 		}
-	}
+		
+		return productModelsData.pages[productModelsData.pages.length - 1].data || []
+	}, [productModelsData, currentPage])
 
-	const goToPreviousPage = () => {
-		if (currentPage > 1) {
-			setCurrentPage(currentPage - 1)
-		}
-	}
-
-	const goToNextPage = () => {
-		if (currentPage < totalPages) {
-			setCurrentPage(currentPage + 1)
-
-			if (currentPage >= totalPages - 2 && hasNextPage && !isFetchingNextPage) {
-				fetchNextPage()
+	const handlePageChange = async (page: number) => {
+		setCurrentPage(page)
+		
+		const neededPages = page - (productModelsData?.pages.length ?? 0)
+		
+		if (neededPages > 0 && hasNextPage) {
+			for (let i = 0; i < neededPages; i++) {
+				if (!hasNextPage || isFetchingNextPage) break
+				await fetchNextPage()
 			}
 		}
 	}
@@ -500,7 +369,7 @@ const ProductModelManagement = () => {
 	const getBrandName = useCallback(
 		(brandId: bigint) => {
 			const brand = brands?.data?.find((b) => b.id === brandId)
-			return brand?.name || brandId.toString()
+			return brand?.name ?? brandId.toString()
 		},
 		[brands?.data]
 	)
@@ -508,7 +377,7 @@ const ProductModelManagement = () => {
 	const getTypeName = useCallback(
 		(typeId: bigint) => {
 			const type = productTypes?.data?.find((t) => t.id === typeId)
-			return type?.name || typeId.toString()
+			return type?.name ?? typeId.toString()
 		},
 		[productTypes?.data]
 	)
@@ -520,6 +389,12 @@ const ProductModelManagement = () => {
 			currency: "USD",
 		}).format(Number(amount))
 	}
+
+	const totalPages = Math.ceil(
+		(productModelsData?.pages[0]?.pagination?.total || 0) / itemsPerPage
+	)
+
+	const totalItems = productModelsData?.pages[0]?.pagination?.total ?? 0
 
 	return (
 		<div className="space-y-6">
@@ -619,9 +494,9 @@ const ProductModelManagement = () => {
 										<td className="px-4 py-4">
 											<div className="flex flex-wrap gap-1">
 												{model.tags.length > 0 ? (
-													model.tags.slice(0, 3).map((tag, index) => (
+													model.tags.slice(0, 3).map((tag) => (
 														<span
-															key={index}
+															key={tag}
 															className="px-2 py-1 text-xs bg-gray-100 rounded-full"
 														>
 															{tag}
@@ -674,104 +549,16 @@ const ProductModelManagement = () => {
 					</table>
 				</div>
 
-				<div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
-					<div className="flex flex-1 justify-between sm:hidden">
-						<button
-							onClick={goToPreviousPage}
-							disabled={currentPage === 1}
-							className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-								currentPage === 1
-									? "text-gray-300"
-									: "text-gray-700 hover:bg-gray-50"
-							}`}
-						>
-							Previous
-						</button>
-						<button
-							onClick={goToNextPage}
-							disabled={currentPage === totalPages || totalPages === 0}
-							className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-								currentPage === totalPages || totalPages === 0
-									? "text-gray-300"
-									: "text-gray-700 hover:bg-gray-50"
-							}`}
-						>
-							Next
-						</button>
-					</div>
-					<div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-						<div>
-							<p className="text-sm text-gray-700">
-								Showing{" "}
-								<span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
-								<span className="font-medium">
-									{Math.min(indexOfLastItem, totalItems)}
-								</span>{" "}
-								of <span className="font-medium">{totalItems}</span> results
-							</p>
-						</div>
-						<div>
-							<nav
-								className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-								aria-label="Pagination"
-							>
-								<button
-									onClick={goToPreviousPage}
-									disabled={currentPage === 1}
-									className={`relative inline-flex items-center rounded-l-md px-2 py-2 ${
-										currentPage === 1
-											? "text-gray-300"
-											: "text-gray-400 hover:bg-gray-50"
-									}`}
-								>
-									<span className="sr-only">Previous</span>
-									<ChevronLeft className="h-5 w-5" aria-hidden="true" />
-								</button>
-
-								{Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-									let pageNumber: number
-
-									if (totalPages <= 5) {
-										pageNumber = i + 1
-									} else if (currentPage <= 3) {
-										pageNumber = i + 1
-									} else if (currentPage >= totalPages - 2) {
-										pageNumber = totalPages - 4 + i
-									} else {
-										pageNumber = currentPage - 2 + i
-									}
-
-									return (
-										<button
-											key={pageNumber}
-											onClick={() => goToPage(pageNumber)}
-											className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-												currentPage === pageNumber
-													? "z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-													: "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0"
-											}`}
-										>
-											{pageNumber}
-										</button>
-									)
-								})}
-
-								<button
-									onClick={goToNextPage}
-									disabled={currentPage === totalPages || totalPages === 0}
-									className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
-										currentPage === totalPages || totalPages === 0
-											? "text-gray-300"
-											: "text-gray-400 hover:bg-gray-50"
-									}`}
-								>
-									<span className="sr-only">Next</span>
-									<ChevronRight className="h-5 w-5" aria-hidden="true" />
-								</button>
-							</nav>
-						</div>
-					</div>
-				</div>
+				<Pagination
+					currentPage={currentPage}
+					totalPages={totalPages}
+					totalItems={totalItems}
+					limit={itemsPerPage}
+					onPageChange={handlePageChange}
+					hasNextPage={hasNextPage}
+					isFetchingNextPage={isFetchingNextPage}
+					fetchNextPage={fetchNextPage}
+				/>
 			</Card>
 
 			<Modal
@@ -781,10 +568,11 @@ const ProductModelManagement = () => {
 			>
 				<div className="space-y-4">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
+						<label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
 							Name
 						</label>
 						<input
+							id="name"
 							type="text"
 							name="name"
 							value={formData.name}
@@ -795,10 +583,11 @@ const ProductModelManagement = () => {
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
+						<label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
 							Description
 						</label>
 						<textarea
+							id="description"
 							name="description"
 							value={formData.description}
 							onChange={handleChange}
@@ -810,10 +599,11 @@ const ProductModelManagement = () => {
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label htmlFor="listPrice" className="block text-sm font-medium text-gray-700 mb-1">
 								List Price
 							</label>
 							<input
+								id="listPrice"
 								type="number"
 								name="listPrice"
 								value={formData.listPrice}
@@ -825,11 +615,12 @@ const ProductModelManagement = () => {
 						</div>
 
 						<div ref={brandDropdownRef} className="relative">
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label htmlFor="brandSearch" className="block text-sm font-medium text-gray-700 mb-1">
 								Brand
 							</label>
 							<div className="relative">
 								<input
+									id="brandSearch"
 									type="text"
 									value={brandSearchQuery}
 									onChange={(e) => {
@@ -849,13 +640,13 @@ const ProductModelManagement = () => {
 								<div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border max-h-60 overflow-auto">
 									{filteredBrands.length > 0 ? (
 										filteredBrands.map((brand) => (
-											<div
+											<button
 												key={brand.id}
-												className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+												className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-left"
 												onClick={() => handleBrandSelect(brand)}
 											>
 												{brand.name}
-											</div>
+											</button>
 										))
 									) : (
 										<div className="px-4 py-2 text-gray-500">
@@ -869,11 +660,12 @@ const ProductModelManagement = () => {
 
 					<div className="grid grid-cols-2 gap-4">
 						<div ref={typeDropdownRef} className="relative">
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label htmlFor="typeSearch" className="block text-sm font-medium text-gray-700 mb-1">
 								Type
 							</label>
 							<div className="relative">
 								<input
+									id="typeSearch"
 									type="text"
 									value={typeSearchQuery}
 									onChange={(e) => {
@@ -911,10 +703,11 @@ const ProductModelManagement = () => {
 						</div>
 
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label htmlFor="dateManufactured" className="block text-sm font-medium text-gray-700 mb-1">
 								Date Manufactured
 							</label>
 							<input
+								id="dateManufactured"
 								type="date"
 								name="dateManufactured"
 								value={
@@ -935,7 +728,7 @@ const ProductModelManagement = () => {
 					</div>
 
 					<div ref={tagDropdownRef} className="relative">
-						<label className="block text-sm font-medium text-gray-700 mb-1">
+						<label htmlFor="tagSearch" className="block text-sm font-medium text-gray-700 mb-1">
 							Tags
 						</label>
 						<div className="flex flex-wrap gap-2 mb-2">
@@ -957,6 +750,7 @@ const ProductModelManagement = () => {
 						</div>
 						<div className="relative">
 							<input
+								id="tagSearch"
 								type="text"
 								value={tagSearchQuery}
 								onChange={handleTagsChange}
@@ -987,86 +781,33 @@ const ProductModelManagement = () => {
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
+						<label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-1">
 							Images
 						</label>
-						<div
-							className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors"
-							onDragOver={handleDragOver}
-							onDrop={handleDrop}
-							onClick={() => fileInputRef.current?.click()}
-						>
-							<input
-								type="file"
-								ref={fileInputRef}
-								onChange={handleFileSelect}
-								className="hidden"
-								multiple
-								accept="image/*"
-							/>
-							<div className="flex flex-col items-center justify-center py-4">
-								<Upload className="w-10 h-10 text-gray-400 mb-2" />
-								<p className="text-sm text-gray-500">
-									Drag and drop images here or click to browse
-								</p>
-								<p className="text-xs text-gray-400 mt-1">
-									Supported formats: JPG, PNG, GIF
-								</p>
-							</div>
-						</div>
-
-						{Object.keys(uploadProgress).length > 0 && (
-							<div className="mt-2 space-y-2">
-								{Object.entries(uploadProgress).map(([filename, progress]) => (
-									<div key={filename} className="flex items-center">
-										<div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-											<div
-												className="bg-blue-600 h-2.5 rounded-full"
-												style={{ width: `${progress}%` }}
-											></div>
-										</div>
-										<span className="text-xs text-gray-500">{progress}%</span>
-									</div>
-								))}
-							</div>
-						)}
-
-						{formData.resources.length > 0 && (
-							<div className="mt-4">
-								<div className="flex overflow-x-auto space-x-2 py-2">
-									{formData.resources.map((image, index) => (
-										<div key={index} className="relative flex-shrink-0">
-											<img
-												src={image}
-												alt={`Product image ${index + 1}`}
-												className="w-24 h-24 object-cover rounded-lg border"
-												onError={(e) => {
-													;(e.target as HTMLImageElement).src =
-														"https://via.placeholder.com/150?text=Image+Error"
-												}}
-											/>
-											<button
-												type="button"
-												onClick={() => removeImage(index)}
-												className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-											>
-												<X className="w-3 h-3" />
-											</button>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
+						<FileUpload
+							resources={formData.resources}
+							onUploadComplete={(urls) => {
+								setFormData(prev => ({
+									...prev,
+									resources: [...prev.resources, ...urls],
+								}))
+							}}
+							onRemoveImage={(index) => {
+								setFormData(prev => ({
+									...prev,
+									resources: prev.resources.filter((_, i) => i !== index),
+								}))
+							}}
+						/>
 					</div>
 				</div>
 
 				<div className="flex justify-end space-x-2 mt-6">
-					<Button variant="outline" onClick={closeModal} disabled={isUploading}>
+					<Button variant="outline" onClick={closeModal}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit} disabled={isUploading}>
-						{isUploading ? "Uploading..." : selectedModel ? "Update" : "Add"}{" "}
-						Model
+					<Button onClick={handleSubmit}>
+						{selectedModel ? "Update" : "Add"} Model
 					</Button>
 				</div>
 			</Modal>
