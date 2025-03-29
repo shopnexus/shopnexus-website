@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "./CartContext";
 import Button from "../../components/ui/Button";
 import CartItem from "./CartItem";
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity } = useCart();
-  const [selectedItems, setSelectedItems] = useState<number[]>([]); // State lưu sản phẩm được chọn
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [tax, setTax] = useState(0);
+  const [total, setTotal] = useState(0);
+
+
+  // Lọc sản phẩm được chọn
+  const selectedCartItems = cartItems.filter((item) => selectedItems.includes(item.id));
+
+  useEffect(() => {
+    const newSubtotal = selectedCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const newTax = newSubtotal * 0.1;
+    const newTotal = newSubtotal + newTax;
+
+    setSubtotal(newSubtotal);
+    setTax(newTax);
+    setTotal(newTotal);
+  }, [selectedCartItems]);
 
   // Toggle chọn/bỏ chọn sản phẩm
   const toggleSelectItem = (id: number) => {
@@ -22,12 +39,6 @@ export default function Cart() {
     }
   };
 
-  // Lọc ra những sản phẩm được chọn để tính tiền
-  const selectedCartItems = cartItems.filter((item) => selectedItems.includes(item.id));
-  const subtotal = selectedCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const tax = subtotal * 0.1;
-  const total = subtotal + tax;
-
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
@@ -41,7 +52,7 @@ export default function Cart() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-          <div className="flex items-center mb-4">
+            <div className="flex items-center mb-4">
               <input
                 type="checkbox"
                 checked={selectedItems.length === cartItems.length}
