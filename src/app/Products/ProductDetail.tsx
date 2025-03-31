@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom"
 import Stack from "../../blocks/Components/Stack/Stack"
 import { callUnaryMethod, useQuery } from "@connectrpc/connect-query"
 import {
+  getBrand,
 	getProduct,
 	getProductModel,
 	ProductEntity,
@@ -15,7 +16,9 @@ const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
 	try {
 		const decoder = new TextDecoder()
 		const jsonString = decoder.decode(metadata)
-		return JSON.parse(JSON.parse(atob(JSON.parse(jsonString))))
+    const data =  JSON.parse(jsonString)
+    console.log(data)
+    return data
 	} catch (error) {
 		console.error("Error parsing metadata:", error)
 		return {}
@@ -32,10 +35,14 @@ const getUniqueMetadataValues = (
 			const metadata = parseMetadata(product.metadata)
 			return metadata[key]
 		})
-		.filter((value) => value !== undefined)
+		.filter((value) => value !== undefined && value !== null)
 
-	// Return unique values
-	return Array.from(new Set(values))
+	// Return unique values, ensuring proper comparison for numbers and strings
+	return Array.from(new Set(values.map(String))).map(value => {
+		// Convert back to number if it was originally a number
+		const num = Number(value)
+		return !isNaN(num) ? num : value
+	})
 }
 
 // Sort numeric values
@@ -259,6 +266,12 @@ const ProductDetail: React.FC = () => {
 		}
 	)
 
+	const { data: brand } = useQuery(getBrand, {
+		id: productModel?.data?.brandId,
+	}, {
+		enabled: !!productModel?.data?.brandId,
+	})
+
 	// Fetch product variants
 	const [products, setProducts] = useState<ProductEntity[]>([])
 	const [isLoadingVariants, setIsLoadingVariants] = useState(true)
@@ -322,7 +335,6 @@ const ProductDetail: React.FC = () => {
 	const totalStock = useCallback((): number => {
 		return products.reduce((sum, item) => sum + Number(item.quantity), 0)
 	}, [products])
-	console.log(products)
 
 	const getAvailableStock = useCallback((): number => {
 		// If no variant options are selected, return total stock
@@ -489,9 +501,7 @@ const ProductDetail: React.FC = () => {
 					<div className="flex items-center space-x-4 text-sm">
 						<span>
 							Brand:{" "}
-							{productModel?.data?.brandId
-								? `#${productModel?.data?.brandId}`
-								: "N/A"}
+              {brand?.data?.name}
 						</span>
 					</div>
 					<p className="text-2xl font-semibold text-blue-600">
