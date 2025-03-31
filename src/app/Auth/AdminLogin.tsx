@@ -5,16 +5,16 @@ import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
 import Checkbox from "../../components/ui/Checkbox"
 import Card, { CardHeader, CardBody } from "../../components/ui/Card"
-import { loginUser } from "shopnexus-protobuf-gen-ts"
+import { loginAdmin, loginUser } from "shopnexus-protobuf-gen-ts"
 import { useMutation } from "@connectrpc/connect-query"
 
 const AdminLogin: React.FC = () => {
-	const [email, setEmail] = useState("")
+	const [username, setUsername] = useState("")
 	const [password, setPassword] = useState("")
 	const [rememberMe, setRememberMe] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
-	const { mutateAsync: mutateLoginUser } = useMutation(loginUser)
+	const { mutateAsync: mutateLoginUser } = useMutation(loginAdmin)
 
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -26,20 +26,13 @@ const AdminLogin: React.FC = () => {
 		setIsLoading(true)
 
 		try {
-			// Check if email has admin domain
-			if (!email.endsWith("@shopnexus.com")) {
-				setError("Admin access requires a shopnexus.com email address")
-				setIsLoading(false)
-				return
-			}
-
 			const data = await mutateLoginUser({
-				username: email,
+				username: username,
 				password: password,
 			})
 
 			localStorage.setItem("token", data.token)
-			localStorage.setItem("isAdmin", "true") // Set admin flag in localStorage
+			localStorage.setItem("isAdmin", "true")
 
 			const from = location.state?.from?.pathname || "/admin"
 			navigate(from, { replace: true })
@@ -47,14 +40,11 @@ const AdminLogin: React.FC = () => {
 			let errorMessage = "An error occurred during login"
 
 			switch (err.code) {
-				case "auth/invalid-email":
-					errorMessage = "Invalid email address"
-					break
 				case "auth/user-disabled":
 					errorMessage = "This account has been disabled"
 					break
 				case "auth/user-not-found":
-					errorMessage = "No account found with this email"
+					errorMessage = "No account found with this username"
 					break
 				case "auth/wrong-password":
 					errorMessage = "Incorrect password"
@@ -86,11 +76,11 @@ const AdminLogin: React.FC = () => {
 					)}
 					<form onSubmit={handleLogin} className="space-y-4">
 						<Input
-							label="Admin Email"
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="admin@shopnexus.com"
+							label="Admin Username"
+							type="text"
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
+							placeholder="Enter your username"
 							disabled={isLoading}
 							required
 						/>
