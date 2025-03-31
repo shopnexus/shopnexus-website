@@ -18,7 +18,7 @@ function handleUnAuthorized(error: any) {
 export const finalTransport = createConnectTransport({
 	baseUrl: "http://khoakomlem-internal.ddns.net:50051",
 	// baseUrl: "http://localhost:50051",
-	useBinaryFormat: true,
+	useBinaryFormat: false,
 	useHttpGet: true,
 	interceptors: [
 		(next) => (request) => {
