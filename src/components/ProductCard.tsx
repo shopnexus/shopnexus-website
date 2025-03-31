@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Button from "./ui/Button"
 import { useMutation } from "@connectrpc/connect-query"
 import { addCartItem } from "shopnexus-protobuf-gen-ts"
 
 interface ProductCardProps {
-	id: string
+	id: number
 	name: string
 	price: number
 	image?: string

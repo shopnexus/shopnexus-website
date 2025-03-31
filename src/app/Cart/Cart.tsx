@@ -1,6 +1,14 @@
-"use client"
+import { useEffect, useState } from "react";
+import { useCart } from "./CartContext";
+import Button from "../../components/ui/Button";
+import CartItem from "./CartItem";
 
-import { useState } from "react"
+export default function Cart() {
+  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [tax, setTax] = useState(0);
+  const [total, setTotal] = useState(0);
 
 import Button from "../../components/ui/Button"
 import CartItem from "./CartItem"
