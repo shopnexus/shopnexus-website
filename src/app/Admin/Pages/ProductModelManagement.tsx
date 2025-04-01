@@ -461,7 +461,7 @@ const ProductModelManagement = () => {
 													className="w-16 h-16 object-cover rounded-lg"
 													onError={(e) => {
 														;(e.target as HTMLImageElement).src =
-															"https://via.placeholder.com/150?text=No+Image"
+															"https://placehold.co/150x150"
 													}}
 												/>
 											) : (

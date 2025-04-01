@@ -1,10 +1,10 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
 import { createConnectTransport } from "@connectrpc/connect-web"
 
-// import { env } from './env';
-// TODO: sua lai cho nay
-
 const CONNECT_UNAUTHORIZED_ERROR_CODE = 16
+
+export const BASE_URL = "http://khoakomlem-internal.ddns.net:50051"
+// const BASE_URL = "http://localhost:50051"
 
 function handleUnAuthorized(error: any) {
   if (error.code === CONNECT_UNAUTHORIZED_ERROR_CODE) {

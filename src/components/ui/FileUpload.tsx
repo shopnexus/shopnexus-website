@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react"
 import { Upload, X } from "lucide-react"
 import * as tus from "tus-js-client"
-
+import { BASE_URL } from "../../core/query-client"
 interface FileUploadProps {
   onUploadComplete: (urls: string[]) => void
   resources: string[]
@@ -16,7 +16,7 @@ const FileUpload = ({ onUploadComplete, resources, onRemoveImage }: FileUploadPr
   const uploadFile = useCallback(async (file: File) => {
     return new Promise<string>((resolve, reject) => {
       const upload = new tus.Upload(file, {
-        endpoint: "http://localhost:50051/files/",
+        endpoint: `${BASE_URL}/files/`,
         retryDelays: [0, 3000, 5000, 10000, 20000],
         metadata: {
           filename: file.name,

@@ -1,17 +1,14 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
 	Plus,
 	Edit2,
 	Trash2,
 	Search,
-	X,
-	Upload,
 	ArrowLeft,
 } from "lucide-react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
-import * as tus from "tus-js-client"
 import {
 	createProduct,
 	deleteProduct,
@@ -28,6 +25,7 @@ import { ProductEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/product_p
 import { useSearchParams, useNavigate } from "react-router-dom"
 import Pagination from "../../../components/ui/Pagination"
 import MetadataEditor from "../../../components/ui/MetadataEditor"
+import FileUpload from "../../../components/ui/FileUpload"
 
 // Add this new component for product rows
 const ProductRow = ({ product, onEdit, onDelete }) => {
@@ -47,7 +45,7 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
 				<img
 					src={
 						product.resources[0] ||
-						"https://via.placeholder.com/150?text=No+Image"
+						"https://placehold.co/150x150"
 					}
 					alt={product.serialId}
 					className="w-16 h-16 object-cover rounded-lg"
@@ -129,11 +127,6 @@ const ProductManagement = () => {
 		metadata: {},
 		resources: [] as string[],
 	})
-	const [uploadProgress, setUploadProgress] = useState<{
-		[key: string]: number
-	}>({})
-	const [isUploading, setIsUploading] = useState(false)
-	const fileInputRef = useRef<HTMLInputElement>(null)
 	const { data: productModel } = useQuery(
 		getProductModel,
 		{
@@ -276,114 +269,6 @@ const ProductManagement = () => {
 			[name]: name === "price" || name === "stock" ? Number(value) : value,
 		}))
 	}
-
-	const uploadFile = useCallback(async (file: File) => {
-		return new Promise<string>((resolve, reject) => {
-			// Create a new tus upload
-			const upload = new tus.Upload(file, {
-				endpoint: "http://localhost:50051/files/",
-				retryDelays: [0, 3000, 5000, 10000, 20000],
-				metadata: {
-					filename: file.name,
-					filetype: file.type,
-				},
-				onError: (error) => {
-					console.error("Failed to upload:", error)
-					reject(error)
-				},
-				onProgress: (bytesUploaded, bytesTotal) => {
-					const percentage = Math.round((bytesUploaded / bytesTotal) * 100)
-					setUploadProgress((prev) => ({
-						...prev,
-						[file.name]: percentage,
-					}))
-				},
-				onSuccess: () => {
-					// Get the URL from the completed upload
-					const uploadUrl = upload.url
-					resolve(uploadUrl || "")
-				},
-			})
-
-			// Start the upload
-			upload.start()
-		})
-	}, [])
-
-	const handleFileSelect = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = e.target.files
-			if (!files || files.length === 0) return
-
-			setIsUploading(true)
-			const uploadedUrls: string[] = []
-
-			try {
-				for (let i = 0; i < files.length; i++) {
-					const file = files[i]
-					const url = await uploadFile(file)
-					uploadedUrls.push(url)
-				}
-
-				setFormData((prev) => ({
-					...prev,
-					resources: [...prev.resources, ...uploadedUrls],
-				}))
-			} catch (error) {
-				console.error("Error uploading files:", error)
-			} finally {
-				setIsUploading(false)
-				setUploadProgress({})
-				if (fileInputRef.current) {
-					fileInputRef.current.value = ""
-				}
-			}
-		},
-		[uploadFile]
-	)
-
-	const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault()
-		e.stopPropagation()
-	}, [])
-
-	const handleDrop = useCallback(
-		async (e: React.DragEvent<HTMLDivElement>) => {
-			e.preventDefault()
-			e.stopPropagation()
-
-			const files = e.dataTransfer.files
-			if (!files || files.length === 0) return
-
-			setIsUploading(true)
-			const uploadedUrls: string[] = []
-
-			try {
-				for (const file of files) {
-					const url = await uploadFile(file)
-					uploadedUrls.push(url)
-				}
-
-				setFormData((prev) => ({
-					...prev,
-					resources: [...prev.resources, ...uploadedUrls],
-				}))
-			} catch (error) {
-				console.error("Error uploading files:", error)
-			} finally {
-				setIsUploading(false)
-				setUploadProgress({})
-			}
-		},
-		[uploadFile]
-	)
-
-	const removeImage = useCallback((index: number) => {
-		setFormData((prev) => ({
-			...prev,
-			resources: prev.resources.filter((_, i) => i !== index),
-		}))
-	}, [])
 
 	const handleSubmit = async () => {
 		try {
@@ -647,75 +532,21 @@ const ProductManagement = () => {
 						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Images
 						</label>
-						<div
-							className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors"
-							onDragOver={handleDragOver}
-							onDrop={handleDrop}
-							onClick={() => fileInputRef.current?.click()}
-						>
-							<input
-								type="file"
-								ref={fileInputRef}
-								onChange={handleFileSelect}
-								className="hidden"
-								multiple
-								accept="image/*"
-							/>
-							<div className="flex flex-col items-center justify-center py-4">
-								<Upload className="w-10 h-10 text-gray-400 mb-2" />
-								<p className="text-sm text-gray-500">
-									Drag and drop images here or click to browse
-								</p>
-								<p className="text-xs text-gray-400 mt-1">
-									Supported formats: JPG, PNG, GIF
-								</p>
-							</div>
-						</div>
-
-						{/* Upload Progress */}
-						{Object.keys(uploadProgress).length > 0 && (
-							<div className="mt-2 space-y-2">
-								{Object.entries(uploadProgress).map(([filename, progress]) => (
-									<div key={filename} className="flex items-center">
-										<div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-											<div
-												className="bg-blue-600 h-2.5 rounded-full"
-												style={{ width: `${progress}%` }}
-											></div>
-										</div>
-										<span className="text-xs text-gray-500">{progress}%</span>
-									</div>
-								))}
-							</div>
-						)}
-
-						{/* Image Preview Carousel */}
-						{formData.resources.length > 0 && (
-							<div className="mt-4">
-								<div className="flex overflow-x-auto space-x-2 py-2">
-									{formData.resources.map((image, index) => (
-										<div key={image} className="relative flex-shrink-0">
-											<img
-												src={image}
-												alt={`Product ${index + 1}`}
-												className="w-24 h-24 object-cover rounded-lg border"
-												onError={(e) => {
-													;(e.target as HTMLImageElement).src =
-														"https://placehold.co/150x150"
-												}}
-											/>
-											<button
-												type="button"
-												onClick={() => removeImage(index)}
-												className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-											>
-												<X className="w-3 h-3" />
-											</button>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
+						<FileUpload
+							resources={formData.resources}
+							onUploadComplete={(urls) => {
+								setFormData(prev => ({
+									...prev,
+									resources: [...prev.resources, ...urls],
+								}))
+							}}
+							onRemoveImage={(index) => {
+								setFormData(prev => ({
+									...prev,
+									resources: prev.resources.filter((_, i) => i !== index),
+								}))
+							}}
+						/>
 					</div>
 				</div>
 
@@ -723,18 +554,15 @@ const ProductManagement = () => {
 					<Button
 						variant="outline"
 						onClick={closeModal}
-						disabled={isUploading}
 						className="border-gray-300 hover:bg-gray-50"
 					>
 						Cancel
 					</Button>
 					<Button
 						onClick={handleSubmit}
-						disabled={isUploading}
 						className="bg-blue-600 hover:bg-blue-700 text-white transition-colors"
 					>
-						{isUploading ? "Uploading..." : selectedProduct ? "Update" : "Add"}{" "}
-						Product
+						{selectedProduct ? "Update" : "Add"} Product
 					</Button>
 				</div>
 			</Modal>
