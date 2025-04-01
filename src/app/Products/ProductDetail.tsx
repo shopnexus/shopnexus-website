@@ -16,9 +16,7 @@ const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
 	try {
 		const decoder = new TextDecoder()
 		const jsonString = decoder.decode(metadata)
-    const data =  JSON.parse(JSON.parse(jsonString))
-	// debugger
-    // console.log(data)
+    const data =  JSON.parse(jsonString)
     return data
 	} catch (error) {
 		console.error("Error parsing metadata:", error)

@@ -4,18 +4,11 @@ import React from "react"
 import { getUser } from "shopnexus-protobuf-gen-ts"
 
 const Profile: React.FC = () => {
-	// const [user] = useState<UserProfile>({
-	// 	name: "John Doe",
-	// 	email: "john.doe@example.com",
-	// 	avatar: "/placeholder3.jpeg",
-	// 	bio: "Frontend developer passionate about React and TypeScript",
-	// })
-
 	const { data: user, isLoading } = useQuery(getUser)
 
 	const handleLogout = () => {
-		alert("Đăng xuất thành công!")
 		// Chuyển hướng về trang đăng nhập (tuỳ thuộc vào router bạn đang dùng)
+		localStorage.removeItem("token")
 		window.location.href = "/login"
 	}
 
