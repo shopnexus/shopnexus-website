@@ -3,50 +3,46 @@
 import React, { useState } from "react"
 import {
   createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
 } from "firebase/auth"
 import { auth } from "../firebase"
 import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
 import Card, { CardHeader, CardBody } from "../../components/ui/Card"
-import { getOpacity } from "@mui/material/styles/createColorScheme"
-import { hover } from "framer-motion"
+import { useMutation } from "@connectrpc/connect-query"
+import { registerUser } from "shopnexus-protobuf-gen-ts"
+import { Gender } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb"
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [username, setUsername] = useState("")
+  const [phone, setPhone] = useState("")
+  const [gender, setGender] = useState<Gender>(Gender.FEMALE)
   const [error, setError] = useState<string | null>(null)
+
+  const {mutateAsync: mutateRegisterUser} = useMutation(registerUser)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      setError("Password is wrong!")
+      setError("Passwords do not match!")
       return
     }
-    try {
-      await createUserWithEmailAndPassword(auth, email, password)
-      // Đăng ký thành công, có thể chuyển hướng người dùng hoặc cập nhật UI
-    } catch (err: any) {
-      setError(err.message)
-    }
-  }
 
-  const handleGoogleSignIn = async () => {
     try {
-      const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-      // Đăng ký/Đăng nhập thành công bằng Google, xử lý chuyển hướng hoặc cập nhật UI
-    } catch (err: any) {
-      setError(err.message)
-    }
-  }
-  const handleFacebookSignIn = async () => {
-    try {
-      const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-      // Đăng ký/Đăng nhập thành công bằng Google, xử lý chuyển hướng hoặc cập nhật UI
+      const response = await mutateRegisterUser({
+        email,
+        fullName,
+        username,
+        password,
+        gender,
+        phone,
+      })
+      localStorage.setItem("token", response.token)
+      // Registration successful, you can add redirect logic here
+      location.href = "/"
     } catch (err: any) {
       setError(err.message)
     }
@@ -60,14 +56,27 @@ const Register: React.FC = () => {
         </CardHeader>
         <CardBody>
           {error && (
-            <div
-              className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg"
-              role="alert"
-            >
+            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
               {error}
             </div>
           )}
           <form onSubmit={handleRegister} className="space-y-4">
+            <Input
+              label="Full Name"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="John Doe"
+              required
+            />
+            <Input
+              label="Username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="johndoe123"
+              required
+            />
             <Input
               label="Email"
               type="email"
@@ -76,6 +85,27 @@ const Register: React.FC = () => {
               placeholder="you@example.com"
               required
             />
+            <Input
+              label="Phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1234567890"
+              required
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(Number(e.target.value) as Gender)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                required
+              >
+                <option value={Gender.FEMALE}>Female</option>
+                <option value={Gender.MALE}>Male</option>
+                <option value={Gender.OTHER}>Other</option>
+              </select>
+            </div>
             <Input
               label="Password"
               type="password"
@@ -93,7 +123,7 @@ const Register: React.FC = () => {
               required
             />
             <Button type="submit" className="w-full cursor-pointer">
-              Confirm
+              Register
             </Button>
           </form>
           
@@ -106,7 +136,7 @@ const Register: React.FC = () => {
                   <span className="bg-white px-2 text-gray-500">Or</span>
                 </div>
               </div>
-              <Button variant="outline" className="mt-4 w-full cursor-pointer" onClick={handleGoogleSignIn}>
+              <Button variant="outline" className="mt-4 w-full cursor-pointer">
               <svg className="w-5 h-5 mr-2 inline-block" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
