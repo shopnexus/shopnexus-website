@@ -1,28 +1,32 @@
 import { Trash2 } from "lucide-react"
 import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
+import { ProductModelEntity } from "shopnexus-protobuf-gen-ts";
 
-export interface ItemInCart {
-  id: number; 
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  variantId: number; 
-  color: string;
-  size: number;
-  stockQuantity:number
-}
+// export interface ItemInCart {
+//   id: number; 
+//   name: string;
+//   price: number;
+//   quantity: number;
+//   image: string;
+//   variantId: number; 
+//   color: string;
+//   size: number;
+//   stockQuantity:number
+// }
 interface CartItemProps {
-  item: ItemInCart
+  item: ProductModelEntity|undefined
   selected: boolean
   onSelect: ()=>void
   onRemove: () => void
   onUpdateQuantity: (newQuantity: number) => void
 }
 
-export default function CartItem({ item,selected,onSelect, onRemove, onUpdateQuantity }: CartItemProps) {
-  return (
+export default function CartItem({ item,selected=false,onSelect=()=>{}, onRemove, onUpdateQuantity }: CartItemProps) {
+  if (!item) {
+    return <div>Loading...</div>; // Hoặc có thể là một thông báo khác nếu item chưa có
+  }
+  return (  
     <div className="flex items-center py-6 border-b">
       <input type="checkbox" checked={selected} onChange={onSelect} className="mr-4 w-5 h-5" />
       <img src={item.image || "/placeholder.svg"} alt={item.name} width={100} height={100} className="rounded-md" />
