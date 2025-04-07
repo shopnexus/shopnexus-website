@@ -72,7 +72,7 @@ export default function Cart() {
 				<div className="text-center">
 					<p className="text-xl mb-4">Your cart is empty</p>
 					<Button>
-						<a href="/products">Continue Shopping</a>
+						<a href="/">Continue Shopping</a>
 					</Button>
 				</div>
 			) : (

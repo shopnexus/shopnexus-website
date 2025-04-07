@@ -9,7 +9,9 @@ import {
 	ProductEntity,
 } from "shopnexus-protobuf-gen-ts"
 import { finalTransport } from "../../core/query-client"
-
+import FeedBack from "../../components/FeedBack"
+import FeaturedProducts from "./FeaturedProducts"
+import NewProducts from "./NewProducts"
 //#region Utility Functions
 // Convert Uint8Array metadata to object
 const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
@@ -531,6 +533,9 @@ const ProductDetail: React.FC = () => {
 					/>
 				</div>
 			</div>
+			<FeedBack></FeedBack>
+      		<FeaturedProducts></FeaturedProducts>
+      		<NewProducts></NewProducts>
 		</div>
 	)
 }
