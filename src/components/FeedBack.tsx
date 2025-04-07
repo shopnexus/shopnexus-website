@@ -1,183 +1,178 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import HorizontalScroll from "./HorizontalScroll";
-
-interface CommentProps {
-  title: string;
-  image: string[];
-}
-
-// Dữ liệu giả dùng để test
-const MOCK_COMMENTS: CommentProps[] = [
-  {
-    title: "Đánh giá 1",
-    image: [
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-    ],
-  },
-  {
-    title: "Đánh giá 2",
-    image: [
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-    ],
-  },
-  {
-    title: "Đánh giá 1",
-    image: [
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-      "https://placehold.co/600x400",
-    ],
-  },
-];
-
+import {Comment,bodyProps} from "./CommentList";
+import CommentEditor from "./CommentEditor"
+import CommentList from "./CommentList"
+import { ChevronDown } from "lucide-react";
 const FeedBack: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [comments, setComments] = useState<CommentProps[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [comments, setComments] = useState<Comment[]>([
+    {
+      id: 1,
+      user_id: 1,
+      dest_id: 0,
+      body: {
+        content:"I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?",
+        resources:[
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif"
+        ]
+      },
+      upvote: 25,
+      downvote: 0,
+      score: 25,
+      created_at: new Date(Date.now() - 56 * 60000),
+      user: {
+        id: 1,
+        name: "Noah Pierre",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+      },
+    },
+    {
+      id: 2,
+      user_id: 2,
+      dest_id: 0,
+      body: {
+        content:"I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?",
+        resources:[
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif"
+        ]
+      },
+      upvote: 18,
+      downvote: 0,
+      score: 18,
+      created_at: new Date(Date.now() - 6 * 60000),
+      user: {
+        id: 2,
+        name: "Sara Sprout",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+        verified: true,
+      },
+    },
+    {
+      id: 3,
+      user_id: 3,
+      dest_id: 0,
+      body: {
+        content:"I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?",
+        resources:[
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif"
+        ]
+      },
+      upvote: 9,
+      downvote: 0,
+      score: 9,
+      created_at: new Date(Date.now() - 3 * 60 * 60000),
+      user: {
+        id: 3,
+        name: "Mattie Hall",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+      },
+    },
+    {
+      id: 4,
+      user_id: 4,
+      dest_id: 0,
+      body: {
+        content:"I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?",
+        resources:[
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif"
+        ]
+      },
+      upvote: 12,
+      downvote: 0,
+      score: 12,
+      created_at: new Date(Date.now() - 24 * 60 * 60000),
+      user: {
+        id: 4,
+        name: "Lyle Kauffman",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+      },
+    },
+    {
+      id: 5,
+      user_id: 5,
+      dest_id: 4,
+      body: {
+        content:"I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?",
+        resources:[
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif"
+        ]
+      },
+      upvote: 8,
+      downvote: 0,
+      score: 8,
+      created_at: new Date(Date.now() - 12 * 60 * 60000),
+      user: {
+        id: 5,
+        name: "Amanda Lowery",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+      },
+    },
+    {
+      id: 6,
+      user_id: 6,
+      dest_id: 0,
+      body: {
+        content:"I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?",
+        resources:[
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+          "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif"
+        ]
+      },
+      upvote: 5,
+      downvote: 0,
+      score: 5,
+      created_at: new Date(Date.now() - 2 * 60 * 60000),
+      user: {
+        id: 6,
+        name: "Owen Garcia",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+      },
+    },
+  ])
 
-  // State cho modal zoom ảnh
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [modalImages, setModalImages] = useState<string[]>([]);
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-
-  useEffect(() => {
-    const fetchComment = async () => {
-      try {
-        // Giả lập fetch dữ liệu từ API bằng dữ liệu MOCK
-        setComments(MOCK_COMMENTS);
-      } catch (error: any) {
-        setError(error.message || "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchComment();
+  const handleSubmitComment = (body: bodyProps) => {
+    const newComment: Comment = {
+      id: comments.length + 1,
+      user_id: 7, // Current user ID
+      dest_id: 0, // Main thread
+      body,
+      upvote: 0,
+      downvote: 0,
+      score: 0,
+      created_at: new Date(),
+      user: {
+        id: 7,
+        name: "Current User",
+        avatar: "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
+      },
     }
-  }, [id]);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-sm text-gray-600">Loading...</p>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-sm text-red-600">Error: {error}</p>
-      </div>
-    );
-
-  if (!comments || comments.length === 0)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-sm text-gray-600">No comments found.</p>
-      </div>
-    );
-
-  // Mở modal zoom ảnh
-  const openModal = (images: string[], startIndex = 0) => {
-    setModalImages(images);
-    setCurrentIndex(startIndex);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-  };
-
-  const nextImage = () => {
-    setCurrentIndex((prev) =>
-      prev === modalImages.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? modalImages.length - 1 : prev - 1
-    );
-  };
+    setComments([...comments, newComment])
+  }
 
   return (
-    <div className="max-w-5xl mx-auto py-4 px-2">
-      {/* Container có chiều cao cố định, scroll nếu nội dung vượt quá */}
-      <div className="max-h-[600px] overflow-y-auto space-y-4">
-        {comments.map((comment, idx) => (
-          <div key={idx} className="p-4 border rounded-lg shadow-sm bg-white">
-            <h2 className="text-lg font-semibold mb-2">{comment.title}</h2>
-            {/* Sử dụng flex-nowrap để hiển thị ảnh theo hàng ngang, cuộn ngang nếu vượt */}
-            
-            <HorizontalScroll>
-                <div className="flex flex-nowrap gap-2">
-                {comment.image.map((imgUrl, index) => (
-                    <img
-                    key={index}
-                    src={imgUrl}
-                    alt={`Comment ${idx + 1} Image ${index + 1}`}
-                    className="w-1/3 object-cover rounded cursor-pointer"
-                    onClick={() => openModal(comment.image, index)}
-                    />
-                ))}
-                </div>
-            </HorizontalScroll>
+    <div className="max-w mx-auto pt-4 bg-white">
+      <CommentEditor onSubmit={handleSubmitComment} />
+      <div className="mt-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <h2 className="text-lg font-medium">Comments</h2>
+            <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">{comments.length}</span>
           </div>
-        ))}
-      </div>
-
-      {/* Modal hiển thị ảnh với điều hướng */}
-      {modalOpen && (
-        <div
-            onClick={closeModal}
-            className="fixed inset-0 bg-transparent flex items-center justify-center z-50"
-        >
-            <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative bg-white rounded p-4 max-w-lg w-full"
-            >
-            <button
-                onClick={closeModal}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-sm"
-            >
-                Đóng
-            </button>
-            <div className="flex items-center justify-center">
-                <button onClick={prevImage} className="px-2 text-2xl">
-                &#9664;
-                </button>
-                <img
-                src={modalImages[currentIndex]}
-                alt={`Modal Image ${currentIndex + 1}`}
-                className="max-h-96 object-contain mx-2"
-                />
-                <button onClick={nextImage} className="px-2 text-2xl">
-                &#9654;
-                </button>
-            </div>
-            <div className="text-center mt-2 text-sm">
-                {currentIndex + 1} / {modalImages.length}
-            </div>
-            </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <span>Most recent</span>
+            <ChevronDown className="w-4 h-4 ml-1" />
+          </div>
         </div>
-        )}
-
+        <CommentList comments={comments} />
+      </div>
     </div>
-  );
+  )
 };
 
 export default FeedBack;

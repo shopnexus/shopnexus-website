@@ -24,6 +24,7 @@
 		"@tanstack/react-virtual": "^3.13.5",
 		"@uppy/core": "^4.4.3",
 		"@uppy/dashboard": "^4.3.2",
+		"date-fns": "^4.1.0",
 		"firebase": "^11.2.0",
 		"framer-motion": "^11.18.2",
 		"lucide-react": "^0.475.0",
