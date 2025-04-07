@@ -24,6 +24,7 @@ import RefundProduct from "./app/Products/Product/RefundProduct"
 import { finalTransport, queryClient } from "./core/query-client"
 import { TransportProvider } from "@connectrpc/connect-query"
 import AdminLogin from "./app/Auth/AdminLogin"
+import RefundManagement from "./app/Admin/Pages/RefundManagement"
 
 const App: React.FC = () => {
 	return (
@@ -50,6 +51,7 @@ const App: React.FC = () => {
 								path="product-models"
 								element={<ProductModelManagement />}
 							/>
+							<Route path="refund" element = {<RefundManagement/>}></Route>
 							<Route path="tags" element={<TagManagement />} />
 							<Route path="sales" element={<SalesManagement />} />
 							<Route path="settings" element={<SettingManager />} />

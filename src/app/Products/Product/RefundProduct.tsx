@@ -3,6 +3,7 @@ import { Camera } from "lucide-react";
 
 const RefundProduct: React.FC = () => {
   const [formData, setFormData] = useState({
+    idRefund: "",
     selectedReason: "",
     customReason: "",
     image: null,
