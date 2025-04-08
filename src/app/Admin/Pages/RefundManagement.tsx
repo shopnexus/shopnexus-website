@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefundInfo } from "../../Products/Product/RefundProduct";
+import { RefundInfo } from "../../../components/RefundProduct";
 // interface RefundInfo {
 //   //thong tin tra hang
 //   id: number;
@@ -16,48 +16,64 @@ import { RefundInfo } from "../../Products/Product/RefundProduct";
 
 const dummyRefunds: RefundInfo[] = [
   {
-    id: "1",
-    paymentId: "1",
-    productName: "Giày thể thao Nike",
-    price: 500000,
-    refundMethod: "Banking",
-    refundAmount: 450000,
-    reason: "Sản phẩm bị lỗi",
-    address: "Chờ xử lý",
-    status: "PENDING",
+    id: 'RR123456789',
+    paymentId: 'PMT987654321',
+    method: 'VNPAY',
+    status: 'pending', // trạng thái có thể là: pending, approved, rejected, processing, completed
+    reason: 'Sản phẩm bị lỗi khi nhận',
+    dateCreated: '2025-04-08T10:30:00Z',
+    dateUpdated: '2025-04-08T10:30:00Z',
+    resources: [
+      'https://example.com/uploads/image1.jpg',
+      'https://example.com/uploads/image2.jpg',
+    ],
   },
   {
-    id: "2",
-    paymentId: "1",
-    productName: "Dép tổ ong",
-    price: 30000,
-    refundMethod: "Tiền mặt",
-    refundAmount: 450000,
-    reason: "Sản phẩm bị lỗi",
-    address: "Chờ xử lý",
-    status: "PENDING",
+    id: 'RR123456789',
+    paymentId: 'PMT987654321',
+    method: 'VNPAY',
+    status: 'pending',
+    reason: 'Sản phẩm bị lỗi khi nhận',
+    dateCreated: '2025-04-08T10:30:00Z',
+    dateUpdated: '2025-04-08T10:30:00Z',
+    resources: [
+      'https://example.com/uploads/image1.jpg',
+      'https://example.com/uploads/image2.jpg',
+    ],
   },
   {
-    id: "3",
-    paymentId: "1",
-    productName: "Giày Bitis",
-    price: 347000,
-    refundMethod: "Banking",
-    refundAmount: 450000,
-    reason: "Sản phẩm bị lỗi",
-    address: "Chờ xử lý",
-    status: "PENDING",
+    id: 'RR987654321',
+    paymentId: 'PMT123456789',
+    method: 'COD',
+    status: 'processing',
+    reason: 'Giao sai mẫu mã',
+    dateCreated: '2025-04-07T15:00:00Z',
+    dateUpdated: '2025-04-08T09:45:00Z',
+    resources: [
+      'https://example.com/uploads/wrong_product.jpg',
+    ],
   },
   {
-    id: "4",
-    paymentId: "1",
-    productName: "Giày thể thao cầu lông Yonex",
-    price: 1000000,
-    refundMethod: "Banking",
-    refundAmount: 450000,
-    reason: "Sản phẩm bị lỗi",
-    address: "Chờ xử lý",
-    status: "PENDING",
+    id: 'RR555666777',
+    paymentId: 'PMT222333444',
+    method: 'MOMO',
+    status: 'approved',
+    reason: 'Không đúng kích thước như mô tả',
+    dateCreated: '2025-04-06T12:10:00Z',
+    dateUpdated: '2025-04-07T08:20:00Z',
+    resources: [
+      'https://example.com/uploads/size_issue.jpg',
+    ],
+  },
+  {
+    id: 'RR444333222',
+    paymentId: 'PMT999888777',
+    method: 'ZALO_PAY',
+    status: 'rejected',
+    reason: 'Muốn đổi sản phẩm khác',
+    dateCreated: '2025-04-05T18:30:00Z',
+    dateUpdated: '2025-04-06T10:00:00Z',
+    resources: [],
   },
 ];
 

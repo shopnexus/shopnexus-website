@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Camera } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export interface RefundInfo {
   //thong tin tra hang
@@ -15,41 +16,44 @@ export interface RefundInfo {
 
 //test data
 const dataModel : RefundInfo = {
-            id: "2",
-            paymentId: "3",
-            method: "REFUND_METHOD_DROP_OFF",
-            status: "STATUS_SUCCESS",
-            reason: "Sub comedo voluptates uredo deorsum universe peior carus aestas adipisci.",
-            dateCreated: "1743808940828",
-            dateUpdated: "1743808940828",
-            resources: [
-                "https://loremflickr.com/800/600?lock=3346652999366532",
-                "https://picsum.photos/seed/alIPKkY4Vp/800/600?grayscale&blur=8",
-                "https://picsum.photos/seed/b0yMS3yqA/800/600?blur=1",
-                "https://picsum.photos/seed/FqcOQm4uhU/800/600?blur=3",
-                "https://picsum.photos/seed/U6WUuEL1/800/600?grayscale",
-                "https://picsum.photos/seed/v1iD8SXxS/800/600?blur=5",
-                "https://picsum.photos/seed/Wtws7H3Ft/800/600?grayscale&blur=9",
-                "https://picsum.photos/seed/X8XFwhkQ/800/600?blur=7"
-            ]
+  id: "2",
+  paymentId: "3",
+  method: "REFUND_METHOD_DROP_OFF",
+  status: "STATUS_SUCCESS",
+  reason: "Sub comedo voluptates uredo deorsum universe peior carus aestas adipisci.",
+  dateCreated: "1743808940828",
+  dateUpdated: "1743808940828",
+  resources: [
+    "https://loremflickr.com/800/600?lock=3346652999366532",
+    "https://picsum.photos/seed/alIPKkY4Vp/800/600?grayscale&blur=8",
+    "https://picsum.photos/seed/b0yMS3yqA/800/600?blur=1",
+    "https://picsum.photos/seed/FqcOQm4uhU/800/600?blur=3",
+    "https://picsum.photos/seed/U6WUuEL1/800/600?grayscale",
+    "https://picsum.photos/seed/v1iD8SXxS/800/600?blur=5",
+    "https://picsum.photos/seed/Wtws7H3Ft/800/600?grayscale&blur=9",
+    "https://picsum.photos/seed/X8XFwhkQ/800/600?blur=7"
+  ]
 }
+
 const RefundProduct: React.FC = () => {
   const [formData, setFormData] = useState({
     idRefund: "",
     selectedReason: "",
     customReason: "",
-    productImages: [] as File[], // nhiều ảnh
-    productImagePreviews: [] as string[], // base64 preview
+    productImages: [] as File[],
+    productImagePreviews: [] as string[],
   });
   const [message, setMessage] = useState("");
+  const location = useLocation();
+  const { paymentId, paymentInfo, products } = location.state || {};
 
-  const product = {
+  const product = products && products[0] ? products[0] : {
     name: "Sản phẩm A",
     price: 500000,
     image: "https://via.placeholder.com/150",
   };
 
-  const refundAmount = product.price * 0.9;
+  const refundAmount = product.price;
 
   const reasons = [
     "Sản phẩm bị lỗi",
@@ -77,7 +81,7 @@ const RefundProduct: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const previews: string[] = [];
-  
+
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -93,8 +97,6 @@ const RefundProduct: React.FC = () => {
       reader.readAsDataURL(file);
     });
   };
-  
-  
 
   return (
     <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md mt-6 border border-gray-200">
@@ -169,7 +171,6 @@ const RefundProduct: React.FC = () => {
 
           {/* Upload ảnh sản phẩm lỗi */}
           <div>
-            <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Ảnh sản phẩm lỗi
             </label>
@@ -200,7 +201,6 @@ const RefundProduct: React.FC = () => {
               </label>
             </div>
           </div>
-      </div>
 
           <button
             type="submit"

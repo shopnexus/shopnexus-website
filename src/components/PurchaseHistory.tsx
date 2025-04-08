@@ -1,7 +1,6 @@
 // PurchaseHistory.tsx
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
-//dấd/
 export interface ProductInfor {
 	id: string
 	type: string
@@ -154,9 +153,37 @@ const PurchaseHistory: React.FC = () => {
 		setSelectedPayment(null)
 	}
 
-	const handleReturnOrder = (id: string) => {
-		alert(`Yêu cầu hoàn hàng cho đơn ${id} đã được gửi!`)
+	
+//chuyển sang trang yêu cầu hoàn hàng và chuyển dữ liệu được chọn sang trang đo
+	const handleReturn = (id: string) => {
+		const payment = dummyPayments.find(p => p.id === id)
+		if (!payment) return
+	
+		// Gắn thêm thông tin sản phẩm nếu cần
+		const detailedProducts = payment.products.map(item => {
+			const product = findProductById(item.itemQuantity.itemId)
+			return {
+				...item,
+				productInfo: product || null,
+			}
+		})
+	
+		navigate('/refund', {
+			state: {
+				paymentId: payment.id,
+				paymentInfo: {
+					id: payment.id,
+					method: payment.method,
+					status: payment.status,
+					address: payment.address,
+					total: payment.total,
+					dateCreated: payment.dateCreated,
+				},
+				products: detailedProducts,
+			},
+		})
 	}
+	
 
 	const findProductById = (id: string) => {
 		return dummyProducts.find(p => p.id === id)
@@ -167,71 +194,75 @@ const PurchaseHistory: React.FC = () => {
 			<h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Lịch sử mua hàng</h1>
 
 			<div className="grid gap-6 max-w-4xl mx-auto">
-				{dummyPayments.map((payment, index) => (
-					<div
-						key={payment.id}
-						className="bg-white rounded-2xl shadow-md p-5 hover:shadow-lg transition-shadow relative"
-					>
-						<h2 className="text-xl font-semibold text-gray-900 mb-3">
-							Đơn hàng số {index + 1}
-						</h2>
+				{dummyPayments.length === 0 ? (
+					<p className="text-center text-gray-600 text-lg">Không có đơn hàng nào.</p>
+				) : (
+					dummyPayments.map((payment, index) => (
+						<div
+							key={payment.id}
+							className="bg-white rounded-2xl shadow-md p-5 hover:shadow-lg transition-shadow relative"
+						>
+							<h2 className="text-xl font-semibold text-gray-900 mb-3">
+								Đơn hàng số {index + 1}
+							</h2>
 
-						{payment.products.map((item, idx) => {
-							const product = findProductById(item.itemQuantity.itemId)
-							if (!product) return null
+							{payment.products.map((item, idx) => {
+								const product = findProductById(item.itemQuantity.itemId)
+								if (!product) return null
 
-							return (
-								<div key={idx} className="flex gap-4 mb-4">
-									<img
-										src={product.resources[0]}
-										alt={product.name}
-										className="w-28 h-28 object-cover rounded-xl border"
-									/>
-									<div className="flex-1">
-										<h3 className="text-lg font-medium text-gray-800">{product.name}</h3>
-										<p className="text-sm text-gray-600 mb-1">{product.description}</p>
-										<p className="text-sm text-gray-700">
-											Số lượng: <span className="font-semibold">{item.itemQuantity.quantity}</span>
-										</p>
-										<p className="text-sm text-gray-700">
-											Đơn giá:{" "}
-											<span className="text-blue-600">
-												{parseInt(item.price).toLocaleString()} ₫
-											</span>
-										</p>
-										<p className="text-sm text-gray-700">
-											Tổng giá:{" "}
-											<span className="text-red-500 font-semibold">
-												{parseInt(item.totalPrice).toLocaleString()} ₫
-											</span>
-										</p>
-										<p className="text-sm text-gray-500 italic">
-											Ngày tạo đơn hàng: {formatDate(payment.dateCreated)}
-										</p>
-										<p className="text-me text-black-100">
-											Trạng thái: {payment.status}
-										</p>
+								return (
+									<div key={idx} className="flex gap-4 mb-4">
+										<img
+											src={product.resources[0]}
+											alt={product.name}
+											className="w-28 h-28 object-cover rounded-xl border"
+										/>
+										<div className="flex-1">
+											<h3 className="text-lg font-medium text-gray-800">{product.name}</h3>
+											<p className="text-sm text-gray-600 mb-1">{product.description}</p>
+											<p className="text-sm text-gray-700">
+												Số lượng: <span className="font-semibold">{item.itemQuantity.quantity}</span>
+											</p>
+											<p className="text-sm text-gray-700">
+												Đơn giá:{" "}
+												<span className="text-blue-600">
+													{parseInt(item.price).toLocaleString()} ₫
+												</span>
+											</p>
+											<p className="text-sm text-gray-700">
+												Tổng giá:{" "}
+												<span className="text-red-500 font-semibold">
+													{parseInt(item.totalPrice).toLocaleString()} ₫
+												</span>
+											</p>
+											<p className="text-sm text-gray-500 italic">
+												Ngày tạo đơn hàng: {formatDate(payment.dateCreated)}
+											</p>
+											<p className="text-me text-black-100">
+												Trạng thái: {payment.status}
+											</p>
+										</div>
 									</div>
-								</div>
-							)
-						})}
+								)
+							})}
 
-						<div className="mt-2 text-right space-x-2">
-							<button
-								onClick={() => handleViewPayment(payment.id)}
-								className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded-md shadow-sm transition-all duration-200"
-							>
-								Xem chi tiết
-							</button>
-							<button
-								onClick={() => handleReturnOrder(payment.id)}
-								className="cursor-pointer bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-4 rounded-md shadow-sm transition-all duration-200"
-							>
-								Trả hàng/ hoàn tiền
-							</button>
+							<div className="mt-2 text-right space-x-2">
+								<button
+									onClick={() => handleViewPayment(payment.id)}
+									className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded-md shadow-sm transition-all duration-200"
+								>
+									Xem chi tiết
+								</button>
+								<button
+									onClick={() => handleReturn(payment.id)}
+									className="cursor-pointer bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-4 rounded-md shadow-sm transition-all duration-200"
+								>
+									Trả hàng/ hoàn tiền
+								</button>
+							</div>
 						</div>
-					</div>
-				))}
+					))
+				)}
 			</div>
 
 			{/* Overlay chi tiết đơn hàng */}
