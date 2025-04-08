@@ -12,13 +12,6 @@ export function cn(...inputs: any[]) {
 
 
 
-
-
-
-
-
-
-
 // utils/validators.ts
 export const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

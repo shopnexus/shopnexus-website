@@ -4,7 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../../c
 import { ScrollArea } from "../../../components/ui/Scroll-Area";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
-import { Send, Users } from "lucide-react";
+import { Send, Users,XCircleIcon } from "lucide-react";
+
 
 // Mock user data
 interface User {
@@ -106,17 +107,18 @@ export default function ChatManager() {
           </ScrollArea>
         </CardContent>
 
-        {/* Preview selected images */}
-        {selectedImages.length > 0 && (
-          <div className="px-4 flex gap-2 flex-wrap">
+          {selectedImages.length > 0 && (
+          <div className="px-4 flex gap-2 flex-wrap m-5">
             {selectedImages.map((url, i) => (
               <div key={i} className="relative">
                 <img src={url} alt={`preview-${i}`} className="w-20 h-20 object-cover rounded" />
                 <button
                   onClick={() => setSelectedImages((prev) => prev.filter((_, idx) => idx !== i))}
-                  className="absolute top-0 right-0 p-1 bg-black bg-opacity-50 text-white rounded-full text-xs"
+                  className="absolute top-0 right-0 p-1 bg-black bg-opacity-50 text-white rounded-full m-1"
                 >
-                  ✕
+                  <XCircleIcon className="w-3 h-3">
+
+                  </XCircleIcon>
                 </button>
               </div>
             ))}
