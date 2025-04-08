@@ -20,6 +20,7 @@ import TagManagement from "./app/Admin/Pages/TagManagement"
 import SalesManagement from "./app/Admin/Pages/SalesManagement"
 import SettingManager from "./app/Admin/Pages/SettingManager"
 import CustomerManager from "./app/Admin/Pages/CustomerManager"
+import ChatManager from "./app/Admin/Pages/ChatManager"
 import RefundProduct from "./app/Products/Product/RefundProduct"
 import { finalTransport, queryClient } from "./core/query-client"
 import { TransportProvider } from "@connectrpc/connect-query"
@@ -57,6 +58,7 @@ const App: React.FC = () => {
 							<Route path="sales" element={<SalesManagement />} />
 							<Route path="settings" element={<SettingManager />} />
 							<Route path="customers" element={<CustomerManager />} />
+							<Route path="message" element={<ChatManager/>}/>
 						</Route>
 					</Routes>
 					{!location.pathname.startsWith("/admin") && <NavigationBar />  }

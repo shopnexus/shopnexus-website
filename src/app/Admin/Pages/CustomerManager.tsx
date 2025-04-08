@@ -3,7 +3,7 @@ import { Search, Mail, Phone, MapPin, Calendar, User, MoreHorizontal } from 'luc
 import Button from '../../../components/ui/Button';
 import {Card} from '../../../components/ui/Card';
 
-interface Customer {
+export interface Customer {
   id: string;
   name: string;
   email: string;
