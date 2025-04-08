@@ -25,6 +25,7 @@ import { finalTransport, queryClient } from "./core/query-client"
 import { TransportProvider } from "@connectrpc/connect-query"
 import AdminLogin from "./app/Auth/AdminLogin"
 import RefundManagement from "./app/Admin/Pages/RefundManagement"
+import PurchaseHistory from "./components/PurchaseHistory"
 import { ChatBubbleWrapper } from "./components/ChatBubleWrapper"
 
 const App: React.FC = () => {
@@ -43,6 +44,8 @@ const App: React.FC = () => {
 						<Route path="/products" element={<FeaturedProducts />} />
 						<Route path="/product/:id" element={<ProductDetail />} />
 						<Route path="/profile" element={<Profile />} />
+						<Route path="/purchase-history" element={<PurchaseHistory />}>
+						</Route>
 						<Route path="/refund" element={<RefundProduct />} />
 
 						<Route path="/admin" element={<AdminLayout />}>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { VscHome, VscArchive, VscAccount, VscSearch } from "react-icons/vsc";
+import { VscHome, VscArchive, VscAccount, VscSearch, VscHistory } from "react-icons/vsc";
 import { CiShoppingCart } from "react-icons/ci";
 import Dock from "../blocks/Components/Dock/Dock";
 
@@ -37,6 +37,7 @@ const NavigationBar = () => {
         { icon: <VscArchive size={18} className="text-white" />, label: "Archive", onClick: () => handleNavigate("/archive") },
         { icon: <VscSearch size={18} className="text-white" />, label: "Search", onClick: () => handleNavigate("/search") },
         { icon: <VscAccount size={18} className="text-white" />, label: "Profile", onClick: () => handleNavigate("/profile") },
+        { icon: <VscHistory size={18} className="text-white" />, label: "Your Purcharse History", onClick: ()=> handleNavigate("/purchase-history") },
         { icon: <CiShoppingCart size={18} className="text-white" />, label: "Your Cart", onClick: ()=> handleNavigate("/cart") },
     ];
 

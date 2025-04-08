@@ -5,20 +5,6 @@ export function cn(...inputs: any[]) {
   return twMerge(clsx(inputs));
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // utils/validators.ts
 export const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -12,6 +12,11 @@ const Profile: React.FC = () => {
 		window.location.href = "/login"
 	}
 
+	//goi ham toi trang edit profile
+	const handleProfile = () => {
+		
+	}
+
 	if (isLoading || !user) {
 		return <div>Loading...</div>
 	}
@@ -36,11 +41,13 @@ const Profile: React.FC = () => {
 					</div>
 
 					<div className="w-full flex flex-col gap-3">
-						<button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
+						<button 
+						onClick={handleProfile}
+						className="cursor-pointer w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
 							Edit Profile
 						</button>
 						<button
-							className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors duration-200"
+							className="cursor-pointer w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors duration-200"
 							onClick={handleLogout}
 						>
 							Logout
