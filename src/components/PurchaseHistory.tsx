@@ -1,7 +1,7 @@
 // PurchaseHistory.tsx
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
-
+//dấd/
 export interface ProductInfor {
 	id: string
 	type: string
