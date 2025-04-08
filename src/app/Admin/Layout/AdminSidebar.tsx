@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Package, Tag, Percent, Settings, Users, House } from "lucide-react"
+import { Package, Tag, Percent, Settings, Users, House, Repeat } from "lucide-react"
 
 const AdminSidebar = () => {
 	const location = useLocation()
@@ -11,6 +11,7 @@ const AdminSidebar = () => {
 	const menuItems = [
 		{ icon: Package, label: "Products", path: "/admin/products" },
 		{ icon: Package, label: "Product Models", path: "/admin/product-models" },
+		{ icon: Repeat, label: "Refunds", path: "/admin/refund"},
 		{ icon: Tag, label: "Tags", path: "/admin/tags" },
 		{ icon: Percent, label: "Sales", path: "/admin/sales" },
 		{ icon: Users, label: "Customers", path: "/admin/customers" },

@@ -1,19 +1,23 @@
 import { useState, useEffect } from "react";
-
-interface RefundInfo {
-  id: string;
-  productName: string;
-  price: number;
-  refundMethod: string;
-  refundAmount: number;
-  reason: string;
-  address: string;
-  status: "PENDING" | "SUCCESS" | "CANCELLED" | "FAILED";
-}
+import { RefundInfo } from "../../Products/Product/RefundProduct";
+// interface RefundInfo {
+//   //thong tin tra hang
+//   id: number;
+//   paymentId: string,
+//   method: string;
+//   refundAmount: number;
+//   reason: string;
+//   address: string;
+//   status: string;
+//   //thong tin san pham
+//   productName: string;
+//   price: number;
+// }
 
 const dummyRefunds: RefundInfo[] = [
   {
     id: "1",
+    paymentId: "1",
     productName: "Giày thể thao Nike",
     price: 500000,
     refundMethod: "Banking",
@@ -24,6 +28,7 @@ const dummyRefunds: RefundInfo[] = [
   },
   {
     id: "2",
+    paymentId: "1",
     productName: "Dép tổ ong",
     price: 30000,
     refundMethod: "Tiền mặt",
@@ -34,6 +39,7 @@ const dummyRefunds: RefundInfo[] = [
   },
   {
     id: "3",
+    paymentId: "1",
     productName: "Giày Bitis",
     price: 347000,
     refundMethod: "Banking",
@@ -44,6 +50,7 @@ const dummyRefunds: RefundInfo[] = [
   },
   {
     id: "4",
+    paymentId: "1",
     productName: "Giày thể thao cầu lông Yonex",
     price: 1000000,
     refundMethod: "Banking",
