@@ -7,7 +7,7 @@ import {
 import { auth } from "../firebase"
 import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
-import Card, { CardHeader, CardBody } from "../../components/ui/Card"
+import  {Card, CardHeader, CardBody } from "../../components/ui/Card"
 import { useMutation } from "@connectrpc/connect-query"
 import { registerUser } from "shopnexus-protobuf-gen-ts"
 import { Gender } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb"
@@ -87,7 +87,7 @@ const Register: React.FC = () => {
             />
             <Input
               label="Phone"
-              type="tel"
+              type="number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+1234567890"

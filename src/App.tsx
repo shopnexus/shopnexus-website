@@ -25,6 +25,7 @@ import { finalTransport, queryClient } from "./core/query-client"
 import { TransportProvider } from "@connectrpc/connect-query"
 import AdminLogin from "./app/Auth/AdminLogin"
 import RefundManagement from "./app/Admin/Pages/RefundManagement"
+import { ChatBubbleWrapper } from "./components/ChatBubleWrapper"
 
 const App: React.FC = () => {
 	return (
@@ -58,7 +59,8 @@ const App: React.FC = () => {
 							<Route path="customers" element={<CustomerManager />} />
 						</Route>
 					</Routes>
-					{!location.pathname.startsWith("/admin") && <NavigationBar />}
+					{!location.pathname.startsWith("/admin") && <NavigationBar />  }
+					{!location.pathname.startsWith("/admin") && <ChatBubbleWrapper />  }
 				</AuthProvider>
 			</QueryClientProvider>
 		</TransportProvider>

@@ -9,7 +9,7 @@ import {
 	List,
 } from "lucide-react"
 import Button from "../../../components/ui/Button"
-import Card from "../../../components/ui/Card"
+import {Card} from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
 import { ProductModelEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/product_model_pb"
 import {

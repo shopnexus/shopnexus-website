@@ -6,7 +6,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
 import Checkbox from "../../components/ui/Checkbox"
-import Card, { CardHeader, CardBody } from "../../components/ui/Card"
+import {Card, CardHeader, CardBody } from "../../components/ui/Card"
 import { loginUser } from "shopnexus-protobuf-gen-ts"
 import { useMutation } from "@connectrpc/connect-query"
 

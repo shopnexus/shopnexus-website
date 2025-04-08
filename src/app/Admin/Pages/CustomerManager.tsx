@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search, Mail, Phone, MapPin, Calendar, User, MoreHorizontal } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import Card from '../../../components/ui/Card';
+import {Card} from '../../../components/ui/Card';
 
 interface Customer {
   id: string;

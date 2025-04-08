@@ -10,7 +10,7 @@ const useProductModel = (itemId: bigint) => {
 	});
   
 	return { data, isLoading, error };
-  };
+};
 
 export default function Cart() {
 	const [selectedItems, setSelectedItems] = useState<bigint[]>([]);
@@ -54,10 +54,8 @@ export default function Cart() {
 
 	const subtotal = cartItems?.items.reduce(
 		(acc, item) => {
-			const {data:productModel}=useProductModel(item.itemId);
-			const price=productModel?.data?.listPrice??0
 
-			return acc+(Number(price)*Number(item.quantity));
+			return acc+(Number(0)*Number(item.quantity));
 
 		},0
 	)

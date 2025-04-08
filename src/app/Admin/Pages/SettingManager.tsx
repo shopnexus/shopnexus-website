@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Save, Store, Mail, Bell, Globe, Shield, CreditCard } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import Card from '../../../components/ui/Card';
+import {Card} from '../../../components/ui/Card';
 
 interface Settings {
   store: {

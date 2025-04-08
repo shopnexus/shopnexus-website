@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from "react"
 import { Plus, Edit2, Trash2, Calendar, Search } from "lucide-react"
 import Button from "../../../components/ui/Button"
-import Card from "../../../components/ui/Card"
+import {Card} from "../../../components/ui/Card"
 import Modal from "../../../components/ui/Modal"
 import {
 	useInfiniteQuery,
