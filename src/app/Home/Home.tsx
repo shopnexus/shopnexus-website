@@ -36,7 +36,7 @@ export default function Home() {
 	})
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-between p-24">
+		<div className="flex min-h-screen flex-col items-center justify-between">
 			{/* <input ref={fileRef} type="file" placeholder="FILE TEST" />
 			<button onClick={(e) => uploadFile(e)}>TEST</button> */}
 
@@ -73,37 +73,44 @@ export default function Home() {
 			</section>
 
 			{/* Featured Products */}
-			<FeaturedProducts />
+			<section className="w-full bg-white py-16 px-4">
+				<FeaturedProducts />
+			</section>
 
 			{/* New Products */}
-			<NewProducts />
+			<section className="w-full bg-gray-100 py-16 px-4">
+				<NewProducts />
+			</section>
 
 			{/* Categories */}
-			<section className="w-full max-w-7xl mx-auto mt-24">
-				<h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
-					Shop by Category
-				</h2>
-				<div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-					{listTag?.data.map((tagEntity) => (
-						<Link
-							key={tagEntity.tag}
-							to={`/category/${tagEntity.tag.toLowerCase()}`}
-							className="group"
-						>
-							<div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200 xl:aspect-w-7 xl:aspect-h-8">
-								<img
-									src={`/placeholder.jpeg?height=300&width=300&text=${tagEntity.tag}`}
-									alt={`Shop ${tagEntity.tag} Shoes`}
-									width={300}
-									height={300}
-									className="h-full w-full object-cover object-center group-hover:opacity-75"
-								/>
-							</div>
-							<h3 className="mt-4 text-sm text-gray-700">{tagEntity.tag}</h3>
-						</Link>
-					))}
+			<section className="w-full bg-white py-16 px-4">
+				<div className="max-w-7xl mx-auto">
+					<h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
+						Shop by Category
+					</h2>
+					<div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						{listTag?.data.map((tagEntity) => (
+							<Link
+								key={tagEntity.tag}
+								to={`/category/${tagEntity.tag.toLowerCase()}`}
+								className="group"
+							>
+								<div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200 xl:aspect-w-7 xl:aspect-h-8">
+									<img
+										src={`/placeholder.jpeg?height=300&width=300&text=${tagEntity.tag}`}
+										alt={`Shop ${tagEntity.tag} Shoes`}
+										width={300}
+										height={300}
+										className="h-full w-full object-cover object-center group-hover:opacity-75"
+									/>
+								</div>
+								<h3 className="mt-4 text-sm text-gray-700">{tagEntity.tag}</h3>
+							</Link>
+						))}
+					</div>
 				</div>
 			</section>
+
 
 			{/* Newsletter */}
 			<Newsletter />

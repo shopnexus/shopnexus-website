@@ -12,6 +12,7 @@ import { finalTransport } from "../../core/query-client"
 import FeedBack from "../../components/FeedBack"
 import FeaturedProducts from "./FeaturedProducts"
 import NewProducts from "./NewProducts"
+import SimilarProductsByTagAndBrand from "./SimilarProducts"
 //#region Utility Functions
 // Convert Uint8Array metadata to object
 const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
@@ -502,7 +503,7 @@ const ProductDetail: React.FC = () => {
 					<div className="flex items-center space-x-4 text-sm">
 						<span>
 							Brand:{" "}
-              {brand?.data?.name}
+              				{brand?.data?.name}
 						</span>
 					</div>
 					<p className="text-2xl font-semibold text-blue-600">
@@ -533,7 +534,10 @@ const ProductDetail: React.FC = () => {
 					/>
 				</div>
 			</div>
+
 			<FeedBack></FeedBack>
+			<SimilarProductsByTagAndBrand currentProduct={productModel.data}>
+			</SimilarProductsByTagAndBrand>
       		<FeaturedProducts></FeaturedProducts>
       		<NewProducts></NewProducts>
 		</div>

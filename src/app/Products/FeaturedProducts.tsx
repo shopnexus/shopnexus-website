@@ -77,7 +77,7 @@ export default function FeaturedProducts({
 						.map((_, index) => (
 							<div
 								key={index}
-								className="animate-pulse bg-gray-200 h-64 rounded"
+								className="animate-pulse  h-64 rounded"
 							></div>
 						))}
 				</div>
@@ -110,7 +110,7 @@ export default function FeaturedProducts({
 							ref={index === array.length - 1 ? lastProductRef : undefined}
 						>
 							<ProductCard
-								id={String(product.id)}
+								id={(product.id)}
 								name={product.name}
 								price={Number(product.listPrice)}
 								image={

@@ -42,7 +42,7 @@ interface CommentListProps {
 }
 
 const CommentList = ({ comments }: CommentListProps) => {
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(2);
   const [voteStatus, setVoteStatus] = useState<{
     [key: number]: "up" | "down" | null;
   }>({});
