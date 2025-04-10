@@ -60,7 +60,7 @@ export default function NewProducts() {
 			</h2>
 
 			{isLoading ? (
-				<div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+				<div className="grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-3 md:grid-cols-4  lg:grid-cols-4 xl:grid-cols-6 xl:gap-x-8">
 					{Array(8)
 						.fill(0)
 						.map((_, i) => (
@@ -71,7 +71,7 @@ export default function NewProducts() {
 				<p className="text-red-500">Failed to load new products.</p>
 			) : (
 				<>
-					<div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+					<div className="grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-3 md:grid-cols-4  lg:grid-cols-4 xl:grid-cols-6 xl:gap-x-8">
 						{products?.pages
 							.flatMap((page) => page.data)
 							.map((product, index, array) => (

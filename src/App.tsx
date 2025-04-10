@@ -28,12 +28,16 @@ import AdminLogin from "./app/Auth/AdminLogin"
 import RefundManagement from "./app/Admin/Pages/RefundManagement"
 import PurchaseHistory from "./components/PurchaseHistory"
 import { ChatBubbleWrapper } from "./components/ChatBubleWrapper"
+import Women from './app/pages/Women'
+import Men from './app/pages/Men'
+import Kids from './app/pages/Kids'
 
 const App: React.FC = () => {
 	return (
 		<TransportProvider transport={finalTransport}>
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>
+					<NavigationBar />
 					<Routes>
 						<Route path="/" element={<Home />} />
 						<Route path="/login" element={<Login />} />
@@ -45,9 +49,11 @@ const App: React.FC = () => {
 						<Route path="/products" element={<FeaturedProducts />} />
 						<Route path="/product/:id" element={<ProductDetail />} />
 						<Route path="/profile" element={<Profile />} />
-						<Route path="/purchase-history" element={<PurchaseHistory />}>
-						</Route>
+						<Route path="/purchase-history" element={<PurchaseHistory />} />
 						<Route path="/refund" element={<RefundProduct />} />
+						<Route path="/women" element={<Women />} />
+						<Route path="/men" element={<Men />} />
+						<Route path="/kids" element={<Kids />} />
 
 						<Route path="/admin" element={<AdminLayout />}>
 							<Route index element={<AdminDashboard />} />
@@ -56,16 +62,16 @@ const App: React.FC = () => {
 								path="product-models"
 								element={<ProductModelManagement />}
 							/>
-							<Route path="refund" element = {<RefundManagement/>}></Route>
+							<Route path="refund" element={<RefundManagement />} />
 							<Route path="tags" element={<TagManagement />} />
 							<Route path="sales" element={<SalesManagement />} />
 							<Route path="settings" element={<SettingManager />} />
 							<Route path="customers" element={<CustomerManager />} />
-							<Route path="message" element={<ChatManager/>}/>
+							<Route path="message" element={<ChatManager />} />
 						</Route>
 					</Routes>
-					{!location.pathname.startsWith("/admin") && <NavigationBar />  }
-					{!location.pathname.startsWith("/admin") && <ChatBubbleWrapper />  }
+					
+					<ChatBubbleWrapper />
 				</AuthProvider>
 			</QueryClientProvider>
 		</TransportProvider>

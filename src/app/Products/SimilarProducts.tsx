@@ -65,11 +65,11 @@ const SimilarProductsByTagAndBrand: React.FC<SimilarProductsByTagAndBrandProps> 
   }
 
   return (
-    <div>
+    <div className='w-full max-w-7xl mx-auto mt-24'>
       <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
 				Similar Products
 			</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-3 md:grid-cols-4  lg:grid-cols-4 xl:grid-cols-6 xl:gap-x-8">
         {similarProducts.slice(0, 4).map((product) => (
           <ProductCard
             key={product.id}

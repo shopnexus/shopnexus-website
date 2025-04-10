@@ -1,43 +1,31 @@
-import { useProductFilter } from './useProductFilter'
+import React, { useState } from 'react';
+import CategoryLayout from '../../components/CategoryLayout';
 import ProductCard from '../../components/ProductCard';
-import SearchLayout from './SearchLayout';
+import FilterBar from '../Search/FilterTopBar';
+import { useProductFilter } from '../Search/useProductFilter';
+import SearchLayout from '../Search/SearchLayout';
 
-const products = [
+const womenProducts = [
   {
     id: BigInt(1),
-    name: "Men's Running Shoes",
-    price: 99.99,
-    image: "/shoes/mens-running.jpg",
+    name: "Women's Running Shoes",
+    price: 129.99,
+    image: "/shoes/womens-running.jpg",
     brand: 'Nike',
     type: 'Running',
-    size: 40
-  },
-  {
-    id: BigInt(2),
-    name: "Women's Heels",
-    price: 89.99,
-    image: "/shoes/womens-heels.jpg",
-    brand: 'Zara',
-    type: 'Heels',
     size: 38
   },
-  {
-    id: BigInt(3),
-    name: "Unisex Sneakers",
-    price: 109.99,
-    image: "/shoes/unisex-sneakers.jpg",
-    brand: 'Adidas',
-    type: 'Sneakers',
-    size: 39
-  },
-  // thêm sản phẩm khác nếu có...
+  // ...
 ];
+
 
 const sizes = [36, 37, 38, 39, 40];
 const brands = ['Nike', 'Adidas', 'Zara'];
 const types = ['Running', 'Heels', 'Sneakers'];
 
-const Search = () => {
+
+const Women: React.FC = () => {
+
   const {
     searchQuery,
     setSearchQuery,
@@ -47,10 +35,15 @@ const Search = () => {
     handleFilterChange,
     handleSortChange,
     filteredProducts
-  } = useProductFilter(products);
+  } = useProductFilter(womenProducts);
+
 
   return (
-    <SearchLayout
+    <CategoryLayout
+      title="Women's Collection"
+      description="Discover our latest collection of women's footwear, from elegant heels to comfortable sneakers."
+    >
+       <SearchLayout
       filters={filters}
       sizes={sizes}
       brands={brands}
@@ -77,7 +70,9 @@ const Search = () => {
         <div className="text-center py-10 text-gray-500">No products found</div>
       )}
     </SearchLayout>
+  
+    </CategoryLayout>
   );
 };
 
-export default Search;
+export default Women; 

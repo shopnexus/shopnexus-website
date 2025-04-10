@@ -36,12 +36,12 @@ export default function Home() {
 	})
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-between">
+		<div className="flex min-h-screen flex-col items-center justify-between bg-gray-100">
 			{/* <input ref={fileRef} type="file" placeholder="FILE TEST" />
 			<button onClick={(e) => uploadFile(e)}>TEST</button> */}
 
 			{/* Hero Section */}
-			<section className="w-full max-w-7xl mx-auto text-center">
+			<section className="w-full max-w-7xl mx-auto text-center mt-12">
 				<SplitText
 					text="Welcome to ShopNexus!!"
 					className="text-2xl font-semibold text-center sm:text-6xl"
@@ -70,20 +70,20 @@ export default function Home() {
 						</Link>
 					</Button>
 				</div>
-			</section>
+			
 
 			{/* Featured Products */}
-			<section className="w-full bg-white py-16 px-4">
+			
 				<FeaturedProducts />
-			</section>
+			
 
 			{/* New Products */}
-			<section className="w-full bg-gray-100 py-16 px-4">
+			
 				<NewProducts />
-			</section>
+			
 
 			{/* Categories */}
-			<section className="w-full bg-white py-16 px-4">
+			
 				<div className="max-w-7xl mx-auto">
 					<h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
 						Shop by Category

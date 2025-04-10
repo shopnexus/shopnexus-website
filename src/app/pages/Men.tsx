@@ -1,56 +1,45 @@
-import { useProductFilter } from './useProductFilter'
+import React from 'react';
+import CategoryLayout from '../../components/CategoryLayout';
 import ProductCard from '../../components/ProductCard';
-import SearchLayout from './SearchLayout';
+import { useProductFilter } from '../Search/useProductFilter';
+import SearchLayout from '../Search/SearchLayout';
 
-const products = [
+const menProducts = [
   {
     id: BigInt(1),
     name: "Men's Running Shoes",
-    price: 99.99,
+    price: 129.99,
     image: "/shoes/mens-running.jpg",
     brand: 'Nike',
     type: 'Running',
-    size: 40
-  },
-  {
-    id: BigInt(2),
-    name: "Women's Heels",
-    price: 89.99,
-    image: "/shoes/womens-heels.jpg",
-    brand: 'Zara',
-    type: 'Heels',
     size: 38
   },
-  {
-    id: BigInt(3),
-    name: "Unisex Sneakers",
-    price: 109.99,
-    image: "/shoes/unisex-sneakers.jpg",
-    brand: 'Adidas',
-    type: 'Sneakers',
-    size: 39
-  },
-  // thêm sản phẩm khác nếu có...
+  // ...
 ];
 
 const sizes = [36, 37, 38, 39, 40];
 const brands = ['Nike', 'Adidas', 'Zara'];
 const types = ['Running', 'Heels', 'Sneakers'];
 
-const Search = () => {
+const Men: React.FC = () => {
+
   const {
-    searchQuery,
-    setSearchQuery,
-    filters,
-    toggleFilter,
-    handlePriceRangeChange,
-    handleFilterChange,
-    handleSortChange,
-    filteredProducts
-  } = useProductFilter(products);
+      searchQuery,
+      setSearchQuery,
+      filters,
+      toggleFilter,
+      handlePriceRangeChange,
+      handleFilterChange,
+      handleSortChange,
+      filteredProducts
+    } = useProductFilter(menProducts);
 
   return (
-    <SearchLayout
+    <CategoryLayout
+      title="Men's Collection"
+      description="Explore our premium selection of men's footwear, from casual shoes to athletic performance wear."
+    >
+       <SearchLayout
       filters={filters}
       sizes={sizes}
       brands={brands}
@@ -77,7 +66,8 @@ const Search = () => {
         <div className="text-center py-10 text-gray-500">No products found</div>
       )}
     </SearchLayout>
+    </CategoryLayout>
   );
 };
 
-export default Search;
+export default Men; 

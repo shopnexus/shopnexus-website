@@ -469,8 +469,8 @@ const ProductDetail: React.FC = () => {
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-8">
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+		<section className=" mx-auto px-20 py-8 bg-gray-100">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 ">
 				{/* Product Images Section */}
 				<div className="space-y-4">
 					{cards.length > 0 && (
@@ -540,7 +540,7 @@ const ProductDetail: React.FC = () => {
 			</SimilarProductsByTagAndBrand>
       		<FeaturedProducts></FeaturedProducts>
       		<NewProducts></NewProducts>
-		</div>
+		</section>
 	)
 }
 

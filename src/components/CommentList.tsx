@@ -124,7 +124,7 @@ const CommentList = ({ comments }: CommentListProps) => {
 
               {/* Image resources grid */}
               {comment.body.resources && comment.body.resources.length > 0 && (
-                <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                <div className="mt-2 grid grid-cols-2 sm:grid-cols-6 md:grid-cols-10 gap-2">
                   {comment.body.resources.map((imageUrl, index) => (
                     <div
                       key={index}
@@ -133,7 +133,7 @@ const CommentList = ({ comments }: CommentListProps) => {
                       <img
                         src={imageUrl || "/placeholder.svg"}
                         alt={`Attachment ${index + 1}`}
-                        className="object-cover max-w-[300px] max-h-[300px] hover:opacity-90 transition-opacity"
+                        className="object-cover w-20 h-20 hover:opacity-90 transition-opacity"
                       />
                     </div>
                   ))}

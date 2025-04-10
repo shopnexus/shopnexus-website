@@ -156,7 +156,7 @@ const FeedBack: React.FC = () => {
   }
 
   return (
-    <div className="max-w mx-auto pt-4 bg-white">
+    <div className="max-w mx-auto pt-4 bg-white p-8 mt-8">
       <CommentEditor onSubmit={handleSubmitComment} />
       <div className="mt-6">
         <div className="flex justify-between items-center mb-4">

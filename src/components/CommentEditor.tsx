@@ -35,7 +35,7 @@ const CommentEditor = ({ onSubmit }: CommentEditorProps) => {
   }
 
   return (
-    <div className="bg-gray-50 rounded-md p-3">
+    <div className="bg-gray-50 rounded-md p-3 m-4">
       <div className="mb-2">
         <textarea
           placeholder="Add comment..."
