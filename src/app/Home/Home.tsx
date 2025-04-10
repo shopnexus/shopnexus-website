@@ -1,39 +1,39 @@
-import { Link } from "react-router-dom"
-import Button from "../../components/ui/Button"
-import FeaturedProducts from "../Products/FeaturedProducts"
-import Newsletter from "../../components/Newsletter"
-import SplitText from "../../blocks/TextAnimations/SplitText/SplitText"
-import StarBorder from "../../blocks/Animations/StarBorder/StarBorder"
-import NewProducts from "../Products/NewProducts"
-import InforFooter from "../../components/InfoFooter"
-import { useMutation, useQuery } from "@connectrpc/connect-query"
-import { listBrands, listTags, upload } from "shopnexus-protobuf-gen-ts"
-import { useRef } from "react"
+import { Link } from "react-router-dom";
+import Button from "../../components/ui/Button";
+import FeaturedProducts from "../Products/FeaturedProducts";
+import Newsletter from "../../components/Newsletter";
+import SplitText from "../../blocks/TextAnimations/SplitText/SplitText";
+import StarBorder from "../../blocks/Animations/StarBorder/StarBorder";
+import NewProducts from "../Products/NewProducts";
+import InforFooter from "../../components/InfoFooter";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { listBrands, listTags, upload } from "shopnexus-protobuf-gen-ts";
+import { useRef } from "react";
 
 const handleAnimationComplete = () => {
-	console.log("All letters have animated!")
-}
+  console.log("All letters have animated!");
+};
 
 export default function Home() {
-	const fileRef = useRef<HTMLInputElement>(null)
-	const { mutateAsync } = useMutation(upload)
-	const uploadFile = async (e: React.MouseEvent<HTMLButtonElement>) => {
-		e.preventDefault()
-		// debugger
-		const file = fileRef.current?.files?.[0]
-		if (!file) return
-		await mutateAsync({
-			name: file.name,
-			content: new Uint8Array(await file.arrayBuffer()),
-		})
-	}
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { mutateAsync } = useMutation(upload);
+  const uploadFile = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    // debugger
+    const file = fileRef.current?.files?.[0];
+    if (!file) return;
+    await mutateAsync({
+      name: file.name,
+      content: new Uint8Array(await file.arrayBuffer()),
+    });
+  };
 
-	const { data: listTag } = useQuery(listTags, {
-		pagination: {
-			limit: 10,
-			page: 1,
-		},
-	})
+  const { data: listTag } = useQuery(listTags, {
+    pagination: {
+      limit: 10,
+      page: 1,
+    },
+  });
 
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-between bg-gray-100">
@@ -115,7 +115,7 @@ export default function Home() {
 			{/* Newsletter */}
 			<Newsletter />
 
-			<InforFooter />
-		</div>
-	)
+      <InforFooter />
+    </div>
+  );
 }

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import Stack from "../../blocks/Components/Stack/Stack"
-import { callUnaryMethod, useQuery } from "@connectrpc/connect-query"
+import { callUnaryMethod, useMutation, useQuery } from "@connectrpc/connect-query"
 import {
-  getBrand,
+	addCartItem,
+	getBrand,
 	getProduct,
 	getProductModel,
 	ProductEntity,
@@ -19,8 +20,8 @@ const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
 	try {
 		const decoder = new TextDecoder()
 		const jsonString = decoder.decode(metadata)
-    const data =  JSON.parse(jsonString)
-    return data
+		const data = JSON.parse(jsonString)
+		return data
 	} catch (error) {
 		console.error("Error parsing metadata:", error)
 		return {}
@@ -70,9 +71,8 @@ const ThumbnailList: React.FC<{
 			<button
 				key={index}
 				onClick={() => onThumbnailClick(image)}
-				className={`border-2 rounded transition duration-150 ease-in-out ${
-					selectedImage === image ? "border-blue-500" : "border-gray-200"
-				}`}
+				className={`border-2 rounded transition duration-150 ease-in-out ${selectedImage === image ? "border-blue-500" : "border-gray-200"
+					}`}
 			>
 				<img
 					src={image}
@@ -181,15 +181,13 @@ const VariantSelection: React.FC<VariantSelectionProps> = React.memo(
 											onClick={() =>
 												onSelectVariantOption(key, isSelected ? null : value)
 											}
-											className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
-												isSelected
+											className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${isSelected
 													? "bg-blue-500 text-white"
 													: "bg-white text-black"
-											} ${
-												shouldDisable
+												} ${shouldDisable
 													? "opacity-50 cursor-not-allowed bg-gray-400"
 													: ""
-											}`}
+												}`}
 										>
 											{value}
 										</button>
@@ -228,11 +226,10 @@ const VariantSelection: React.FC<VariantSelectionProps> = React.memo(
 				<button
 					onClick={onAddToCart}
 					disabled={availableStock <= 0}
-					className={`w-full py-3 px-6 rounded-lg text-white font-medium transition duration-150 ease-in-out ${
-						availableStock > 0
+					className={`w-full py-3 px-6 rounded-lg text-white font-medium transition duration-150 ease-in-out ${availableStock > 0
 							? "bg-blue-600 hover:bg-blue-700"
 							: "bg-gray-400 cursor-not-allowed"
-					}`}
+						}`}
 				>
 					Add to Cart
 				</button>
@@ -252,6 +249,7 @@ const ProductDetail: React.FC = () => {
 	>({})
 	const [cards, setCards] = useState<{ id: number; img: string }[]>([])
 	const [error, setError] = useState<string | null>(null)
+	const { mutateAsync: mutateAddCartItem } = useMutation(addCartItem)
 
 	// Fetch product model data
 	const {
@@ -434,6 +432,16 @@ const ProductDetail: React.FC = () => {
 				metadata: parseMetadata(matchingProduct.metadata),
 			})
 			// Implement actual cart functionality here
+			if (productModel?.data?.id) {
+				mutateAddCartItem({
+					items: [{
+						itemId: productModel.data.id,
+						quantity: BigInt(quantity),
+						// TODO: add metadata on server
+						// metadata: parseMetadata(matchingProduct.metadata),
+					}]
+				})
+			}
 		}
 	}, [selectedVariantOptions, quantity, products])
 	//#endregion
@@ -503,7 +511,7 @@ const ProductDetail: React.FC = () => {
 					<div className="flex items-center space-x-4 text-sm">
 						<span>
 							Brand:{" "}
-              				{brand?.data?.name}
+							{brand?.data?.name}
 						</span>
 					</div>
 					<p className="text-2xl font-semibold text-blue-600">
