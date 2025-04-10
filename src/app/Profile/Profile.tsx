@@ -2,9 +2,11 @@
 import { useQuery } from "@connectrpc/connect-query"
 import React from "react"
 import { getUser } from "shopnexus-protobuf-gen-ts"
+import { useNavigate } from "react-router-dom"
 
 const Profile: React.FC = () => {
 	const { data: user, isLoading } = useQuery(getUser)
+	const navigate = useNavigate();
 
 	const handleLogout = () => {
 		// Chuyển hướng về trang đăng nhập (tuỳ thuộc vào router bạn đang dùng)
@@ -14,7 +16,7 @@ const Profile: React.FC = () => {
 
 	//goi ham toi trang edit profile
 	const handleProfile = () => {
-		
+		navigate("/profile")
 	}
 
 	if (isLoading || !user) {
@@ -44,7 +46,7 @@ const Profile: React.FC = () => {
 						<button 
 						onClick={handleProfile}
 						className="cursor-pointer w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
-							Edit Profile
+							Profile
 						</button>
 						<button
 							className="cursor-pointer w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors duration-200"
