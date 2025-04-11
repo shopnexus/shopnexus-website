@@ -24,6 +24,22 @@ const FilterSideBar = ({
           valueLabelDisplay="auto"
           min={0}
           max={1000}
+          sx={{
+            color: '#3B82F6', // Màu chính của thanh slider
+            '& .MuiSlider-thumb': {
+              backgroundColor: '#fff', // Màu nút kéo
+              border: '2px solid #3B82F6', // Viền nút kéo
+            },
+            '& .MuiSlider-track': {
+              backgroundColor: '#3B82F6', // Màu phần đã chọn
+            },
+            '& .MuiSlider-rail': {
+              backgroundColor: '#ccc', // Màu phần chưa chọn
+            },
+            '& .MuiSlider-valueLabel': {
+              backgroundColor: '#3B82F6', // Màu label hiển thị giá trị
+            },
+          }}
         />
 
         <div className="flex justify-between text-sm text-gray-600">
@@ -42,7 +58,7 @@ const FilterSideBar = ({
               onClick={() => toggleFilter('sizes', size)}
               className={`px-3 py-2 text-sm rounded-md ${
                 filters.sizes.includes(size)
-                  ? 'bg-[#161616] text-white'
+                  ? 'bg-blue-500 text-white'
                   : 'bg-gray-100 text-[#161616] hover:bg-gray-200'
               }`}
             >

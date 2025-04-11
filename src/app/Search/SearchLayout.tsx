@@ -52,9 +52,6 @@ const SearchLayout: React.FC<SearchLayoutProps> = ({
 
         {/* Results */}
         <div className="md:col-span-3">
-          <h2 className="text-xl font-semibold mb-4">
-            Results for: "{searchQuery}"
-          </h2>
           {children}
         </div>
       </div>

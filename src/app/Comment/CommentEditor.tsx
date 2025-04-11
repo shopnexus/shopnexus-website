@@ -2,26 +2,41 @@
 
 import { useState } from "react"
 import { Bold, Italic, Underline, Link2, Image, Smile, Code } from "lucide-react"
-import { bodyProps } from "./CommentList"
-
+import { Comment } from "./CommentList"
 interface CommentEditorProps {
-  onSubmit: (body: bodyProps) => void
+  onSubmit: (comment:Comment) => void
   onCancel?:()=>void
+  postId:bigint // id của product model 
+  isReply?: boolean // Xác định có phải reply không
+  commentId?: bigint // ID của comment nếu là reply
 }
 
-const CommentEditor = ({ onSubmit }: CommentEditorProps) => {
-  const [comment, setComment] = useState("")
+const CommentEditor = ({ onSubmit,onCancel,postId,isReply = false, commentId }: CommentEditorProps) => {
+  const [body, setBody] = useState("")
   const [resources,setResources]=useState<string[]>([])
+  const getUserId=()=>{
+    return BigInt(3)
+  }
+  const getDestId = () => {
+    return isReply && commentId ? commentId : postId
+  }
 
 
   const handleSubmit = () => {
-    if (comment.trim()) {
-      const body:bodyProps={
-        content:comment,
-        resources:resources
+    if (body.trim()) {
+      const comment:Comment={
+        id:BigInt(3),
+        user_id:getUserId(),
+        dest_id:getDestId(),
+        body:body,
+        upvote:0,
+        downvote:0,
+        score:49,
+        dateCreated:new Date(),
+        resources:resources,
       }
-      onSubmit(body)
-      setComment("")
+      onSubmit(comment)
+      setBody("")
       setResources([])
     }
   }
@@ -38,11 +53,11 @@ const CommentEditor = ({ onSubmit }: CommentEditorProps) => {
     <div className="bg-gray-50 rounded-md p-3 m-4">
       <div className="mb-2">
         <textarea
-          placeholder="Add comment..."
+          placeholder={isReply ? "Add reply..." : "Add comment..."}
           className="w-full p-2 text-sm focus:outline-none bg-transparent resize-none"
           rows={2}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
         />
       </div>
       {/* (Optional) Preview ảnh đã thêm */}
@@ -82,12 +97,24 @@ const CommentEditor = ({ onSubmit }: CommentEditorProps) => {
             <Smile className="w-4 h-4" />
           </button>
         </div>
-        <button
-          className="bg-blue-500 text-white px-4 py-1 rounded-md text-sm font-medium"
-          onClick={handleSubmit}
-        >
-          Submit
-        </button>
+        <div className="flex space-x-2">
+          {onCancel && (
+              <button
+                className="bg-gray-300 text-gray-700 px-4 py-1 rounded-md text-sm font-medium"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+          )}
+          <button
+            className="bg-blue-500 text-white px-4 py-1 rounded-md text-sm font-medium"
+            onClick={handleSubmit}
+          >
+            Submit
+          </button>
+
+        </div>
+        
       </div>
     </div>
   )

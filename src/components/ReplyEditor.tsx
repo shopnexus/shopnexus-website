@@ -1,24 +1,30 @@
-import { useState } from "react"
-import CommentEditor from "./CommentEditor"
+import { Comment } from "../app/Comment/CommentList";
+import CommentEditor from "../app/Comment/CommentEditor";
 
-const ReplyEditor = ({ commentId }: { commentId: number }) => {
-  const [replyingTo, setReplyingTo] = useState<number | null>(null)
+interface ReplyEditorProps {
+  commentId: bigint;
+  postId: bigint;
+  onSubmit: (comment: Comment) => void;
+  onCancel: () => void;
+}
 
-  const toggleReply = (commentId: number) => {
-    setReplyingTo(prev => (prev === commentId ? null : commentId))
-  }
-
+const ReplyEditor: React.FC<ReplyEditorProps> = ({
+  commentId,
+  postId,
+  onSubmit,
+  onCancel,
+}) => {
   return (
     <div className="mt-2">
       <CommentEditor
-        onSubmit={(value) => {
-          console.log(`Reply to comment ${commentId}:`, value)
-          setReplyingTo(null)
-        }}
-        onCancel={() => setReplyingTo(null)}
+        isReply
+        commentId={commentId}
+        postId={postId}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
       />
     </div>
-  )
-}
+  );
+};
 
-export default ReplyEditor
+export default ReplyEditor;

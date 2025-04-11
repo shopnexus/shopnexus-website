@@ -10,7 +10,7 @@ import {
 	ProductEntity,
 } from "shopnexus-protobuf-gen-ts"
 import { finalTransport } from "../../core/query-client"
-import FeedBack from "../../components/FeedBack"
+import CommentLayout from "../Comment/ComentLayout"
 import FeaturedProducts from "./FeaturedProducts"
 import NewProducts from "./NewProducts"
 import SimilarProductsByTagAndBrand from "./SimilarProducts"
@@ -543,7 +543,7 @@ const ProductDetail: React.FC = () => {
 				</div>
 			</div>
 
-			<FeedBack></FeedBack>
+			<CommentLayout></CommentLayout>
 			<SimilarProductsByTagAndBrand currentProduct={productModel.data}>
 			</SimilarProductsByTagAndBrand>
       		<FeaturedProducts></FeaturedProducts>

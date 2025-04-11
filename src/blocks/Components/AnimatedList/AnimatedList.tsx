@@ -158,7 +158,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
             <div
               className={`p-4 rounded-lg transition-colors ${
                 selectedItems.includes(item)
-                  ? "bg-[#161616] text-white"
+                  ? "bg-blue-500 text-white"
                   : focusedIndex === index
                   ? "bg-gray-200 text-[#161616]"
                   : "bg-gray-100 text-[#161616] hover:bg-gray-200"

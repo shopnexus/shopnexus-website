@@ -3,17 +3,17 @@ import Button from "../../components/ui/Button"
 import Input from "../../components/ui/Input"
 import { ProductModelEntity } from "shopnexus-protobuf-gen-ts";
 
-// export interface ItemInCart {
-//   id: number; 
-//   name: string;
-//   price: number;
-//   quantity: number;
-//   image: string;
-//   variantId: number; 
-//   color: string;
-//   size: number;
-//   stockQuantity:number
-// }
+export interface ItemInCart {
+  id: number; 
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  variantId: number; 
+  color: string;
+  size: number;
+  stockQuantity:number
+}
 interface CartItemProps {
   item: ProductModelEntity|undefined
   selected: boolean
