@@ -84,7 +84,7 @@ export default function NavigationBar() {
             <ShoppingBag className="h-5 w-5" />
             <span className="sr-only">Shopping Cart</span>
           </Link>
-          <Link to={'/profile'} className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 flex">
+          <Link to={'/account'} className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 flex">
             <User className="h-5 w-5" />
             <span className="sr-only">User Account</span>
           </Link>

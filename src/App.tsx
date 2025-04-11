@@ -31,6 +31,7 @@ import { ChatBubbleWrapper } from "./components/ChatBubleWrapper"
 import Women from './app/pages/Women'
 import Men from './app/pages/Men'
 import Kids from './app/pages/Kids'
+import UserProfile from "./components/ui/UserProfile"
 
 const App: React.FC = () => {
 	return (
@@ -48,7 +49,8 @@ const App: React.FC = () => {
 						<Route path="archive" element={<Archive />} />
 						<Route path="/products" element={<FeaturedProducts />} />
 						<Route path="/product/:id" element={<ProductDetail />} />
-						<Route path="/profile" element={<Profile />} />
+						<Route path="/account" element={<Profile />} />
+						<Route path="/profile" element={<UserProfile />} />
 						<Route path="/purchase-history" element={<PurchaseHistory />} />
 						<Route path="/refund" element={<RefundProduct />} />
 						<Route path="/women" element={<Women />} />
