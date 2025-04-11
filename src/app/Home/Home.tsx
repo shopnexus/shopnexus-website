@@ -9,6 +9,7 @@ import InforFooter from "../../components/InfoFooter";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { listBrands, listTags, upload } from "shopnexus-protobuf-gen-ts";
 import { useRef } from "react";
+import CategoryLayout from "../../components/CategoryLayout";
 
 const handleAnimationComplete = () => {
   console.log("All letters have animated!");
@@ -36,7 +37,7 @@ export default function Home() {
   });
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-between bg-gray-100">
+		<div className="flex min-h-screen flex-col items-center justify-between bg-white">
 			{/* <input ref={fileRef} type="file" placeholder="FILE TEST" />
 			<button onClick={(e) => uploadFile(e)}>TEST</button> */}
 
@@ -73,7 +74,7 @@ export default function Home() {
 			
 
 			{/* Featured Products */}
-			
+
 				<FeaturedProducts />
 			
 

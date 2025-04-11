@@ -17,6 +17,7 @@ const FilterSideBar = ({
       {/* Price Range */}
       <div className="mb-6">
         <h4 className="font-medium mb-2">Price Range</h4>
+
         <Slider
           value={filters.priceRange}
           onChange={handleFilterChange}
@@ -24,6 +25,7 @@ const FilterSideBar = ({
           min={0}
           max={1000}
         />
+
         <div className="flex justify-between text-sm text-gray-600">
           <span>${filters.priceRange[0]}</span>
           <span>${filters.priceRange[1]}</span>

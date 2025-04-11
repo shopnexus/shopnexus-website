@@ -25,4 +25,4 @@ const CategoryLayout: React.FC<CategoryLayoutProps> = ({ title, description, chi
   );
 };
 
-export default CategoryLayout; 
+export default CategoryLayout;  

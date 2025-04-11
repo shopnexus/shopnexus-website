@@ -38,7 +38,7 @@ export default function NavigationBar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white mb-4">
+    <header className="sticky top-0 z-50 w-full bg-white mb-4 shadow-gray-300 shadow-md ">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link to={"/"} className="flex items-center">

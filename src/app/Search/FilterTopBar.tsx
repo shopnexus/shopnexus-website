@@ -17,21 +17,6 @@ const FilterTopBar: React.FC<FilterTopBarProps> = ({ onSortChange, onPriceRangeC
         <option value="price-high">Price: High to Low</option>
       </select>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          placeholder="Min Price"
-          className="w-24 px-2 py-2 border rounded-md"
-          onChange={(e) => onPriceRangeChange(Number(e.target.value), Infinity)}
-        />
-        <span>-</span>
-        <input
-          type="number"
-          placeholder="Max Price"
-          className="w-24 px-2 py-2 border rounded-md"
-          onChange={(e) => onPriceRangeChange(0, Number(e.target.value))}
-        />
-      </div>
     </div>
   );
 };
