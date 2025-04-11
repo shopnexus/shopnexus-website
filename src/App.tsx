@@ -1,12 +1,11 @@
 import React from "react"
-import { Routes, Route } from "react-router-dom"
+import { Routes, Route, useLocation } from "react-router-dom"
 import { QueryClientProvider } from "@tanstack/react-query"
 import Home from "./app/pages/Home"
 import Login from "./app/Auth/Login"
 import Register from "./app/Auth/Register"
 import Cart from "./app/Cart/Cart"
 import Search from "./app/Search/Search"
-import Archive from "./app/Archive/Archive"
 import FeaturedProducts from "./app/Products/FeaturedProducts"
 import ProductDetail from "./app/Products/ProductDetail"
 import NavigationBar from "./components/NavigationBar"
@@ -32,13 +31,19 @@ import Women from './app/pages/Women'
 import Men from './app/pages/Men'
 import Kids from './app/pages/Kids'
 import UserProfile from "./components/ui/UserProfile"
+import About from "./app/pages/About"
+import InforFooter from "./components/InfoFooter"
 
 const App: React.FC = () => {
+
+	const location = useLocation();
+	const isAdminRoute = location.pathname.startsWith("/admin");
+
 	return (
 		<TransportProvider transport={finalTransport}>
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>
-					<NavigationBar />
+					{!isAdminRoute&&<NavigationBar />}
 					<Routes>
 						<Route path="/" element={<Home />} />
 						<Route path="/login" element={<Login />} />
@@ -46,7 +51,6 @@ const App: React.FC = () => {
 						<Route path="/register" element={<Register />} />
 						<Route path="/cart" element={<Cart />} />
 						<Route path="/search" element={<Search />} />
-						<Route path="archive" element={<Archive />} />
 						<Route path="/products" element={<FeaturedProducts />} />
 						<Route path="/product/:id" element={<ProductDetail />} />
 						<Route path="/account" element={<Profile />} />
@@ -56,6 +60,7 @@ const App: React.FC = () => {
 						<Route path="/women" element={<Women />} />
 						<Route path="/men" element={<Men />} />
 						<Route path="/kids" element={<Kids />} />
+						<Route path="/about" element={<About />} />
 
 						<Route path="/admin" element={<AdminLayout />}>
 							<Route index element={<AdminDashboard />} />
@@ -72,6 +77,7 @@ const App: React.FC = () => {
 							<Route path="message" element={<ChatManager />} />
 						</Route>
 					</Routes>
+					{!isAdminRoute&&<InforFooter />}
 					
 					<ChatBubbleWrapper />
 				</AuthProvider>

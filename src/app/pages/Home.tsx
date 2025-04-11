@@ -17,6 +17,8 @@ const handleAnimationComplete = () => {
 
 export default function Home() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const featuredProductsRef = useRef<HTMLDivElement>(null);
+
   const { mutateAsync } = useMutation(upload);
   const uploadFile = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -35,6 +37,19 @@ export default function Home() {
       page: 1,
     },
   });
+
+  const scrollToFeaturedProducts = () => {
+    const element = featuredProductsRef.current;
+	if (element) {
+		const offsetTop = element.getBoundingClientRect().top + window.pageYOffset;
+		const distance = offsetTop - 200; 
+
+		window.scrollTo({
+		top: distance,
+		behavior: "smooth",
+		});
+	}
+  };
 
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-between bg-white">
@@ -59,11 +74,11 @@ export default function Home() {
 				<div className="mt-10 flex items-center justify-center gap-x-6 ">
 					<StarBorder
 						as="button"
-						className="custom-class "
 						color="cyan"
 						speed="5s"
+						onClick={scrollToFeaturedProducts}
 					>
-						<Link to="/products">Shop Now</Link>
+						Shop Now
 					</StarBorder>
 					<Button variant="outline">
 						<Link to="/about">
@@ -75,48 +90,24 @@ export default function Home() {
 
 			{/* Featured Products */}
 
-				<FeaturedProducts />
+				<div ref={featuredProductsRef}>
+					<FeaturedProducts />
+				</div>
 			
 
 			{/* New Products */}
 			
 				<NewProducts />
 			
-
-			{/* Categories */}
 			
-				<div className="max-w-7xl mx-auto">
-					<h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
-						Shop by Category
-					</h2>
-					<div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{listTag?.data.map((tagEntity) => (
-							<Link
-								key={tagEntity.tag}
-								to={`/category/${tagEntity.tag.toLowerCase()}`}
-								className="group"
-							>
-								<div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200 xl:aspect-w-7 xl:aspect-h-8">
-									<img
-										src={`/placeholder.jpeg?height=300&width=300&text=${tagEntity.tag}`}
-										alt={`Shop ${tagEntity.tag} Shoes`}
-										width={300}
-										height={300}
-										className="h-full w-full object-cover object-center group-hover:opacity-75"
-									/>
-								</div>
-								<h3 className="mt-4 text-sm text-gray-700">{tagEntity.tag}</h3>
-							</Link>
-						))}
-					</div>
-				</div>
+		
 			</section>
 
 
 			{/* Newsletter */}
 			<Newsletter />
 
-      <InforFooter />
+
     </div>
   );
 }

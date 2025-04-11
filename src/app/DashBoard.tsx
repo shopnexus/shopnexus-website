@@ -4,7 +4,7 @@ import type React from "react"
 import { signOut } from "firebase/auth"
 import { auth } from "./firebase"
 import Button from "../components/ui/Button"
-import Card, { CardHeader, CardBody } from "../components/ui/Card"
+import  { Card,CardHeader, CardBody } from "../components/ui/Card"
 
 const Dashboard: React.FC = () => {
   const handleSignOut = async () => {

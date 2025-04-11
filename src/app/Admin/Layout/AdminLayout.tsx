@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
-import { auth } from "../../firebase";
 import AdminSidebar from "../Layout/AdminSidebar";
 import AdminTopBar from "../Layout/AdminTopBar";
 
