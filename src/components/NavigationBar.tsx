@@ -7,16 +7,16 @@ import { useLocation } from "react-router-dom";
 import { Search, ShoppingBag, User, ChevronDown, X } from "lucide-react";
 import { cn } from "../utils/utils";
 
-const allCategories = [
-  { name: "Sneakers", href: "/categories/sneakers" },
-  { name: "Running", href: "/categories/running" },
-  { name: "Athletic", href: "/categories/athletic" },
-  { name: "Boots", href: "/categories/boots" },
-  { name: "Sandals", href: "/categories/sandals" },
-  { name: "Heels", href: "/categories/heels" },
-  { name: "Loafers", href: "/categories/loafers" },
-  { name: "School Shoes", href: "/categories/school" },
-  { name: "Sports", href: "/categories/sports" },
+const allTags = [
+  { name: "Sneakers", href: "/tags/sneakers" },
+  { name: "Running", href: "/tags/running" },
+  { name: "Athletic", href: "/tags/athletic" },
+  { name: "Boots", href: "/tags/boots" },
+  { name: "Sandals", href: "/tags/sandals" },
+  { name: "Heels", href: "/tags/heels" },
+  { name: "Loafers", href: "/tags/loafers" },
+  { name: "School Shoes", href: "/tags/school" },
+  { name: "Sports", href: "/tags/sports" },
 ];
 const allBrands = [
   { brandId: 101, name: "Nike", href: "/brands/101" },
@@ -35,9 +35,9 @@ const navItems = [
   { name: "MEN", href: "/men" },
   { name: "KIDS", href: "/kids" },
   {
-    name: "CATEGORIES",
-    href: "/categories",
-    subcategories: allCategories,
+    name: "TAGS",
+    href: "/tags",
+    subcategories: allTags,
   },
   {
     name: "BRANDS",
