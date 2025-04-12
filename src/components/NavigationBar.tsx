@@ -1,73 +1,157 @@
 "use client";
 
+import type React from "react";
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, ShoppingBag, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { Search, ShoppingBag, User, ChevronDown, X } from "lucide-react";
 import { cn } from "../utils/utils";
-import { X } from "lucide-react";
+
+const allCategories = [
+  { name: "Sneakers", href: "/categories/sneakers" },
+  { name: "Running", href: "/categories/running" },
+  { name: "Athletic", href: "/categories/athletic" },
+  { name: "Boots", href: "/categories/boots" },
+  { name: "Sandals", href: "/categories/sandals" },
+  { name: "Heels", href: "/categories/heels" },
+  { name: "Loafers", href: "/categories/loafers" },
+  { name: "School Shoes", href: "/categories/school" },
+  { name: "Sports", href: "/categories/sports" },
+];
+const allBrands = [
+  { brandId: 101, name: "Nike", href: "/brands/101" },
+  { brandId: 2, name: "Adidas", href: "/brands/2" },
+  { brandId: 3, name: "New Balance", href: "/brands/3" },
+  { brandId: 4, name: "Puma", href: "/brands/4" },
+  { brandId: 5, name: "Converse", href: "/brands/5" },
+  { brandId: 6, name: "Vans", href: "/brands/6" },
+  { brandId: 7, name: "Reebok", href: "/brands/7" },
+  { brandId: 8, name: "Under Armour", href: "/brands/8" },
+];
 
 const navItems = [
   { name: "HOME", href: "/" },
   { name: "WOMEN", href: "/women" },
   { name: "MEN", href: "/men" },
   { name: "KIDS", href: "/kids" },
+  {
+    name: "CATEGORIES",
+    href: "/categories",
+    subcategories: allCategories,
+  },
+  {
+    name: "BRANDS",
+    href: "/brands",
+    subcategories: allBrands,
+  },
 ];
 
 export default function NavigationBar() {
   const location = useLocation();
+  const pathname = location.pathname;
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [expandedMobileCategory, setExpandedMobileCategory] = useState<
+    string | null
+  >(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to search page with query parameters
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
-  const getCurrentCategory = () => {
-    const path = location.pathname;
-    if (path === '/') return 'all';
-    return path.slice(1).toLowerCase();
-  };
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+    if (isMenuOpen) {
+      setExpandedMobileCategory(null);
+    }
+  };
+
+  const toggleMobileCategory = (categoryName: string) => {
+    if (expandedMobileCategory === categoryName) {
+      setExpandedMobileCategory(null);
+    } else {
+      setExpandedMobileCategory(categoryName);
+    }
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white mb-4 shadow-gray-300 shadow-md ">
+    <header className="sticky top-0 z-50 w-full bg-white mb-4 shadow-gray-300 shadow-md">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
-        <Link to={"/"} className="flex items-center">
+        <Link to="/" className="flex items-center">
           <span className="text-xl font-semibold">Shoe.</span>
         </Link>
 
         {/* Navigation Links - Desktop */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-8 relative">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+            const hasSubcategories =
+              item.subcategories && item.subcategories.length > 0;
+
             return (
-              <Link
-                to={item.href}
+              <div
                 key={item.name}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-black/80",
-                  isActive
-                    ? "border-b-2 border-black pb-1 text-black"
-                    : "text-black/60"
-                )}
+                className="relative group px-2"
+                onMouseEnter={() => setHoveredCategory(item.name)}
+                onMouseLeave={() => setHoveredCategory(null)}
               >
-                {item.name}
-              </Link>
+                {hasSubcategories ? (
+                  <div
+                    className={cn(
+                      "text-sm font-medium transition-colors hover:text-black/80 flex items-center cursor-pointer px-2 py-1",
+                      isActive
+                        ? "border-b-2 border-black pb-1 text-black"
+                        : "text-black/60"
+                    )}
+                  >
+                    {item.name}
+                    <ChevronDown className="ml-1 h-3 w-3" />
+                  </div>
+                ) : (
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "text-sm font-medium transition-colors hover:text-black/80 flex items-center",
+                      isActive
+                        ? "border-b-2 border-black pb-1 text-black"
+                        : "text-black/60"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                )}
+
+                {/* Dropdown cho subcategories */}
+                {hasSubcategories && hoveredCategory === item.name && (
+                  <div className="absolute left-1/2 top-full mt-1 w-64 -translate-x-1/2 bg-white shadow-lg rounded-md py-3 z-50">
+                    {item.subcategories.map((subcat) => (
+                      <Link
+                        key={subcat.name}
+                        to={subcat.href}
+                        className="block px-6 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        {subcat.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="hidden md:flex relative w-full max-w-sm mx-4">
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:flex relative w-full max-w-sm mx-4"
+        >
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <input
             type="search"
@@ -80,11 +164,17 @@ export default function NavigationBar() {
 
         {/* Icons */}
         <div className="flex items-center space-x-4">
-          <Link to={"/cart"} className="hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200">
+          <Link
+            to="/cart"
+            className="hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200"
+          >
             <ShoppingBag className="h-5 w-5" />
             <span className="sr-only">Shopping Cart</span>
           </Link>
-          <Link to={'/account'} className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 flex">
+          <Link
+            to="/account"
+            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 flex"
+          >
             <User className="h-5 w-5" />
             <span className="sr-only">User Account</span>
           </Link>
@@ -131,21 +221,61 @@ export default function NavigationBar() {
       {isMenuOpen && (
         <div className="md:hidden px-4 pb-4 space-y-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+            const hasSubcategories =
+              item.subcategories && item.subcategories.length > 0;
+            const isExpanded = expandedMobileCategory === item.name;
+
             return (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className={cn(
-                  "block text-base font-medium py-2 border-b transition-colors",
-                  isActive
-                    ? "text-black border-black"
-                    : "text-black/60 border-transparent"
+              <div key={item.name} className="border-b">
+                <div className="flex items-center justify-between">
+                  {hasSubcategories ? (
+                    <div
+                      className={cn(
+                        "block text-base font-medium py-2 transition-colors flex-grow cursor-pointer flex items-center justify-between",
+                        isActive ? "text-black" : "text-black/60"
+                      )}
+                      onClick={() => toggleMobileCategory(item.name)}
+                    >
+                      {item.name}
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 transition-transform",
+                          isExpanded ? "transform rotate-180" : ""
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <Link
+                      to={item.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "block text-base font-medium py-2 transition-colors flex-grow",
+                        isActive ? "text-black" : "text-black/60"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  )}
+                </div>
+
+                {/* Mobile subcategories */}
+                {hasSubcategories && isExpanded && (
+                  <div className="pl-4 pb-2 space-y-1 bg-gray-50 rounded-md">
+                    {item.subcategories.map((subcat) => (
+                      <Link
+                        key={subcat.name}
+                        to={subcat.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block py-3 px-2 text-sm text-gray-700 hover:text-black hover:bg-gray-100 transition-colors"
+                      >
+                        {subcat.name}
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              >
-                {item.name}
-              </Link>
+              </div>
             );
           })}
         </div>

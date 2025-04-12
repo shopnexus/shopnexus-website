@@ -33,6 +33,8 @@ import Kids from './app/pages/Kids'
 import UserProfile from "./components/ui/UserProfile"
 import About from "./app/pages/About"
 import InforFooter from "./components/InfoFooter"
+import CategoryPage from "./app/pages/CategoryPage"
+import BrandPage from "./app/pages/BrandPage"
 
 const App: React.FC = () => {
 
@@ -61,6 +63,8 @@ const App: React.FC = () => {
 						<Route path="/men" element={<Men />} />
 						<Route path="/kids" element={<Kids />} />
 						<Route path="/about" element={<About />} />
+						<Route path="/categories/:categorySlug" element={<CategoryPage />} />
+						<Route path="/brands/:brandSlug" element={<BrandPage />} />
 
 						<Route path="/admin" element={<AdminLayout />}>
 							<Route index element={<AdminDashboard />} />

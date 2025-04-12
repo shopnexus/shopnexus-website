@@ -477,7 +477,7 @@ const ProductDetail: React.FC = () => {
 	}
 
 	return (
-		<section className=" mx-auto px-20 py-8 bg-gray-100">
+		<section className=" mx-auto px-20 py-8 bg-white">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 ">
 				{/* Product Images Section */}
 				<div className="space-y-4">
@@ -544,8 +544,7 @@ const ProductDetail: React.FC = () => {
 			</div>
 
 			<CommentLayout></CommentLayout>
-			<SimilarProductsByTagAndBrand currentProduct={productModel.data}>
-			</SimilarProductsByTagAndBrand>
+			<SimilarProductsByTagAndBrand currentProduct={productModel.data}></SimilarProductsByTagAndBrand>
       		<FeaturedProducts></FeaturedProducts>
       		<NewProducts></NewProducts>
 		</section>
