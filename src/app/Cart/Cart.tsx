@@ -11,6 +11,7 @@ import CartItem from "./CartItem"
 
 export default function Cart() {
 	const [selectedItems, setSelectedItems] = useState<bigint[]>([])
+	const [itemPrices, setItemPrices] = useState<Map<bigint, number>>(new Map())
   
 	const { data: cartItems, isLoading } = useQuery(getCart, {})
 	const { mutateAsync: mutateUpdateCartItem } = useMutation(updateCartItem)
@@ -44,10 +45,17 @@ export default function Cart() {
 	  }
 	}
   
-	const subtotal = cartItems?.items.reduce((acc, item) => acc + Number(0) * Number(item.quantity), 0)
-	const safeSubtotal = subtotal ?? 0
-	const tax = safeSubtotal * 0.1
-	const total = safeSubtotal + tax
+	const subtotal = cartItems?.items.reduce((acc, item) => {
+	  if (selectedItems.includes(item.itemId)) {
+		const price = itemPrices.get(item.itemId) || 0;
+		return acc + (price * Number(item.quantity));
+	  }
+	  return acc;
+	}, 0);
+  
+	const safeSubtotal = subtotal ?? 0;
+	const tax = safeSubtotal * 0.1;
+	const total = safeSubtotal + tax;
   
 	if (isLoading) {
 	  return (
@@ -137,6 +145,7 @@ export default function Cart() {
 					onSelect={() => toggleSelectItem(item.itemId)}
 					onRemove={() => removeItem(item.itemId)}
 					onUpdateQuantity={(newQuantity) => updateQuantity(item.itemId, newQuantity)}
+					onPriceUpdate={(price) => setItemPrices(prev => new Map(prev).set(item.itemId, price))}
 				  />
 				))}
 			  </CardContent>

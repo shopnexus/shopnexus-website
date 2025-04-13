@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useQuery } from "@connectrpc/connect-query"
 import { getProductModel } from "shopnexus-protobuf-gen-ts"
@@ -27,6 +27,7 @@ interface CartItemProps {
   onSelect: () => void
   onRemove: () => void
   onUpdateQuantity: (newQuantity: number) => void
+  onPriceUpdate?: (price: number) => void
 }
 
 export default function CartItem({
@@ -35,6 +36,7 @@ export default function CartItem({
   onSelect = () => {},
   onRemove,
   onUpdateQuantity,
+  onPriceUpdate,
 }: CartItemProps) {
   const { data: productModel, isLoading, error } = useProductModel(item.itemId)
   const [isHovered, setIsHovered] = useState(false)
@@ -48,6 +50,12 @@ export default function CartItem({
       onUpdateQuantity(Number(item.quantity) - 1)
     }
   }
+
+  useEffect(() => {
+    if (productModel?.data?.listPrice) {
+      onPriceUpdate?.(Number(productModel.data.listPrice));
+    }
+  }, [productModel?.data?.listPrice, onPriceUpdate]);
 
   if (isLoading) {
     return (
