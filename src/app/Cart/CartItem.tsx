@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useQuery } from "@connectrpc/connect-query"
 import { getProductModel } from "shopnexus-protobuf-gen-ts"
@@ -13,10 +13,9 @@ import { Skeleton } from "@mui/material"
 const useProductModel = (itemId: bigint) => {
   const { data, isLoading, error } = useQuery(getProductModel, {
     id: itemId,
-  })
-
-  return { data, isLoading, error }
-}
+  });
+  return useMemo(() => ({ data, isLoading, error }), [data, isLoading, error]);
+};
 
 interface CartItemProps {
   item: {
@@ -52,8 +51,10 @@ export default function CartItem({
   }
 
   useEffect(() => {
-    if (productModel?.data?.listPrice) {
-      onPriceUpdate?.(Number(productModel.data.listPrice));
+    const listPrice=Number(productModel?.data?.listPrice)
+    console.log("useEffect chạy với listPrice:", productModel?.data?.listPrice);
+    if (listPrice>0) {
+      onPriceUpdate?.(listPrice)
     }
   }, [productModel?.data?.listPrice, onPriceUpdate]);
 
