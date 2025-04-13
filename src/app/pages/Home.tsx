@@ -104,9 +104,6 @@ export default function Home() {
 			</section>
 
 
-			{/* Newsletter */}
-			<Newsletter />
-
 
     </div>
   );
