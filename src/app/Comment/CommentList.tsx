@@ -1,18 +1,10 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import {
-  ArrowUp,
-  ArrowDown,
-  MessageSquare,
-  MoreHorizontal,
-  CheckCircle,
-  ChevronDown,
-  ThumbsUp,
-  ThumbsDown,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import ReplyEditor from "../../components/ReplyEditor";
+import { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
+import Comment from "./Comment";
 
 export interface Comment {
   id: bigint;
@@ -28,20 +20,16 @@ export interface Comment {
 }
 
 interface CommentListProps {
-  comments: Comment[];
+  comments: CommentEntity[];
   postId: bigint;
 }
 
 const CommentList = ({ comments, postId }: CommentListProps) => {
   const [visibleCount, setVisibleCount] = useState(2);
-  const [voteStatus, setVoteStatus] = useState<Map<bigint, "up" | "down" | null>>(new Map());
+  const [voteStatus, setVoteStatus] = useState<
+    Map<bigint, "up" | "down" | null>
+  >(new Map());
   const [replyingTo, setReplyingTo] = useState<bigint | null>(null);
-
-  const formatTime = (date: Date) => {
-    const distance = formatDistanceToNow(date, { addSuffix: false });
-    return distance === "less than a minute" ? "just now" : `${distance} ago`;
-  };
-
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 10);
   };
@@ -71,7 +59,7 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
   };
 
   const handleReplySubmit = (commentId: bigint) => {
-    //thêm vào database 
+    //thêm vào database
     toggleReply(commentId);
   };
 
@@ -85,11 +73,14 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
   };
 
   const getReplies = (commentId: bigint) => {
-    return comments.filter((c) => c.dest_id === commentId);
+    return comments.filter((c) => c.destId === commentId);
   };
 
-  const renderComment = (comment: Comment, level: number = 0, visited: Set<bigint> = new Set()) => {
-    // Prevent infinite recursion by checking if we've already processed this comment
+  const renderComment = (
+    comment: CommentEntity,
+    level: number = 0,
+    visited: Set<bigint> = new Set()
+  ) => {
     if (visited.has(comment.id)) {
       console.warn(`Circular reference detected for comment ${comment.id}`);
       return null;
@@ -98,86 +89,33 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
 
     const replies = getReplies(comment.id);
     return (
-      <div key={comment.id} className={`flex space-x-3 ${level > 0 ? "ml-8" : ""}`}>
-        <div className="flex-shrink-0">
-          <img
-            src={"https://i.pinimg.com/736x/72/26/c1/7226c196f74e1991e16350404b5e1706.jpg"}
-            alt={"avatar user"}
-            className="w-8 h-8 rounded-full"
-          />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center">
-            <span className="font-medium text-sm">{"user Name"}</span>
-            <span className="ml-2 text-xs text-gray-500">{formatTime(comment.dateCreated)}</span>
-          </div>
-          <div className="mt-1 text-sm text-gray-800">{comment.body}</div>
-          {comment.resources && comment.resources.length > 0 && (
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-6 md:grid-cols-10 gap-2">
-              {comment.resources.map((imageUrl, index) => (
-                <div
-                  key={index}
-                  className="relative aspect-square overflow-hidden rounded-md"
-                >
-                  <img
-                    src={imageUrl || "/placeholder.svg"}
-                    alt={`Attachment ${index + 1}`}
-                    className="object-cover w-20 h-20 hover:opacity-90 transition-opacity"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="mt-2 flex items-center space-x-4 text-xs">
-            <div className="flex items-center space-x-1">
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={() => handleLikeComment(comment.id)}
-              >
-                <ThumbsUp className="w-4 h-4" />
-              </button>
-              <span className="text-gray-700">{comment.score}</span>
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={() => handleDisLikeComment(comment.id)}
-              >
-                <ThumbsDown className="w-4 h-4" />
-              </button>
-            </div>
-            <button
-              className="flex items-center text-gray-500 hover:text-gray-700"
-              onClick={() => toggleReply(comment.id)}
-            >
-              <MessageSquare className="w-4 h-4 mr-1" />
-              <span>Reply</span>
-            </button>
-            <button
-              className="text-gray-500 hover:text-gray-700"
-              onClick={() => handleMoreOptions(comment.id)}
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
-          </div>
-          {replyingTo === comment.id && (
-            <ReplyEditor
-              commentId={comment.id}
-              postId={postId}
-              onSubmit={() => handleReplySubmit(comment.id)}
-              onCancel={() => handleCancelReply(comment.id)}
-            />
-          )}
-          {replies.length > 0 && (
+      <Comment
+        key={comment.id}
+        comment={comment}
+        level={level}
+        postId={postId}
+        replyingTo={replyingTo}
+        onLike={handleLikeComment}
+        onDislike={handleDisLikeComment}
+        onReply={toggleReply}
+        onReplySubmit={handleReplySubmit}
+        onReplyCancel={handleCancelReply}
+        onMoreOptions={handleMoreOptions}
+        renderReplies={(comment, level) =>
+          replies.length > 0 ? (
             <div className="mt-4 space-y-4">
-              {replies.map((reply) => renderComment(reply, level + 1, new Set(visited)))}
+              {replies.map((reply) =>
+                renderComment(reply, level + 1, new Set(visited))
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          ) : null
+        }
+      />
     );
   };
 
   // Lọc các comment level=0 (dest_id === postId)
-  const topLevelComments = comments.filter((c) => c.dest_id === postId);
+  const topLevelComments = comments.filter((c) => c.destId === postId);
   const visibleComments = topLevelComments.slice(0, visibleCount);
   const hasMore = visibleCount < topLevelComments.length;
 
