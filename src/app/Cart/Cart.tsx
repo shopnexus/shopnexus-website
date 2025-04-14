@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { useMutation, useQuery } from "@connectrpc/connect-query";
-import { clearCart, getCart, updateCartItem } from "shopnexus-protobuf-gen-ts";
+import { useState } from "react";
 import { Check, ChevronRight, ShoppingBag, Trash } from "lucide-react";
 import Button from "../../components/ui/Button";
 import {
@@ -15,51 +13,80 @@ import {
 import { SeparatorHorizontal, Badge } from "lucide-react";
 import CartItem from "./CartItem";
 
+// Mock data
+const mockCartItems = [
+  {
+    itemId: BigInt(1),
+    quantity: BigInt(2),
+    metadata: {
+      color: "Black",
+      size: "M"
+    }
+  },
+  {
+    itemId: BigInt(2),
+    quantity: BigInt(1),
+    metadata: {
+      color: "White",
+      size: "L"
+    }
+  }
+];
+
+const mockProductsModel = {
+  "1": {
+    id: BigInt(1),
+    type: BigInt(1),
+    brandId: BigInt(1),
+    name: "Classic T-Shirt",
+    description: "string",
+    listPrice: 29.99,
+    dateManufactured: BigInt(1),
+    resources: ["https://example.com/tshirt1.jpg"],
+    tags: ["clothing", "t-shirt"],
+  },
+  "2": {
+    id: BigInt(2),
+    type: BigInt(1),
+    brandId: BigInt(1),
+    name: "Slim Fit Jeans",
+    description: "string",
+    listPrice: 49.99,
+    dateManufactured: BigInt(1),
+    resources: ["https://example.com/jeans1.jpg"],
+    tags: ["clothing", "t-shirt"],
+  }
+};
+
 export default function Cart() {
   const [selectedItems, setSelectedItems] = useState<bigint[]>([]);
   const [itemPrices, setItemPrices] = useState<Map<bigint, number>>(new Map());
+  const [cartItems, setCartItems] = useState(mockCartItems);
 
-  const { data: cartItems, isLoading, refetch } = useQuery(getCart, {});
-  const { mutateAsync: mutateUpdateCartItem } = useMutation(updateCartItem);
-  const { mutateAsync: mutateClearCart } = useMutation(clearCart);
-
-  const removeItem = async (itemId: bigint) => {
-    try {
-      await mutateUpdateCartItem({
-        items: [{ itemId: BigInt(itemId), quantity: BigInt(0) }],
-      });
-      setSelectedItems((prev) => prev.filter((id) => id !== itemId));
-      setItemPrices((prev) => {
-        const newMap = new Map(prev);
-        newMap.delete(itemId);
-        return newMap;
-      });
-      await refetch();
-    } catch (error) {
-      console.error("Lỗi khi xóa sản phẩm:", error);
-    }
+  const removeItem = (itemId: bigint) => {
+    setCartItems(prev => prev.filter(item => item.itemId !== itemId));
+    setSelectedItems(prev => prev.filter(id => id !== itemId));
+    setItemPrices(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(itemId);
+      return newMap;
+    });
   };
 
-  const updateQuantity = async (itemId: bigint, newQuantity: number) => {
-    try {
-      await mutateUpdateCartItem({
-        items: [{ itemId: BigInt(itemId), quantity: BigInt(newQuantity) }],
-      });
-      await refetch();
-    } catch (error) {
-      console.error("Lỗi khi cập nhật số lượng:", error);
-    }
+  const updateQuantity = (itemId: bigint, newQuantity: number) => {
+    setCartItems(prev => 
+      prev.map(item => 
+        item.itemId === itemId 
+          ? { ...item, quantity: BigInt(newQuantity) }
+          : item
+      )
+    );
   };
 
-  const clearAll = async () => {
-    try {
-      await mutateClearCart({});
-      setSelectedItems([]);
-      setItemPrices(new Map());
-      await refetch();
-    } catch (error) {
-      console.error("Lỗi khi xóa toàn bộ giỏ hàng:", error);
-    }
+  const clearAll = () => {
+    setCartItems([]);
+    setSelectedItems([]);
+    setItemPrices(new Map());
   };
 
   const toggleSelectItem = (id: bigint) => {
@@ -69,23 +96,23 @@ export default function Cart() {
   };
 
   const toggleSelectAll = () => {
-    if (cartItems?.items && selectedItems.length === cartItems.items.length) {
+    if (cartItems.length === selectedItems.length) {
       setSelectedItems([]);
-    } else if (cartItems?.items) {
-      setSelectedItems(cartItems.items.map((item) => item.itemId));
+    } else {
+      setSelectedItems(cartItems.map((item) => item.itemId));
     }
   };
 
-  const handlePriceUpdate = useCallback((itemId: bigint, price: number) => {
-    setItemPrices((prev) => {
+  const handlePriceUpdate = (itemId: bigint, price: number) => {
+    setItemPrices(prev => {
       if (prev.get(itemId) !== price) {
         return new Map(prev).set(itemId, price);
       }
       return prev;
     });
-  }, []);
+  };
 
-  const subtotal = cartItems?.items.reduce((acc, item) => {
+  const subtotal = cartItems.reduce((acc, item) => {
     if (selectedItems.includes(item.itemId)) {
       const price = itemPrices.get(item.itemId) || 0;
       return acc + price * Number(item.quantity);
@@ -97,18 +124,7 @@ export default function Cart() {
   const tax = safeSubtotal * 0.1;
   const total = safeSubtotal + tax;
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-16 flex justify-center items-center min-h-[60vh]">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-8 w-48 bg-gray-200 rounded mb-8"></div>
-          <div className="h-64 w-full max-w-3xl bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!cartItems?.items.length) {
+  if (!cartItems.length) {
     return (
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto text-center">
@@ -134,7 +150,7 @@ export default function Cart() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
         <Badge className="text-sm">
-          {cartItems.items.length} {cartItems.items.length === 1 ? "item" : "items"}
+          {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
         </Badge>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -153,8 +169,8 @@ export default function Cart() {
                       <div className="flex items-center justify-center h-4 w-4 rounded-full border border-gray-300">
                         <Check
                           className={`h-4 w-4 ${
-                            cartItems.items.length > 0 &&
-                            selectedItems.length === cartItems.items.length
+                            cartItems.length > 0 &&
+                            selectedItems.length === cartItems.length
                               ? "opacity-100"
                               : "opacity-0"
                           }`}
@@ -179,10 +195,11 @@ export default function Cart() {
               </div>
             </CardHeader>
             <CardContent className="px-6 divide-y">
-              {cartItems.items.map((item) => (
+              {cartItems.map((item) => (
                 <CartItem
                   key={String(item.itemId)}
                   item={item}
+                  product={mockProductsModel[item.itemId.toString()]}
                   selected={selectedItems.includes(item.itemId)}
                   onSelect={() => toggleSelectItem(item.itemId)}
                   onRemove={() => removeItem(item.itemId)}
@@ -201,11 +218,11 @@ export default function Cart() {
             <CardContent className="space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Subtotal</span>
-                <span>${safeSubtotal.toFixed(2)}</span>
+                <span>{safeSubtotal.toLocaleString()} ₫</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tax (10%)</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>{tax.toLocaleString()} ₫</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Shipping</span>
@@ -214,7 +231,7 @@ export default function Cart() {
               <SeparatorHorizontal />
               <div className="flex justify-between font-medium text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{total.toLocaleString()} ₫</span>
               </div>
             </CardContent>
             <CardFooter>

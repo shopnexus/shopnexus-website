@@ -43,8 +43,8 @@ const FilterSideBar = ({
         />
 
         <div className="flex justify-between text-sm text-gray-600">
-          <span>${filters.priceRange[0]}</span>
-          <span>${filters.priceRange[1]}</span>
+          <span>{filters.priceRange[0].toLocaleString()} ₫</span>
+          <span>{filters.priceRange[1].toLocaleString()} ₫</span>
         </div>
       </div>
 

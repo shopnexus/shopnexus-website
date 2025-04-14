@@ -200,6 +200,7 @@ const SettingManager = () => {
                         onChange={(e) => handleChange('store', 'currency', e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg"
                       >
+                        <option value="VND">VND (₫)</option>
                         <option value="USD">USD ($)</option>
                         <option value="EUR">EUR (€)</option>
                         <option value="GBP">GBP (£)</option>

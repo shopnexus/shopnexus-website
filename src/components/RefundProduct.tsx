@@ -83,9 +83,9 @@ const RefundProduct: React.FC = () => {
   // Get product information from the location state
   const productItems = products || []
 
-  const reasons = ["Sản phẩm bị lỗi", "Không đúng mô tả", "Giao sai hàng", "Thiếu phụ kiện", "Khác (Nhập lý do cụ thể)"]
+  const reasons = ["Product is defective", "Does not match description", "Wrong item delivered", "Missing accessories", "Other (Please specify)"]
 
-  const paymentMethods = ["Ví VNPay", "Tiền mặt", "Ví Momo"]
+  const paymentMethods = ["VNPay Wallet", "Cash", "MoMo Wallet"]
 
   // Calculate total refund amount
   const calculateTotalRefund = () => {
@@ -104,17 +104,17 @@ const RefundProduct: React.FC = () => {
     e.preventDefault()
 
     if (!formData.refundMethod) {
-      alert("Vui lòng chọn phương thức hoàn tiền")
+      alert("Please select a refund method")
       return
     }
 
     if (!formData.selectedReason) {
-      alert("Vui lòng chọn lý do hoàn trả")
+      alert("Please select a refund reason")
       return
     }
 
-    if (formData.selectedReason === "Khác (Nhập lý do cụ thể)" && !formData.customReason.trim()) {
-      alert("Vui lòng nhập lý do cụ thể")
+    if (formData.selectedReason === "Other (Please specify)" && !formData.customReason.trim()) {
+      alert("Please enter a specific reason")
       return
     }
 
@@ -124,7 +124,7 @@ const RefundProduct: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false)
       setIsSuccess(true)
-      setMessage("Yêu cầu hoàn trả hàng đã được gửi thành công!")
+      setMessage("Request Submitted!")
     }, 1500)
   }
 
@@ -132,7 +132,7 @@ const RefundProduct: React.FC = () => {
     const files = Array.from(e.target.files || [])
 
     if (formData.productImagePreviews.length + files.length > 8) {
-      alert("Bạn chỉ có thể tải lên tối đa 8 ảnh")
+      alert("You can only upload up to 8 images")
       return
     }
 
@@ -184,13 +184,13 @@ const RefundProduct: React.FC = () => {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Yêu cầu đã được gửi!</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Request Submitted!</h2>
           <p className="text-gray-600 mb-6">{message}</p>
           <button
             onClick={goBack}
             className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md font-medium transition-colors"
           >
-            Quay lại lịch sử mua hàng
+            Back to Purchase History
           </button>
         </div>
       ) : (
@@ -204,25 +204,25 @@ const RefundProduct: React.FC = () => {
             >
               <ArrowLeft className="cursor-pointer w-5 h-5 text-gray-700" />
             </button>
-            <h1 className="text-xl font-bold text-gray-800">Yêu cầu hoàn trả hàng</h1>
+            <h1 className="text-xl font-bold text-gray-800">Refund Request</h1>
           </div>
 
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Order information */}
             <div className="border-b border-gray-200 p-4 bg-blue-50">
               <div className="flex justify-between items-center mb-2">
-                <h2 className="font-semibold text-gray-800">Thông tin đơn hàng</h2>
-                <span className="text-sm text-gray-500">Mã đơn: #{paymentInfo?.id || "N/A"}</span>
+                <h2 className="font-semibold text-gray-800">Order Information</h2>
+                <span className="text-sm text-gray-500">Order ID: #{paymentInfo?.id || "N/A"}</span>
               </div>
               <div className="text-sm text-gray-600">
-                <p>Ngày đặt: {formatDate(paymentInfo?.dateCreated || "")}</p>
-                <p>Địa chỉ: {paymentInfo?.address || "N/A"}</p>
+                <p>Order Date: {formatDate(paymentInfo?.dateCreated || "")}</p>
+                <p>Address: {paymentInfo?.address || "N/A"}</p>
               </div>
             </div>
 
             {/* Product list */}
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="font-semibold text-gray-800 mb-3">Sản phẩm hoàn trả</h2>
+            <div className="p-4">
+              <h2 className="font-semibold text-gray-800 mb-3">Products to Refund</h2>
 
               <div className="space-y-4">
                 {productItems.map((item: PaymentProductItem, index: number) => {
@@ -239,21 +239,21 @@ const RefundProduct: React.FC = () => {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-800 mb-1 line-clamp-1">{product?.name || "Sản phẩm"}</h3>
+                        <h3 className="font-medium text-gray-800 mb-1 line-clamp-1">{product?.name || "Product"}</h3>
                         <p className="text-sm text-gray-500 line-clamp-2 mb-1">{product?.description || ""}</p>
                         <div className="flex flex-wrap gap-x-4 text-sm">
                           <p className="text-gray-600">
-                            SL: <span className="font-medium">{item.itemQuantity?.quantity || 1}</span>
+                            Qty: <span className="font-medium">{item.itemQuantity?.quantity || 1}</span>
                           </p>
                           <p className="text-gray-600">
-                            Đơn giá:{" "}
+                            Unit Price:{" "}
                             <span className="font-medium">{Number.parseInt(item.price || "0").toLocaleString()} ₫</span>
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">Thành tiền</p>
+                        <p className="text-xs text-gray-500">Total</p>
                         <p className="font-semibold text-red-600">
                           {Number.parseInt(item.totalPrice || "0").toLocaleString()} ₫
                         </p>
@@ -269,7 +269,7 @@ const RefundProduct: React.FC = () => {
               {/* Refund amount */}
               <div className="mb-5 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-700 font-medium">Tổng tiền hoàn lại:</p>
+                  <p className="text-gray-700 font-medium">Total Refund Amount:</p>
                   <p className="text-xl font-bold text-red-600">{totalRefundAmount.toLocaleString()} ₫</p>
                 </div>
               </div>
@@ -277,7 +277,7 @@ const RefundProduct: React.FC = () => {
               {/* Refund method */}
               <div className="mb-5">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phương thức hoàn tiền <span className="text-red-500">*</span>
+                  Refund Method <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="refundMethod"
@@ -286,7 +286,7 @@ const RefundProduct: React.FC = () => {
                   className="cursor-pointer w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 >
-                  <option value="">-- Chọn phương thức hoàn tiền --</option>
+                  <option value="">-- Select Refund Method --</option>
                   {paymentMethods.map((method, index) => (
                     <option key={index} value={method}>
                       {method}
@@ -298,7 +298,7 @@ const RefundProduct: React.FC = () => {
               {/* Reason for refund */}
               <div className="mb-5">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Lý do hoàn trả <span className="text-red-500">*</span>
+                  Refund Reason <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="selectedReason"
@@ -307,7 +307,7 @@ const RefundProduct: React.FC = () => {
                   className="cursor-pointer w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 >
-                  <option value="">-- Chọn lý do hoàn trả --</option>
+                  <option value="">-- Select Refund Reason --</option>
                   {reasons.map((reason, index) => (
                     <option key={index} value={reason}>
                       {reason}
@@ -315,12 +315,12 @@ const RefundProduct: React.FC = () => {
                   ))}
                 </select>
 
-                {formData.selectedReason === "Khác (Nhập lý do cụ thể)" && (
+                {formData.selectedReason === "Other (Please specify)" && (
                   <textarea
                     name="customReason"
                     value={formData.customReason}
                     onChange={handleChange}
-                    placeholder="Nhập lý do cụ thể của bạn"
+                    placeholder="Enter your specific reason"
                     required
                     className="w-full p-3 border border-gray-300 rounded-lg mt-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-h-[100px]"
                   />
@@ -328,54 +328,54 @@ const RefundProduct: React.FC = () => {
               </div>
 
               {/* Image upload */}
-              <div className="mb-6">
+              <div className="mb-5">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ảnh sản phẩm lỗi <span className="text-gray-500 text-xs">(tối đa 8 ảnh)</span>
+                  Product Images (Max 8)
                 </label>
-
-                <div className="grid grid-cols-4 gap-3">
-                  {formData.productImagePreviews.map((imgSrc, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={imgSrc || "/placeholder.svg"}
-                        alt={`preview-${index}`}
-                        className="w-full h-24 object-cover border rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Remove image"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-
-                  {formData.productImagePreviews.length < 8 && (
-                    <label
-                      htmlFor="addMoreImage"
-                      className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                        <p className="text-xs text-gray-500">Thêm ảnh</p>
-                      </div>
-                      <input
-                        id="addMoreImage"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        ref={fileInputRef}
-                      />
-                    </label>
-                  )}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors"
+                  >
+                    Upload Images
+                  </button>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Upload images of the product to support your refund request
+                  </p>
                 </div>
+
+                {/* Image previews */}
+                {formData.productImagePreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    {formData.productImagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Submit button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -405,10 +405,10 @@ const RefundProduct: React.FC = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Đang xử lý...
+                    Processing...
                   </>
                 ) : (
-                  "Gửi yêu cầu hoàn trả"
+                  "Submit Refund Request"
                 )}
               </button>
             </form>

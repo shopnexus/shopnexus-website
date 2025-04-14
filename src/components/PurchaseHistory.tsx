@@ -149,17 +149,17 @@ const PaymentStatusBadge = ({ status }: { status: string }) => {
     case "STATUS_SUCCESS":
       bgColor = "bg-green-100"
       textColor = "text-green-800"
-      statusText = "Thành công"
+      statusText = "Success"
       break
     case "STATUS_PENDING":
       bgColor = "bg-yellow-100"
       textColor = "text-yellow-800"
-      statusText = "Đang xử lý"
+      statusText = "Processing"
       break
     case "STATUS_FAILED":
       bgColor = "bg-red-100"
       textColor = "text-red-800"
-      statusText = "Thất bại"
+      statusText = "Failed"
       break
     default:
       statusText = status.replace("STATUS_", "")
@@ -178,7 +178,7 @@ const formatPaymentMethod = (method: string) => {
     case "PAYMENT_METHOD_VNPAY":
       return "VNPay"
     case "PAYMENT_METHOD_COD":
-      return "Thanh toán khi nhận hàng"
+      return "Cash on Delivery"
     case "PAYMENT_METHOD_MOMO":
       return "MoMo"
     default:
