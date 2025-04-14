@@ -34,6 +34,7 @@ import UserProfile from "./components/ui/UserProfile"
 import About from "./app/pages/About"
 import InforFooter from "./components/InfoFooter"
 import TagPage from "./app/pages/TagPage"
+import Checkout from "./components/Checkout"
 import BrandPage from "./app/pages/BrandPage"
 
 const App: React.FC = () => {
@@ -52,6 +53,7 @@ const App: React.FC = () => {
 						<Route path="/admin-login" element={<AdminLogin />} />
 						<Route path="/register" element={<Register />} />
 						<Route path="/cart" element={<Cart />} />
+						<Route path="/checkout" element= {<Checkout/>}/>
 						<Route path="/search" element={<Search />} />
 						<Route path="/products" element={<FeaturedProducts />} />
 						<Route path="/product/:id" element={<ProductDetail />} />

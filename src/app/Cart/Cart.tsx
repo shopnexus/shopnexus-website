@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronRight, ShoppingBag, Trash } from "lucide-react";
 import Button from "../../components/ui/Button";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -62,6 +63,7 @@ export default function Cart() {
   const [selectedItems, setSelectedItems] = useState<bigint[]>([]);
   const [itemPrices, setItemPrices] = useState<Map<bigint, number>>(new Map());
   const [cartItems, setCartItems] = useState(mockCartItems);
+  const navigate = useNavigate();
 
   const removeItem = (itemId: bigint) => {
     setCartItems(prev => prev.filter(item => item.itemId !== itemId));
@@ -111,6 +113,10 @@ export default function Cart() {
       return prev;
     });
   };
+
+  const handleCheckout = () =>{
+    navigate('/checkout')
+  }
 
   const subtotal = cartItems.reduce((acc, item) => {
     if (selectedItems.includes(item.itemId)) {
@@ -235,7 +241,9 @@ export default function Cart() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full flex items-center justify-center gap-2" size="lg">
+              <Button 
+              onClick={handleCheckout}
+              className="cursor-pointer w-full flex items-center justify-center gap-2" size="lg">
                 <span className="text-base font-medium">Checkout</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
