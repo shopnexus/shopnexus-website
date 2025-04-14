@@ -62,7 +62,7 @@ const UserProfile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [profileImage, setProfileImage] = useState("/placeholder.svg?height=128&width=128")
+  const [profileImage, setProfileImage] = useState("/placeholder2.jpeg")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [addresses, setAddresses] = useState<Address[]>([
@@ -255,7 +255,7 @@ const UserProfile = () => {
             onClick={triggerFileInput}
           >
             <img
-              src={profileImage || "/placeholder.svg?height=80&width=80"}
+              src={profileImage || "/placeholder.jpeg"}
               alt="Profile"
               className="h-full w-full object-cover transition-opacity duration-300"
             />

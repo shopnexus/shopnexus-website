@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Image, Smile } from "lucide-react";
 import { Comment } from "./CommentList";
 interface CommentEditorProps {
@@ -20,6 +20,8 @@ const CommentEditor = ({
 }: CommentEditorProps) => {
   const [body, setBody] = useState("");
   const [resources, setResources] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const getUserId = () => {
     return BigInt(3);
   };
@@ -29,6 +31,17 @@ const CommentEditor = ({
 
   const handleSubmit = () => {
     if (body.trim()) {
+      const comment: Comment = {
+        id: BigInt(Date.now()), // Tạm thời tạo ID bằng timestamp
+        user_id: getUserId(),
+        dest_id: getDestId(),
+        downvote: 0,
+        upvote: 0,
+        score: 0,
+        body,
+        resources,
+        dateCreated: new Date().toISOString(),
+      };
       onSubmit(comment);
       setBody("");
       setResources([]);
@@ -36,11 +49,20 @@ const CommentEditor = ({
   };
 
   const handleAddImage = () => {
-    setResources([
-      ...resources,
-      "https://i.pinimg.com/originals/d6/9d/90/d69d903dcc72999e03f61cc559f0206e.gif",
-    ]);
-    console.log("theem image");
+    fileInputRef.current?.click(); // Kích hoạt input file
+  };
+
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageUrl = event.target?.result as string;
+        setResources((prev) => [...prev, imageUrl]);
+      };
+      reader.readAsDataURL(file); // Đọc file thành dạng base64
+    }
   };
 
   return (
@@ -54,7 +76,8 @@ const CommentEditor = ({
           onChange={(e) => setBody(e.target.value)}
         />
       </div>
-      {/* (Optional) Preview ảnh đã thêm */}
+
+      {/* Hiển thị ảnh đã chọn */}
       {resources.length > 0 && (
         <div className="mb-2 grid grid-cols-3 gap-2">
           {resources.map((url, index) => (
@@ -66,9 +89,9 @@ const CommentEditor = ({
               />
               <button
                 className="absolute top-0 right-0 bg-black bg-opacity-50 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                onClick={() => {
-                  setResources(resources.filter((_, i) => i !== index));
-                }}
+                onClick={() =>
+                  setResources(resources.filter((_, i) => i !== index))
+                }
               >
                 ×
               </button>
@@ -76,17 +99,23 @@ const CommentEditor = ({
           ))}
         </div>
       )}
+
+      <input
+        type="file"
+        accept="image/*"
+        hidden
+        ref={fileInputRef}
+        onChange={handleFileChange}
+      />
+
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
-          {/* icon thêm ảnh*/}
           <button
             className="p-1 text-gray-500 hover:text-gray-700"
             onClick={handleAddImage}
           >
             <Image className="w-4 h-4" />
           </button>
-
-          {/* Các nút khác chỉ là giao diện */}
           <button className="p-1 text-gray-500 hover:text-gray-700">
             <Smile className="w-4 h-4" />
           </button>

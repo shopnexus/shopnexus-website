@@ -14,8 +14,8 @@ export interface Comment {
   upvote: number;
   downvote: number;
   score: number;
-  dateCreated: Date;
-  dateUpdated?: Date;
+  dateCreated: String;
+  dateUpdated?: String;
   resources?: string[];
 }
 

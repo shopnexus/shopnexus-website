@@ -120,7 +120,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
           <div className="mb-4 flex justify-between items-center">
             <h2 className="font-medium">My Address</h2>
             <button
-              className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium"
+              className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium"
               onClick={() => setIsAddModalOpen(true)}
             >
               + Add new address
@@ -161,7 +161,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                         </button>
                         {!address.isDefault && (
                           <button
-                            className="text-orange-500 hover:text-orange-700 text-sm px-2 py-1 bg-transparent border-none cursor-pointer"
+                            className="text-blue-500 hover:text-blue-700 text-sm px-2 py-1 bg-transparent border-none cursor-pointer"
                             onClick={() => handleSetDefault(address.id)}
                           >
                             Set Default
@@ -205,7 +205,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 <input
                   id="name"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   value={newAddress.name}
                   onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
                 />
@@ -218,7 +218,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 <input
                   id="phone"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   value={newAddress.phone}
                   onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
                 />
@@ -231,7 +231,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 <input
                   id="address"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   value={newAddress.address}
                   onChange={(e) => setNewAddress({ ...newAddress, address: e.target.value })}
                 />
@@ -246,7 +246,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 Cancel
               </button>
               <button
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium"
                 onClick={handleAddAddress}
               >
                 Add 
@@ -278,7 +278,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 <input
                   id="edit-name"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   value={editingAddress.name}
                   onChange={(e) => setEditingAddress({ ...editingAddress, name: e.target.value })}
                 />
@@ -291,7 +291,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 <input
                   id="edit-phone"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   value={editingAddress.phone}
                   onChange={(e) => setEditingAddress({ ...editingAddress, phone: e.target.value })}
                 />
@@ -304,7 +304,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 <input
                   id="edit-address"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   value={editingAddress.address}
                   onChange={(e) => setEditingAddress({ ...editingAddress, address: e.target.value })}
                 />
@@ -319,7 +319,7 @@ export default function AddressManagement({ addresses, setAddresses }: AddressMa
                 Cancel
               </button>
               <button
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium"
                 onClick={handleEditAddress}
               >
                 Save change
