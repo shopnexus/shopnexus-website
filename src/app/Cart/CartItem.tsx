@@ -1,62 +1,86 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import { Minus, Plus, Trash2 } from "lucide-react"
-import Button from "../../components/ui/Button"
-import Checkbox from "../../components/ui/Checkbox"
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import Button from "../../components/ui/Button";
+import Checkbox from "../../components/ui/Checkbox";
+import {
+  getProduct,
+  getProductModel,
+  ProductEntity,
+  ProductModelEntity,
+} from "shopnexus-protobuf-gen-ts";
+import { useQuery } from "@connectrpc/connect-query";
+import { parseMetadata } from "../Products/ProductDetail";
 
 interface CartItemProps {
-  item: {
-    itemId: bigint
-    quantity: bigint
-    metadata: {
-      color: string
-      size: string
-    }
-  }
-  product: {
-    id: bigint
-    name: string
-    listPrice: number
-    resources: string[]
-  }
-  selected: boolean
-  onSelect: () => void
-  onRemove: () => void
-  onUpdateQuantity: (newQuantity: number) => void
-  onPriceUpdate?: (price: number) => void
+  product_id: bigint;
+  selected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+  onUpdateQuantity: (newQuantity: number) => void;
+  onPriceUpdate?: (price: number) => void;
 }
 
 export default function CartItem({
-  item,
-  product,
+  product_id,
   selected = false,
   onSelect = () => {},
   onRemove,
   onUpdateQuantity,
   onPriceUpdate,
 }: CartItemProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
+
+  const { data: productResponse } = useQuery(
+    getProduct,
+    {
+      id: product_id,
+    },
+    {
+      enabled: !!product_id,
+    }
+  );
+  const product = productResponse?.data!;
+  const { data: productModelResponse } = useQuery(
+    getProductModel,
+    {
+      id: productResponse?.data?.productModelId,
+    },
+    {
+      enabled: !!productResponse?.data?.productModelId,
+    }
+  );
+  const productModel = productModelResponse?.data!;
 
   const handleIncrement = () => {
-    onUpdateQuantity(Number(item.quantity) + 1)
-  }
+    onUpdateQuantity(Number(product.quantity) + 1);
+  };
 
   const handleDecrement = () => {
-    if (Number(item.quantity) > 1) {
-      onUpdateQuantity(Number(item.quantity) - 1)
+    if (Number(product.quantity) > 1) {
+      onUpdateQuantity(Number(product.quantity) - 1);
     }
-  }
+  };
+
+  const metadata = product?.metadata ? parseMetadata(product.metadata) : {};
+  const metadataString = Object.entries(metadata)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(", ");
 
   useEffect(() => {
-    if (product?.listPrice) {
-      onPriceUpdate?.(product.listPrice)
+    if (productModel?.listPrice) {
+      onPriceUpdate?.(Number(productModel.listPrice));
     }
-  }, [product?.listPrice, onPriceUpdate])
+  }, [productModel?.listPrice, onPriceUpdate]);
 
-  if (!product) {
-    return <div className="py-6 px-4 bg-red-50 text-red-500 rounded-md">Product not found</div>
+  if (!productModel) {
+    return (
+      <div className="py-6 px-4 bg-red-50 text-red-500 rounded-md">
+        Product not found
+      </div>
+    );
   }
 
   return (
@@ -65,42 +89,49 @@ export default function CartItem({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Checkbox checked={selected} onCheckedChange={onSelect} className="mr-4" id={`item-${String(item.itemId)}`} />
+      <Checkbox
+        checked={selected}
+        onCheckedChange={onSelect}
+        className="mr-4"
+        id={`item-${String(product.id)}`}
+      />
 
-      <Link to={`/product/${item.itemId}`} className="relative group">
+      <Link to={`/product/${product.id}`} className="relative group">
         <div className="h-24 w-24 rounded-md overflow-hidden bg-gray-100">
           <img
-            src={product.resources[0] || "/placeholder.svg"}
-            alt={product.name}
+            src={productModel.resources[0] || "/placeholder.svg"}
+            alt={productModel.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
         </div>
       </Link>
 
       <div className="ml-4 flex-grow">
-        <Link to={`/product/${item.itemId}`}>
-          <h3 className="text-lg font-medium hover:text-primary transition-colors">{product.name}</h3>
+        <Link to={`/product/${product.id}`}>
+          <h3 className="text-lg font-medium hover:text-primary transition-colors">
+            {productModel.name}
+          </h3>
         </Link>
-        <p className="text-gray-500 text-sm mt-1">
-          {item.metadata.color} | Size: {item.metadata.size}
+        <p className="text-gray-500 text-sm mt-1">{metadataString}</p>
+        <p className="text-gray-600 mt-1">
+          {productModel.listPrice.toLocaleString()} ₫
         </p>
-        <p className="text-gray-600 mt-1">{product.listPrice.toLocaleString()} ₫</p>
 
         <div className="mt-3 flex items-center">
           <div className="flex items-center space-x-2">
             <div className="flex items-center border rounded-lg overflow-hidden bg-gray-50">
               <button
                 onClick={() => handleDecrement()}
-                disabled={Number(item.quantity) <= 1}
+                disabled={Number(product.quantity) <= 1}
                 className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Minus className="h-4 w-4" />
               </button>
-              
+
               <span className="w-12 text-center py-1.5 font-medium">
-                {Number(item.quantity)}
+                {Number(product.quantity)}
               </span>
-              
+
               <button
                 onClick={() => handleIncrement()}
                 className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition-colors"
@@ -125,9 +156,12 @@ export default function CartItem({
 
       <div className="ml-4 flex-shrink-0 text-right">
         <p className="text-lg font-semibold">
-          {(product.listPrice * Number(item.quantity)).toLocaleString()} ₫
+          {(
+            Number(productModel.listPrice) * Number(product.quantity)
+          ).toLocaleString()}{" "}
+          ₫
         </p>
       </div>
     </div>
-  )
+  );
 }

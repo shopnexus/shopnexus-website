@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Check, ChevronRight, ShoppingBag, Trash } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useNavigate } from "react-router-dom";
@@ -13,62 +13,39 @@ import {
 } from "../../components/ui/Card";
 import { SeparatorHorizontal, Badge } from "lucide-react";
 import CartItem from "./CartItem";
-
-// Mock data
-const mockCartItems = [
-  {
-    itemId: BigInt(1),
-    quantity: BigInt(2),
-    metadata: {
-      color: "Black",
-      size: "M"
-    }
-  },
-  {
-    itemId: BigInt(2),
-    quantity: BigInt(1),
-    metadata: {
-      color: "White",
-      size: "L"
-    }
-  }
-];
-
-const mockProductsModel = {
-  "1": {
-    id: BigInt(1),
-    type: BigInt(1),
-    brandId: BigInt(1),
-    name: "Classic T-Shirt",
-    description: "string",
-    listPrice: 29.99,
-    dateManufactured: BigInt(1),
-    resources: ["/placeholder3.jpeg"],
-    tags: ["clothing", "t-shirt"],
-  },
-  "2": {
-    id: BigInt(2),
-    type: BigInt(1),
-    brandId: BigInt(1),
-    name: "Slim Fit Jeans",
-    description: "string",
-    listPrice: 49.99,
-    dateManufactured: BigInt(1),
-    resources: ["/placeholder3.jpeg"],
-    tags: ["clothing", "t-shirt"],
-  }
-};
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { getCart, updateCartItem } from "shopnexus-protobuf-gen-ts";
+import { debounce } from "lodash";
 
 export default function Cart() {
   const [selectedItems, setSelectedItems] = useState<bigint[]>([]);
   const [itemPrices, setItemPrices] = useState<Map<bigint, number>>(new Map());
-  const [cartItems, setCartItems] = useState(mockCartItems);
+  // const [cartItems, setCartItems] = useState(mockCartItems);
+
+  const { mutateAsync: mutateUpdateCart } = useMutation(updateCartItem);
+  const { data: cartResponse } = useQuery(getCart);
+  const cartItems = cartResponse?.items ?? [];
+
   const navigate = useNavigate();
 
+  const debouncedUpdateCart = useCallback(
+    debounce((itemId: bigint, quantity: number) => {
+      mutateUpdateCart({
+        items: [
+          {
+            itemId,
+            quantity: BigInt(quantity),
+          },
+        ],
+      });
+    }, 500),
+    [mutateUpdateCart]
+  );
+
   const removeItem = (itemId: bigint) => {
-    setCartItems(prev => prev.filter(item => item.itemId !== itemId));
-    setSelectedItems(prev => prev.filter(id => id !== itemId));
-    setItemPrices(prev => {
+    debouncedUpdateCart(itemId, 0);
+    setSelectedItems((prev) => prev.filter((id) => id !== itemId));
+    setItemPrices((prev) => {
       const newMap = new Map(prev);
       newMap.delete(itemId);
       return newMap;
@@ -76,17 +53,13 @@ export default function Cart() {
   };
 
   const updateQuantity = (itemId: bigint, newQuantity: number) => {
-    setCartItems(prev => 
-      prev.map(item => 
-        item.itemId === itemId 
-          ? { ...item, quantity: BigInt(newQuantity) }
-          : item
-      )
-    );
+    debouncedUpdateCart(itemId, newQuantity);
   };
 
   const clearAll = () => {
-    setCartItems([]);
+    selectedItems.forEach((itemId) => {
+      debouncedUpdateCart(itemId, 0);
+    });
     setSelectedItems([]);
     setItemPrices(new Map());
   };
@@ -106,7 +79,7 @@ export default function Cart() {
   };
 
   const handlePriceUpdate = (itemId: bigint, price: number) => {
-    setItemPrices(prev => {
+    setItemPrices((prev) => {
       if (prev.get(itemId) !== price) {
         return new Map(prev).set(itemId, price);
       }
@@ -114,9 +87,9 @@ export default function Cart() {
     });
   };
 
-  const handleCheckout = () =>{
-    navigate('/checkout')
-  }
+  const handleCheckout = () => {
+    navigate("/checkout");
+  };
 
   const subtotal = cartItems.reduce((acc, item) => {
     if (selectedItems.includes(item.itemId)) {
@@ -194,7 +167,9 @@ export default function Cart() {
                   >
                     <div className="flex items-center">
                       <Trash className="h-4 w-4 mr-2" />
-                      <span className="text-sm font-medium">Remove Selected</span>
+                      <span className="text-sm font-medium">
+                        Remove Selected
+                      </span>
                     </div>
                   </Button>
                 )}
@@ -204,13 +179,16 @@ export default function Cart() {
               {cartItems.map((item) => (
                 <CartItem
                   key={String(item.itemId)}
-                  item={item}
-                  product={mockProductsModel[item.itemId.toString()]}
+                  product_id={item.itemId}
                   selected={selectedItems.includes(item.itemId)}
                   onSelect={() => toggleSelectItem(item.itemId)}
                   onRemove={() => removeItem(item.itemId)}
-                  onUpdateQuantity={(newQuantity) => updateQuantity(item.itemId, newQuantity)}
-                  onPriceUpdate={(price) => handlePriceUpdate(item.itemId, price)}
+                  onUpdateQuantity={(newQuantity) =>
+                    updateQuantity(item.itemId, newQuantity)
+                  }
+                  onPriceUpdate={(price) =>
+                    handlePriceUpdate(item.itemId, price)
+                  }
                 />
               ))}
             </CardContent>
@@ -234,16 +212,18 @@ export default function Cart() {
                 <span className="text-gray-500">Shipping</span>
                 <span>Free</span>
               </div>
-              <SeparatorHorizontal />
+              <hr className="my-4" />
               <div className="flex justify-between font-medium text-lg">
                 <span>Total</span>
                 <span>{total.toLocaleString()} ₫</span>
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-              onClick={handleCheckout}
-              className="cursor-pointer w-full flex items-center justify-center gap-2" size="lg">
+              <Button
+                onClick={handleCheckout}
+                className="cursor-pointer w-full flex items-center justify-center gap-2"
+                size="lg"
+              >
                 <span className="text-base font-medium">Checkout</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
