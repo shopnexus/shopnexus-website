@@ -1,34 +1,30 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import {
-  createUserWithEmailAndPassword,
-} from "firebase/auth"
-import { auth } from "../firebase"
-import Button from "../../components/ui/Button"
-import Input from "../../components/ui/Input"
-import  {Card, CardHeader, CardBody } from "../../components/ui/Card"
-import { useMutation } from "@connectrpc/connect-query"
-import { registerUser } from "shopnexus-protobuf-gen-ts"
-import { Gender } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb"
+import React, { useState } from "react";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import { Card, CardHeader, CardBody } from "../../components/ui/Card";
+import { useMutation } from "@connectrpc/connect-query";
+import { registerUser } from "shopnexus-protobuf-gen-ts";
+import { Gender } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb";
 
 const Register: React.FC = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [fullName, setFullName] = useState("")
-  const [username, setUsername] = useState("")
-  const [phone, setPhone] = useState("")
-  const [gender, setGender] = useState<Gender>(Gender.FEMALE)
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [gender, setGender] = useState<Gender>(Gender.MALE);
+  const [error, setError] = useState<string | null>(null);
 
-  const {mutateAsync: mutateRegisterUser} = useMutation(registerUser)
+  const { mutateAsync: mutateRegisterUser } = useMutation(registerUser);
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (password !== confirmPassword) {
-      setError("Passwords do not match!")
-      return
+      setError("Passwords do not match!");
+      return;
     }
 
     try {
@@ -39,14 +35,14 @@ const Register: React.FC = () => {
         password,
         gender,
         phone,
-      })
-      localStorage.setItem("token", response.token)
+      });
+      localStorage.setItem("token", response.token);
       // Registration successful, you can add redirect logic here
-      location.href = "/"
+      location.href = "/";
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
@@ -56,7 +52,10 @@ const Register: React.FC = () => {
         </CardHeader>
         <CardBody>
           {error && (
-            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+            <div
+              className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg"
+              role="alert"
+            >
               {error}
             </div>
           )}
@@ -64,6 +63,7 @@ const Register: React.FC = () => {
             <Input
               label="Full Name"
               type="text"
+              autoComplete="name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="John Doe"
@@ -72,6 +72,7 @@ const Register: React.FC = () => {
             <Input
               label="Username"
               type="text"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="johndoe123"
@@ -80,6 +81,7 @@ const Register: React.FC = () => {
             <Input
               label="Email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -88,21 +90,24 @@ const Register: React.FC = () => {
             <Input
               label="Phone"
               type="number"
+              autoComplete="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+1234567890"
               required
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gender
+              </label>
               <select
                 value={gender}
                 onChange={(e) => setGender(Number(e.target.value) as Gender)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="px-2 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 required
               >
-                <option value={Gender.FEMALE}>Female</option>
                 <option value={Gender.MALE}>Male</option>
+                <option value={Gender.FEMALE}>Female</option>
                 <option value={Gender.OTHER}>Other</option>
               </select>
             </div>
@@ -126,17 +131,17 @@ const Register: React.FC = () => {
               Register
             </Button>
           </form>
-          
+
           <div className="mt-4">
             <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Or</span>
-                </div>
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
               </div>
-              <Button variant="outline" className="mt-4 w-full cursor-pointer">
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or</span>
+              </div>
+            </div>
+            <Button variant="outline" className="mt-4 w-full cursor-pointer">
               <svg className="w-5 h-5 mr-2 inline-block" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -158,12 +163,11 @@ const Register: React.FC = () => {
               </svg>
               With Google
             </Button>
-
           </div>
         </CardBody>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default Register
+export default Register;
