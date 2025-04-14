@@ -23,22 +23,6 @@ export default function Cart() {
   const { mutateAsync: mutateUpdateCartItem } = useMutation(updateCartItem);
   const { mutateAsync: mutateClearCart } = useMutation(clearCart);
 
-  useEffect(() => {
-    const localCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
-    if (localCart.length > 0 && cartItems?.items) {
-      const needsRefetch = localCart.some((localItem: any) => {
-        const serverItem = cartItems.items.find(
-          (item) => item.itemId.toString() === localItem.itemId
-        );
-        return !serverItem || Number(serverItem.quantity) !== localItem.quantity;
-      });
-
-      if (needsRefetch) {
-        refetch(); 
-      }
-    }
-  }, [cartItems, refetch]);
-
   const removeItem = async (itemId: bigint) => {
     try {
       await mutateUpdateCartItem({
