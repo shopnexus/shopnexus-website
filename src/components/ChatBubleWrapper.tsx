@@ -13,7 +13,7 @@ export function ChatBubbleWrapper() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-all bg-blue-500"
+          className="fixed bottom-6 right-6 z-10 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-all bg-blue-500"
         >
           <MessageCircle className="" />
         </button>
