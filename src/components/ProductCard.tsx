@@ -34,7 +34,7 @@ export default function ProductCard({
 
 			{/* Phần dưới cùng: giá + đã bán */}
 			<div className="flex justify-between items-center mt-auto pt-4">
-				<p className="text-sm font-semibold text-gray-900">${price.toFixed(2)}</p>
+				<p className="text-sm font-semibold text-gray-900">{price.toLocaleString('vi-VN')} ₫</p>
 				<p className="text-sm text-gray-500">Đã bán {sold}</p>
 			</div>
 		</Link>

@@ -23,29 +23,32 @@ const FilterSideBar = ({
           onChange={handleFilterChange}
           valueLabelDisplay="auto"
           min={0}
-          max={1000}
+          max={10000000}
+          step={500000}
+          valueLabelFormat={(value) => `${(value / 1000000).toFixed(1)}M ₫`}
           sx={{
-            color: '#3B82F6', // Màu chính của thanh slider
+            color: '#3B82F6',
             '& .MuiSlider-thumb': {
-              backgroundColor: '#fff', // Màu nút kéo
-              border: '2px solid #3B82F6', // Viền nút kéo
+              backgroundColor: '#fff',
+              border: '2px solid #3B82F6',
             },
             '& .MuiSlider-track': {
-              backgroundColor: '#3B82F6', // Màu phần đã chọn
+              backgroundColor: '#3B82F6',
             },
             '& .MuiSlider-rail': {
-              backgroundColor: '#ccc', // Màu phần chưa chọn
+              backgroundColor: '#ccc',
             },
             '& .MuiSlider-valueLabel': {
-              backgroundColor: '#3B82F6', // Màu label hiển thị giá trị
+              backgroundColor: '#3B82F6',
             },
           }}
         />
 
         <div className="flex justify-between text-sm text-gray-600">
-          <span>{filters.priceRange[0].toLocaleString()} ₫</span>
-          <span>{filters.priceRange[1].toLocaleString()} ₫</span>
+          <span>{filters.priceRange[0].toLocaleString('vi-VN')} ₫</span>
+          <span>{filters.priceRange[1].toLocaleString('vi-VN')} ₫</span>
         </div>
+        
       </div>
 
       {/* Sizes */}

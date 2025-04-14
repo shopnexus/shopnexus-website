@@ -589,10 +589,10 @@ const ProductDetail: React.FC = () => {
   );
 
   const formattedPrice = useMemo(() => {
-    if (!productModel?.data?.listPrice) return "$0.00";
-    // Convert bigint to number and format as currency
-    const price = Number(productModel?.data?.listPrice) / 100; // Assuming price is in cents
-    return `$${price.toFixed(2)}`;
+    if (!productModel?.data?.listPrice) return "0 ₫";
+    // Convert bigint to number and format as Vietnamese Dong
+    const price = Number(productModel?.data?.listPrice);
+    return `${price.toLocaleString('vi-VN')} ₫`;
   }, [productModel]);
   //#endregion
 

@@ -88,7 +88,14 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
     return comments.filter((c) => c.dest_id === commentId);
   };
 
-  const renderComment = (comment: Comment, level: number = 0) => {
+  const renderComment = (comment: Comment, level: number = 0, visited: Set<bigint> = new Set()) => {
+    // Prevent infinite recursion by checking if we've already processed this comment
+    if (visited.has(comment.id)) {
+      console.warn(`Circular reference detected for comment ${comment.id}`);
+      return null;
+    }
+    visited.add(comment.id);
+
     const replies = getReplies(comment.id);
     return (
       <div key={comment.id} className={`flex space-x-3 ${level > 0 ? "ml-8" : ""}`}>
@@ -161,7 +168,7 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
           )}
           {replies.length > 0 && (
             <div className="mt-4 space-y-4">
-              {replies.map((reply) => renderComment(reply, level + 1))}
+              {replies.map((reply) => renderComment(reply, level + 1, new Set(visited)))}
             </div>
           )}
         </div>
