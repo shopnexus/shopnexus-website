@@ -30,7 +30,7 @@ import { ChatBubbleWrapper } from "./components/ChatBubleWrapper"
 import Women from './app/pages/Women'
 import Men from './app/pages/Men'
 import Kids from './app/pages/Kids'
-import UserProfile from "./components/ui/UserProfile"
+import UserProfile from "./app/Profile/UserProfile"
 import About from "./app/pages/About"
 import InforFooter from "./components/InfoFooter"
 import TagPage from "./app/pages/TagPage"

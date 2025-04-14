@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, ShoppingBag, User, Eye, EyeOff } from "lucide-react"
-import PurchaseHistory from "../PurchaseHistory"
-import AddressManagement from "../AddressManagement"
+import { ChevronDown, ShoppingBag, User, Eye, EyeOff,LogOut } from "lucide-react"
+import PurchaseHistory from "../../components/PurchaseHistory"
+import AddressManagement from "../../components/AddressManagement"
 
 type Section = "profile" | "address" | "password" | "orders"
 type MainSection = "account" | "orders"
@@ -108,6 +108,12 @@ const UserProfile = () => {
   const handleGenderChange = (value: string) => {
     setFormData((prev) => ({ ...prev, gender: value }))
   }
+  
+  const handleLogout = () => {
+		// Chuyển hướng về trang đăng nhập (tuỳ thuộc vào router bạn đang dùng)
+		localStorage.removeItem("token")
+		window.location.href = "/"
+	}
 
   const handleEmailChange = () => {
     if (isChangingEmail) {
@@ -319,8 +325,21 @@ const UserProfile = () => {
             {/* <ChevronDown
               className={`h-4 w-4 transition-transform duration-300 ${accountExpanded ? "rotate-180" : "rotate-0"}`}
             /> */}
+            
           </div>
         </nav>
+        <hr className="my-2 border-gray-200" />
+
+<div 
+  className="flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 hover:bg-gray-100 text-gray-600"
+  onClick={() => handleLogout()}
+>
+  <div className="flex items-center gap-2">
+    <LogOut className="h-5 w-5" />
+    <span>Logout</span>
+  </div>
+</div>
+
       </div>
 
       {/* Main content */}
