@@ -36,6 +36,7 @@ import InforFooter from "./components/InfoFooter"
 import TagPage from "./app/pages/TagPage"
 import Checkout from "./components/Checkout"
 import BrandPage from "./app/pages/BrandPage"
+import { ForgotPassword } from "./components/ForgotPassword" 
 
 const App: React.FC = () => {
 
@@ -66,6 +67,7 @@ const App: React.FC = () => {
 						<Route path="/about" element={<About />} />
 						<Route path="/tags/:tagSlug" element={<TagPage />} />
 						<Route path="/brands/:brandSlug" element={<BrandPage />} />
+						<Route path="/forgot-password" element={<ForgotPassword />} />
 
 						<Route path="/admin" element={<AdminLayout />}>
 							<Route index element={<AdminDashboard />} />

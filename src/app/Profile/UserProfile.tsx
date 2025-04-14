@@ -269,7 +269,7 @@ const UserProfile = () => {
         <nav className="space-y-1">
           {/* Account section with toggle */}
           <div
-            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeMainSection === "account" ? "text-orange-500 bg-orange-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeMainSection === "account" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
             onClick={() => handleMainSectionClick("account")}
           >
             <div className="flex items-center gap-2">
@@ -293,19 +293,19 @@ const UserProfile = () => {
           >
             <div className="pl-7 space-y-1">
               <div
-                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "profile" ? "text-orange-500 bg-orange-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "profile" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
                 onClick={() => handleSubSectionClick("profile")}
               >
                 Profile
               </div>
               <div
-                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "address" ? "text-orange-500 bg-orange-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "address" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
                 onClick={() => handleSubSectionClick("address")}
               >
                 Address
               </div>
               <div
-                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "password" ? "text-orange-500 bg-orange-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "password" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
                 onClick={() => handleSubSectionClick("password")}
               >
                 Change Password
@@ -315,7 +315,7 @@ const UserProfile = () => {
 
           {/* Orders section */}
           <div
-            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeMainSection === "orders" ? "text-orange-500 bg-orange-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeMainSection === "orders" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
             onClick={() => handleMainSectionClick("orders")}
           >
             <div className="flex items-center gap-2 ">
@@ -368,7 +368,7 @@ const UserProfile = () => {
                             type={showPassword ? "text" : "password"}
                             value={formData.password}
                             readOnly
-                            className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 pr-10"
+                            className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 pr-10"
                           />
                           <button
                             type="button"
@@ -397,7 +397,7 @@ const UserProfile = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
+                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                       />
                     </div>
 
@@ -410,7 +410,7 @@ const UserProfile = () => {
                               type="email"
                               value={newEmail}
                               onChange={(e) => setNewEmail(e.target.value)}
-                              className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
+                              className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                             />
                             <button
                               type="button"
@@ -451,7 +451,7 @@ const UserProfile = () => {
                               type="tel"
                               value={newPhone}
                               onChange={(e) => setNewPhone(e.target.value)}
-                              className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
+                              className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                             />
                             <button
                               type="button"
@@ -491,7 +491,7 @@ const UserProfile = () => {
                             <input
                               type="radio"
                               name="gender"
-                              className="cursor-pointer w-4 h-4 text-orange-500 transition-colors duration-200"
+                              className="cursor-pointer w-4 h-4 text-blue-500 transition-colors duration-200"
                               checked={formData.gender === option}
                               onChange={() => handleGenderChange(option)}
                             />
@@ -511,7 +511,7 @@ const UserProfile = () => {
                               value={newBirthday}
                               onChange={(e) => setNewBirthday(e.target.value)}
                               placeholder="DD/MM/YYYY"
-                              className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
+                              className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                             />
                             <button
                               type="button"
@@ -576,7 +576,7 @@ const UserProfile = () => {
                       <div></div>
                       <button
                         type="submit"
-                        className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white w-24 py-2 rounded-md transition-colors duration-200"
+                        className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white w-24 py-2 rounded-md transition-colors duration-200"
                       >
                         Save
                       </button>
@@ -584,7 +584,7 @@ const UserProfile = () => {
                   </div>
 
                   <div className="w-48 flex flex-col items-center">
-                    <div className="border border-dashed rounded-full h-32 w-32 flex items-center justify-center mb-4 hover:border-orange-300 transition-colors duration-200">
+                    <div className="border border-dashed rounded-full h-32 w-32 flex items-center justify-center mb-4 hover:border-blue-300 transition-colors duration-200">
                       <div className="relative h-32 w-32 rounded-full overflow-hidden">
                         <img
                           src={profileImage || "/placeholder.svg"}
@@ -642,7 +642,7 @@ const UserProfile = () => {
                         type={showCurrentPassword ? "text" : "password"}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 pr-10"
+                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 pr-10"
                       />
                       <button
                         type="button"
@@ -665,7 +665,7 @@ const UserProfile = () => {
                         type={showNewPassword ? "text" : "password"}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 pr-10"
+                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 pr-10"
                       />
                       <button
                         type="button"
@@ -688,7 +688,7 @@ const UserProfile = () => {
                         type={showConfirmPassword ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 pr-10"
+                        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 pr-10"
                       />
                       <button
                         type="button"
@@ -704,7 +704,7 @@ const UserProfile = () => {
                     <div></div>
                     <button
                       type="submit"
-                      className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white w-24 py-2 rounded-md transition-colors duration-200"
+                      className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white w-24 py-2 rounded-md transition-colors duration-200"
                     >
                       Confirm
                     </button>

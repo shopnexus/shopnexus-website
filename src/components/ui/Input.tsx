@@ -45,10 +45,6 @@ const Input: React.FC<InputProps> = ({
       onImagePaste(urls);
     }
   };
-  
-  
-  
-
 
   return (
     <div className={`w-full ${className}`}>

@@ -18,26 +18,26 @@ export default function Checkout() {
   const [products, setProducts] = useState<Product[]>([
     {
       id: 1,
-      name: "Áo thun cao cấp",
+      name: "Premium T-shirt",
       price: 250000,
       quantity: 2,
-      image: "/placeholder.svg?height=80&width=80",
+      image: "/placeholder3.jpeg",
     },
     {
       id: 2,
-      name: "Quần jean nam",
+      name: "Men's Jeans",
       price: 450000,
       quantity: 1,
-      image: "/placeholder.svg?height=80&width=80",
+      image: "/placeholder3.jpeg",
     },
   ])
 
   const [shippingAddress, setShippingAddress] = useState({
-    fullName: "Nguyễn Văn A",
+    fullName: "Nguyen Van A",
     phone: "0912345678",
-    address: "123 Đường Lê Lợi",
-    district: "Quận 1",
-    city: "TP. Hồ Chí Minh",
+    address: "123 Le Loi Street",
+    district: "District 1",
+    city: "Ho Chi Minh City",
   })
 
   const [paymentMethod, setPaymentMethod] = useState("cod") // cod, momo, vnpay
@@ -57,47 +57,47 @@ export default function Checkout() {
   const total = subtotal + shippingFee
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount).replace("₫", "VNĐ")
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount).replace("₫", "VND")
   }
 
   const handlePayment = () => {
     if (!paymentMethod) {
-      alert("Vui lòng chọn phương thức thanh toán.")
+      alert("Please select a payment method.")
       return
     }
-  
+
     switch (paymentMethod) {
       case "cod":
-        alert("✅ Thanh toán khi nhận hàng đã được xác nhận. Sẽ tự động chuyển hướng sau khi tắt thông báo này!")
+        alert("✅ Cash on Delivery confirmed. You will be redirected after this alert closes!")
         break
       case "momo":
-        alert("✅ Bạn đã chọn thanh toán qua MoMo. Đang chuyển hướng...")
+        alert("✅ You selected MoMo. Redirecting...")
         break
       case "vnpay":
-        alert("✅ Bạn đã chọn thanh toán qua VNPay. Đang chuyển hướng...")
+        alert("✅ You selected VNPay. Redirecting...")
         break
       default:
-        alert("❌ Phương thức thanh toán không hợp lệ.")
+        alert("❌ Invalid payment method.")
     }
+
     setTimeout(() => {
-      navigate("/") // Điều hướng tới trang thanh toán thành công
-    }, 1000) 
+      navigate("/") // Redirect to success page
+    }, 1000)
   }
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 px-4">
       <div className="w-full max-w-screen-lg">
-        <h1 className="text-2xl font-bold mb-6 text-center">Thanh toán</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Checkout</h1>
 
         <div className="grid grid-cols-1 gap-8">
           <div className="lg:col-span-2">
             <Card className="w-full items-center justify-center shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold">Tóm tắt đơn hàng</CardTitle>
+                <CardTitle className="text-xl font-semibold">Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Danh sách sản phẩm */}
+                {/* Product List */}
                 <div className="space-y-4">
                   {products.map((product) => (
                     <div key={product.id} className="flex items-start gap-4 border-b pb-4">
@@ -119,9 +119,9 @@ export default function Checkout() {
                   ))}
                 </div>
 
-                {/* Thông tin giao hàng */}
+                {/* Shipping Info */}
                 <div className="border rounded-lg p-4 bg-gray-50">
-                  <h5 className="font-medium text-gray-800 mb-2">Địa chỉ giao hàng</h5>
+                  <h5 className="font-medium text-gray-800 mb-2">Shipping Address</h5>
                   <p className="text-sm text-gray-700">
                     {shippingAddress.fullName} - {shippingAddress.phone}
                   </p>
@@ -130,14 +130,14 @@ export default function Checkout() {
                   </p>
                 </div>
 
-                {/* Phương thức thanh toán */}
+                {/* Payment Methods */}
                 <div className="border rounded-lg p-4 bg-white space-y-2">
-                  <h5 className="font-medium text-gray-800 mb-2">Phương thức thanh toán</h5>
+                  <h5 className="font-medium text-gray-800 mb-2">Payment Method</h5>
                   <div className="space-y-2">
-                    {[
-                      { id: "cod", label: "Thanh toán khi nhận hàng (COD)" },
-                      { id: "momo", label: "Thanh toán qua MoMo" },
-                      { id: "vnpay", label: "Thanh toán qua VNPay" },
+                    {[ 
+                      { id: "cod", label: "Cash on Delivery (COD)" },
+                      { id: "momo", label: "Pay via MoMo" },
+                      { id: "vnpay", label: "Pay via VNPay" },
                     ].map((method) => (
                       <label key={method.id} className="flex items-center space-x-2 cursor-pointer">
                         <input
@@ -155,18 +155,18 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                {/* Tổng tiền */}
+                {/* Totals */}
                 <div className="space-y-2 text-sm text-gray-700">
                   <div className="flex justify-between">
-                    <span>Tạm tính:</span>
+                    <span>Subtotal:</span>
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Phí vận chuyển:</span>
+                    <span>Shipping Fee:</span>
                     <span>{formatCurrency(shippingFee)}</span>
                   </div>
                   <div className="border-t pt-2 mt-2 flex justify-between font-semibold text-base text-black">
-                    <span>Tổng cộng:</span>
+                    <span>Total:</span>
                     <span>{formatCurrency(total)}</span>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export default function Checkout() {
                   className="cursor-pointer w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-base font-semibold py-3 rounded-lg transition"
                 >
                   <CreditCard className="w-5 h-5" />
-                  Xác nhận thanh toán
+                  Confirm Payment
                 </Button>
               </CardFooter>
             </Card>
