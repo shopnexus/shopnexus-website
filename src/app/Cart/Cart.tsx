@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Check, ChevronRight, ShoppingBag, Trash } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useNavigate } from "react-router-dom";
@@ -11,20 +11,32 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/Card";
-import { SeparatorHorizontal, Badge } from "lucide-react";
+import { Badge } from "lucide-react";
 import CartItem from "./CartItem";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
-import { getCart, updateCartItem } from "shopnexus-protobuf-gen-ts";
+import { clearCart, getCart, updateCartItem } from "shopnexus-protobuf-gen-ts";
 import { debounce } from "lodash";
 
 export default function Cart() {
   const [selectedItems, setSelectedItems] = useState<bigint[]>([]);
   const [itemPrices, setItemPrices] = useState<Map<bigint, number>>(new Map());
-  // const [cartItems, setCartItems] = useState(mockCartItems);
 
-  const { mutateAsync: mutateUpdateCart } = useMutation(updateCartItem);
-  const { data: cartResponse } = useQuery(getCart);
+  const { data: cartResponse, refetch } = useQuery(getCart);
+  const { mutateAsync: mutateUpdateCart } = useMutation(updateCartItem, {
+    onSuccess: () => {
+      refetch();
+    },
+  });
+  const { mutateAsync: mutateClearCart } = useMutation(clearCart, {
+    onSuccess: () => {
+      refetch();
+    },
+  });
   const cartItems = cartResponse?.items ?? [];
+
+  useEffect(() => {
+    refetch();
+  }, []);
 
   const navigate = useNavigate();
 
@@ -56,10 +68,9 @@ export default function Cart() {
     debouncedUpdateCart(itemId, newQuantity);
   };
 
-  const clearAll = () => {
-    selectedItems.forEach((itemId) => {
-      debouncedUpdateCart(itemId, 0);
-    });
+  const clearAll = async () => {
+    await mutateClearCart({});
+
     setSelectedItems([]);
     setItemPrices(new Map());
   };
@@ -81,6 +92,7 @@ export default function Cart() {
   const handlePriceUpdate = (itemId: bigint, price: number) => {
     setItemPrices((prev) => {
       if (prev.get(itemId) !== price) {
+        console.log("price update", itemId, price);
         return new Map(prev).set(itemId, price);
       }
       return prev;
@@ -100,8 +112,9 @@ export default function Cart() {
   }, 0);
 
   const safeSubtotal = subtotal ?? 0;
-  const tax = safeSubtotal * 0.1;
-  const total = safeSubtotal + tax;
+
+  // const tax = safeSubtotal * 0.1;
+  const total = safeSubtotal;
 
   if (!cartItems.length) {
     return (
@@ -179,6 +192,7 @@ export default function Cart() {
               {cartItems.map((item) => (
                 <CartItem
                   key={String(item.itemId)}
+                  quantity={item.quantity}
                   product_id={item.itemId}
                   selected={selectedItems.includes(item.itemId)}
                   onSelect={() => toggleSelectItem(item.itemId)}
@@ -204,10 +218,10 @@ export default function Cart() {
                 <span className="text-gray-500">Subtotal</span>
                 <span>{safeSubtotal.toLocaleString()} ₫</span>
               </div>
-              <div className="flex justify-between text-sm">
+              {/* <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tax (10%)</span>
                 <span>{tax.toLocaleString()} ₫</span>
-              </div>
+              </div> */}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Shipping</span>
                 <span>Free</span>
@@ -220,6 +234,7 @@ export default function Cart() {
             </CardContent>
             <CardFooter>
               <Button
+                disabled={!selectedItems.length}
                 onClick={handleCheckout}
                 className="cursor-pointer w-full flex items-center justify-center gap-2"
                 size="lg"

@@ -5,17 +5,13 @@ import { Link } from "react-router-dom";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Checkbox from "../../components/ui/Checkbox";
-import {
-  getProduct,
-  getProductModel,
-  ProductEntity,
-  ProductModelEntity,
-} from "shopnexus-protobuf-gen-ts";
+import { getProduct, getProductModel } from "shopnexus-protobuf-gen-ts";
 import { useQuery } from "@connectrpc/connect-query";
 import { parseMetadata } from "../Products/ProductDetail";
 
 interface CartItemProps {
   product_id: bigint;
+  quantity: bigint;
   selected: boolean;
   onSelect: () => void;
   onRemove: () => void;
@@ -25,12 +21,14 @@ interface CartItemProps {
 
 export default function CartItem({
   product_id,
+  quantity,
   selected = false,
   onSelect = () => {},
   onRemove,
   onUpdateQuantity,
   onPriceUpdate,
 }: CartItemProps) {
+  const [localQuantity, setLocalQuantity] = useState(Number(quantity));
   const [isHovered, setIsHovered] = useState(false);
 
   const { data: productResponse } = useQuery(
@@ -54,13 +52,22 @@ export default function CartItem({
   );
   const productModel = productModelResponse?.data!;
 
+  // Update local quantity when the prop changes (after cart refetch)
+  useEffect(() => {
+    setLocalQuantity(Number(quantity));
+  }, [quantity]);
+
   const handleIncrement = () => {
-    onUpdateQuantity(Number(product.quantity) + 1);
+    const newQuantity = localQuantity + 1;
+    setLocalQuantity(newQuantity);
+    onUpdateQuantity(newQuantity);
   };
 
   const handleDecrement = () => {
-    if (Number(product.quantity) > 1) {
-      onUpdateQuantity(Number(product.quantity) - 1);
+    if (localQuantity > 1) {
+      const newQuantity = localQuantity - 1;
+      setLocalQuantity(newQuantity);
+      onUpdateQuantity(newQuantity);
     }
   };
 
@@ -121,19 +128,19 @@ export default function CartItem({
           <div className="flex items-center space-x-2">
             <div className="flex items-center border rounded-lg overflow-hidden bg-gray-50">
               <button
-                onClick={() => handleDecrement()}
-                disabled={Number(product.quantity) <= 1}
+                onClick={handleDecrement}
+                disabled={localQuantity <= 1}
                 className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Minus className="h-4 w-4" />
               </button>
 
               <span className="w-12 text-center py-1.5 font-medium">
-                {Number(product.quantity)}
+                {localQuantity}
               </span>
 
               <button
-                onClick={() => handleIncrement()}
+                onClick={handleIncrement}
                 className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition-colors"
               >
                 <Plus className="h-4 w-4" />
@@ -156,10 +163,7 @@ export default function CartItem({
 
       <div className="ml-4 flex-shrink-0 text-right">
         <p className="text-lg font-semibold">
-          {(
-            Number(productModel.listPrice) * Number(product.quantity)
-          ).toLocaleString()}{" "}
-          ₫
+          {(Number(productModel.listPrice) * localQuantity).toLocaleString()} ₫
         </p>
       </div>
     </div>

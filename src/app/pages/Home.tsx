@@ -40,71 +40,65 @@ export default function Home() {
 
   const scrollToFeaturedProducts = () => {
     const element = featuredProductsRef.current;
-	if (element) {
-		const offsetTop = element.getBoundingClientRect().top + window.pageYOffset;
-		const distance = offsetTop - 200; 
+    if (element) {
+      const offsetTop =
+        element.getBoundingClientRect().top + window.pageYOffset;
+      const distance = offsetTop - 200;
 
-		window.scrollTo({
-		top: distance,
-		behavior: "smooth",
-		});
-	}
+      window.scrollTo({
+        top: distance,
+        behavior: "smooth",
+      });
+    }
   };
 
-	return (
-		<div className="flex min-h-screen flex-col items-center justify-between bg-white">
-			{/* <input ref={fileRef} type="file" placeholder="FILE TEST" />
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-between bg-white">
+      {/* <input ref={fileRef} type="file" placeholder="FILE TEST" />
 			<button onClick={(e) => uploadFile(e)}>TEST</button> */}
 
-			{/* Hero Section */}
-			<section className="w-full max-w-7xl mx-auto text-center mt-12">
-				<SplitText
-					text="Welcome to ShopNexus!!"
-					className="text-2xl font-semibold text-center sm:text-6xl"
-					delay={70}
-					animationFrom={{ opacity: 0, transform: "translate3d(0,50px,0)" }}
-					animationTo={{ opacity: 1, transform: "translate3d(0,0,0)" }}
-					threshold={0.2}
-					rootMargin="-50px"
-					onLetterAnimationComplete={handleAnimationComplete}
-				/>
-				<p className="mt-6 text-lg leading-8 text-gray-600">
-					Discover the perfect pair for every occasion.
-				</p>
-				<div className="mt-10 flex items-center justify-center gap-x-6 ">
-					<StarBorder
-						as="button"
-						color="cyan"
-						speed="5s"
-						onClick={scrollToFeaturedProducts}
-					>
-						Shop Now
-					</StarBorder>
-					<Button variant="outline">
-						<Link to="/about">
-							Learn more <span aria-hidden="true">→</span>
-						</Link>
-					</Button>
-				</div>
-			
+      {/* Hero Section */}
+      <section className="w-full max-w-7xl mx-auto text-center mt-12">
+        <SplitText
+          text="Welcome to Shopnexus!!"
+          className="text-2xl font-semibold text-center sm:text-6xl"
+          delay={70}
+          animationFrom={{ opacity: 0, transform: "translate3d(0,50px,0)" }}
+          animationTo={{ opacity: 1, transform: "translate3d(0,0,0)" }}
+          threshold={0.2}
+          rootMargin="-50px"
+          onLetterAnimationComplete={handleAnimationComplete}
+        />
+        <img src="/favicon.png" alt="logo" className="w-16 h-24 mx-auto" />
+        <p className="mt-6 text-lg leading-8 text-gray-600">
+          Discover the perfect pair for every occasion.
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-x-6 ">
+          <StarBorder
+            as="button"
+            color="cyan"
+            speed="5s"
+            onClick={scrollToFeaturedProducts}
+          >
+            Shop Now
+          </StarBorder>
+          <Button variant="outline">
+            <Link to="/about">
+              Learn more <span aria-hidden="true">→</span>
+            </Link>
+          </Button>
+        </div>
 
-			{/* Featured Products */}
+        {/* Featured Products */}
 
-				<div ref={featuredProductsRef}>
-					<FeaturedProducts />
-				</div>
-			
+        <div ref={featuredProductsRef}>
+          <FeaturedProducts />
+        </div>
 
-			{/* New Products */}
-			
-				<NewProducts />
-			
-			
-		
-			</section>
+        {/* New Products */}
 
-
-
+        <NewProducts />
+      </section>
     </div>
   );
 }

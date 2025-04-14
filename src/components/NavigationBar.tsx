@@ -31,9 +31,9 @@ const allBrands = [
 
 const navItems = [
   { name: "HOME", href: "/" },
-  { name: "WOMEN", href: "/women" },
-  { name: "MEN", href: "/men" },
-  { name: "KIDS", href: "/kids" },
+  // { name: "WOMEN", href: "/women" },
+  // { name: "MEN", href: "/men" },
+  // { name: "KIDS", href: "/kids" },
   {
     name: "TAGS",
     href: "/tags",
@@ -83,8 +83,9 @@ export default function NavigationBar() {
     <header className="sticky top-0 z-50 w-full bg-white mb-4 shadow-gray-300 shadow-md">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <span className="text-xl font-semibold">Shoe.</span>
+        <Link to="/" className="flex items-center gap-x-2">
+          <img src="/favicon.png" alt="logo" className="w-8 h-11" />
+          <span className="text-xl font-semibold">Shopnexus</span>
         </Link>
 
         {/* Navigation Links - Desktop */}
