@@ -19,7 +19,7 @@ import { ShoppingCart } from "lucide-react";
 
 //#region Utility Functions
 // Convert Uint8Array metadata to object
-const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
+export const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
   try {
     const decoder = new TextDecoder();
     const jsonString = decoder.decode(metadata);
