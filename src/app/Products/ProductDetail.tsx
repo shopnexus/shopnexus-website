@@ -3,20 +3,14 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Stack from "../../blocks/Components/Stack/Stack";
-import {
-  callUnaryMethod,
-  useMutation,
-  useQuery,
-} from "@connectrpc/connect-query";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
   addCartItem,
   getBrand,
-  getProduct,
   getProductModel,
+  listProducts,
   type ProductEntity,
-  getCart,
 } from "shopnexus-protobuf-gen-ts";
-import { finalTransport, queryClient } from "../../core/query-client";
 import CommentLayout from "../Comment/ComentLayout";
 import FeaturedProducts from "./FeaturedProducts";
 import NewProducts from "./NewProducts";
@@ -74,26 +68,29 @@ const ThumbnailList: React.FC<{
   images: string[];
   selectedImage: string;
   onThumbnailClick: (image: string) => void;
-}> = React.memo(({ images, selectedImage, onThumbnailClick }) => (
-  <div className="grid grid-cols-6 gap-2">
-    {images.map((image, index) => (
-      <button
-        key={index}
-        onClick={() => onThumbnailClick(image)}
-        className={`border-2 rounded transition duration-150 ease-in-out ${
-          selectedImage === image ? "border-blue-500" : "border-gray-200"
-        }`}
-      >
-        <img
-          src={image || "/placeholder.svg"}
-          alt={`thumbnail ${index + 1}`}
-          loading="lazy"
-          className="object-cover w-full h-full"
-        />
-      </button>
-    ))}
-  </div>
-));
+}> = React.memo(({ images, selectedImage, onThumbnailClick }) => {
+  console.log("images", images);
+  return (
+    <div className="grid grid-cols-6 gap-2">
+      {images.map((image, index) => (
+        <button
+          key={index}
+          onClick={() => onThumbnailClick(image)}
+          className={`border-2 rounded transition duration-150 ease-in-out ${
+            selectedImage === image ? "border-blue-500" : "border-gray-200"
+          }`}
+        >
+          <img
+            src={image || "/placeholder.svg"}
+            alt={`thumbnail ${index + 1}`}
+            loading="lazy"
+            className="object-cover w-full h-full"
+          />
+        </button>
+      ))}
+    </div>
+  );
+});
 
 // Component for variant selection
 interface VariantSelectionProps {
@@ -366,41 +363,17 @@ const ProductDetail: React.FC = () => {
   );
 
   // Fetch product variants
-  const [products, setProducts] = useState<ProductEntity[]>([]);
-  const [isLoadingVariants, setIsLoadingVariants] = useState(true);
-  const [variantsError, setVariantsError] = useState<Error | null>(null);
-
-  // Load product variants when product model is available
-  useEffect(() => {
-    if (!productModel?.serialIds?.length) {
-      setIsLoadingVariants(false);
-      return;
-    }
-
-    setIsLoadingVariants(true);
-    Promise.all(
-      productModel?.serialIds.map(async (serial_id) => {
-        return callUnaryMethod(finalTransport, getProduct, {
-          serialId: serial_id,
-        });
-      })
-    )
-      .then((data) => {
-        const validProducts = data
-          .map((d) => d.data!)
-          .filter((d) => d !== undefined);
-        setProducts(validProducts);
-        setIsLoadingVariants(false);
-      })
-      .catch((error) => {
-        setVariantsError(error);
-        setIsLoadingVariants(false);
-      });
-  }, [productModel]);
+  const { data: products } = useQuery(listProducts, {
+    productModelId: productModel?.data?.id,
+    pagination: {
+      limit: 100,
+      page: 1,
+    },
+  });
 
   //#region Load Data & Default Setup
   useEffect(() => {
-    if (productModel && products.length > 0) {
+    if (productModel && products?.data.length) {
       try {
         // Set up image cards from resources
         const images = productModel?.data?.resources || [];
@@ -426,7 +399,9 @@ const ProductDetail: React.FC = () => {
 
   //#region Stock & Quantity Handling
   const totalStock = useCallback((): number => {
-    return products.reduce((sum, item) => sum + Number(item.quantity), 0);
+    return (
+      products?.data.reduce((sum, item) => sum + Number(item.quantity), 0) || 0
+    );
   }, [products]);
 
   const getAvailableStock = useCallback((): number => {
@@ -436,7 +411,7 @@ const ProductDetail: React.FC = () => {
     }
 
     // Find products that match all selected variant options
-    const matchingProducts = products.filter((product) => {
+    const matchingProducts = products?.data.filter((product) => {
       const metadata = parseMetadata(product.metadata);
 
       // Check if this product matches all selected options
@@ -450,9 +425,11 @@ const ProductDetail: React.FC = () => {
     console.log(matchingProducts);
 
     // Sum up quantities of matching products
-    return matchingProducts.reduce(
-      (sum, product) => sum + Number(product.quantity),
-      0
+    return (
+      matchingProducts?.reduce(
+        (sum, product) => sum + Number(product.quantity),
+        0
+      ) || 0
     );
   }, [products, selectedVariantOptions, totalStock]);
 
@@ -511,7 +488,7 @@ const ProductDetail: React.FC = () => {
     }
 
     // Find the matching product variant
-    const matchingProduct = products.find((product) => {
+    const matchingProduct = products?.data.find((product) => {
       const metadata = parseMetadata(product.metadata);
 
       // Check if this product matches all selected options
@@ -533,20 +510,17 @@ const ProductDetail: React.FC = () => {
       // Start loading animation
       setIsAddingToCart(true);
 
-      
       if (productModel?.data?.id) {
         mutateAddCartItem({
           items: [
             {
-              itemId: productModel.data.id,
+              itemId: matchingProduct.id,
               quantity: BigInt(quantity),
-              // TODO: add metadata on server
-              // metadata: parseMetadata(matchingProduct.metadata),
             },
           ],
         })
           .then(() => {
-////--------------------------------------- animation--------------------------------
+            ////--------------------------------------- animation--------------------------------
             setAddToCartSuccess(true);
             setTimeout(() => setAddToCartSuccess(false), 3000);
           })
@@ -592,11 +566,11 @@ const ProductDetail: React.FC = () => {
     if (!productModel?.data?.listPrice) return "0 ₫";
     // Convert bigint to number and format as Vietnamese Dong
     const price = Number(productModel?.data?.listPrice);
-    return `${price.toLocaleString('vi-VN')} ₫`;
+    return `${price.toLocaleString("vi-VN")} ₫`;
   }, [productModel]);
   //#endregion
 
-  if (modelError || variantsError) {
+  if (modelError) {
     return (
       <div className="text-red-500 text-center p-4">
         {modelError
@@ -607,7 +581,7 @@ const ProductDetail: React.FC = () => {
   }
 
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
-  if (isLoadingModel || isLoadingVariants || !productModel) {
+  if (isLoadingModel || !productModel) {
     return <div className="text-center p-4">Loading product details...</div>;
   }
 
@@ -664,7 +638,7 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <VariantSelection
-            products={products}
+            products={products?.data || []}
             selectedVariantOptions={selectedVariantOptions}
             onSelectVariantOption={handleSelectVariantOption}
             quantity={quantity}
@@ -677,7 +651,7 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
 
-      <CommentLayout></CommentLayout>
+      <CommentLayout dest_id={id ? BigInt(id) : BigInt(0)}></CommentLayout>
       <SimilarProductsByTagAndBrand
         currentProduct={productModel.data}
       ></SimilarProductsByTagAndBrand>
