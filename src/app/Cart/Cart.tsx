@@ -43,7 +43,7 @@ const mockProductsModel = {
     description: "string",
     listPrice: 29.99,
     dateManufactured: BigInt(1),
-    resources: ["https://example.com/tshirt1.jpg"],
+    resources: ["/placeholder3.jpeg"],
     tags: ["clothing", "t-shirt"],
   },
   "2": {
@@ -54,7 +54,7 @@ const mockProductsModel = {
     description: "string",
     listPrice: 49.99,
     dateManufactured: BigInt(1),
-    resources: ["https://example.com/jeans1.jpg"],
+    resources: ["/placeholder3.jpeg"],
     tags: ["clothing", "t-shirt"],
   }
 };
