@@ -5,6 +5,8 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
 import Comment from "./Comment";
+import { useQuery, useMutation } from "@connectrpc/connect-query";
+import { getUser, updateComment, deleteComment } from "shopnexus-protobuf-gen-ts";
 
 export interface Comment {
   id: bigint;
@@ -25,11 +27,20 @@ interface CommentListProps {
 }
 
 const CommentList = ({ comments, postId }: CommentListProps) => {
+  const { data: me } = useQuery(getUser);
+  const { mutateAsync: mutateUpdateComment } = useMutation(updateComment);
+  const { mutateAsync: mutateDeleteComment } = useMutation(deleteComment);
+
   const [visibleCount, setVisibleCount] = useState(2);
   const [voteStatus, setVoteStatus] = useState<
     Map<bigint, "up" | "down" | null>
   >(new Map());
   const [replyingTo, setReplyingTo] = useState<bigint | null>(null);
+  const [editingComment, setEditingComment] = useState<bigint | null>(null);
+
+  // Check if the first comment belongs to the current user
+  const isUserComment = comments.length > 0 && me && comments[0].userId === me.id;
+
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 10);
   };
@@ -76,6 +87,30 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
     return comments.filter((c) => c.destId === commentId);
   };
 
+  const handleEditComment = async (commentId: bigint, newBody: string) => {
+    try {
+      await mutateUpdateComment({
+        id: commentId,
+        body: newBody,
+      });
+      setEditingComment(null);
+    } catch (error) {
+      console.error('Failed to update comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: bigint) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      try {
+        await mutateDeleteComment({
+          id: commentId,
+        });
+      } catch (error) {
+        console.error('Failed to delete comment:', error);
+      }
+    }
+  };
+
   const renderComment = (
     comment: CommentEntity,
     level: number = 0,
@@ -95,12 +130,16 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
         level={level}
         postId={postId}
         replyingTo={replyingTo}
+        editingComment={editingComment}
+        onEdit={handleEditComment}
+        onDelete={handleDeleteComment}
+        onStartEdit={() => setEditingComment(comment.id)}
+        onCancelEdit={() => setEditingComment(null)}
         onLike={handleLikeComment}
         onDislike={handleDisLikeComment}
         onReply={toggleReply}
         onReplySubmit={handleReplySubmit}
         onReplyCancel={handleCancelReply}
-        onMoreOptions={handleMoreOptions}
         renderReplies={(comment, level) =>
           replies.length > 0 ? (
             <div className="mt-4 space-y-4">
@@ -121,6 +160,11 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
 
   return (
     <div className="space-y-4">
+      {isUserComment && (
+        <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <p className="text-blue-700 font-medium">You have already commented on this product.</p>
+        </div>
+      )}
       {visibleComments.map((comment) => renderComment(comment))}
       {hasMore && (
         <button
