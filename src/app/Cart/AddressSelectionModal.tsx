@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-
+import { AddressEntity } from "shopnexus-protobuf-gen-ts/pb/account/v1/address_pb";
 export interface Address {
   id: string;
   fullName: string;
@@ -16,7 +16,7 @@ export interface Address {
 interface AddressSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  addresses: Address[];
+  addresses: AddressEntity[];
   selectedAddress: Address;
   onSelect: (address: Address) => void;
   onAddNew: () => void;

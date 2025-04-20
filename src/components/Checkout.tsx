@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditCard, MapPin } from "lucide-react";
 import Button from "./ui/Button";
 import {
@@ -10,21 +10,19 @@ import {
   CardFooter,
   CardHeader,
 } from "./ui/Card";
-import { useNavigate } from "react-router-dom";
 import {
   createPayment,
   getCart,
   getProduct,
   getProductModel,
+  listAddresses,
 } from "shopnexus-protobuf-gen-ts";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { ItemQuantityInt64 } from "shopnexus-protobuf-gen-ts/pb/common/item_quantity_pb";
 import { AddressModal } from "../app/Cart/AddressModel";
-import {
-  AddressSelectionModal,
-  type Address,
-} from "../app/Cart/AddressSelectionModal";
+import { AddressSelectionModal } from "../app/Cart/AddressSelectionModal";
 import { PaymentMethod } from "shopnexus-protobuf-gen-ts/pb/payment/v1/payment_pb";
+import { AddressEntity } from "shopnexus-protobuf-gen-ts/pb/account/v1/address_pb";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -35,76 +33,29 @@ const formatCurrency = (amount: number) => {
     .replace("₫", "VND");
 };
 
-const defaultAddress = {
-  fullName: "Nguyen Van A",
-  phone: "0912345678",
-  address: "123 Le Loi Street",
-  district: "District 1",
-  city: "Ho Chi Minh City",
-};
-
-const mockAddresses: Address[] = [
-  {
-    id: "1",
-    ...defaultAddress,
-    isDefault: true,
-  },
-  {
-    id: "2",
-    fullName: "Nguyen Van B",
-    phone: "0987654321",
-    address: "456 Nguyen Hue Street",
-    district: "District 3",
-    city: "Ho Chi Minh City",
-  },
-  {
-    id: "3",
-    fullName: "Nguyen Van C",
-    phone: "0123456789",
-    address: "789 Dong Khoi Street",
-    district: "District 5",
-    city: "Ho Chi Minh City",
-  },
-  {
-    id: "3",
-    fullName: "Nguyen Van C",
-    phone: "0123456789",
-    address: "789 Dong Khoi Street",
-    district: "District 5",
-    city: "Ho Chi Minh City",
-  },
-  {
-    id: "4",
-    fullName: "Nguyen Van C",
-    phone: "0123456789",
-    address: "789 Dong Khoi Street",
-    district: "District 5",
-    city: "Ho Chi Minh City",
-  },
-  {
-    id: "5",
-    fullName: "Nguyen Van C",
-    phone: "0123456789",
-    address: "789 Dong Khoi Street",
-    district: "District 5",
-    city: "Ho Chi Minh City",
-  },
-];
-
 export default function Checkout() {
   const { data: cartResponse } = useQuery(getCart);
   const cartItems = cartResponse?.items ?? [];
 
-  const [shippingAddress, setShippingAddress] = useState<Address>(
-    mockAddresses[0]
-  );
+  const [shippingAddress, setShippingAddress] = useState<AddressEntity>();
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSelectAddressModalOpen, setIsSelectAddressModalOpen] =
     useState(false);
-  const [addresses] = useState<Address[]>(mockAddresses);
-  const navigate = useNavigate();
+  const { data: addressesResponse } = useQuery(listAddresses, {
+    pagination: {
+      page: 1,
+      limit: 10,
+    },
+  });
+  const addresses = addressesResponse?.data ?? [];
   const { mutateAsync: mutateCreatePayment } = useMutation(createPayment);
+
+  useEffect(() => {
+    if (addresses.length > 0) {
+      setShippingAddress(addresses[0]);
+    }
+  }, [addresses]);
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
@@ -121,6 +72,11 @@ export default function Checkout() {
   const handlePayment = async () => {
     if (!paymentMethod) {
       alert("Please select a payment method.");
+      return;
+    }
+
+    if (!shippingAddress) {
+      alert("Please select a shipping address.");
       return;
     }
 
@@ -144,7 +100,7 @@ export default function Checkout() {
 
       const data = await mutateCreatePayment({
         requestId: BigInt(1),
-        address: shippingAddress.address,
+        address: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.country}`,
         method: method,
       });
 
@@ -208,11 +164,11 @@ export default function Checkout() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-700">
-                    {shippingAddress.fullName} - {shippingAddress.phone}
+                    {shippingAddress?.fullName} - {shippingAddress?.phone}
                   </p>
                   <p className="text-sm text-gray-700">
-                    {shippingAddress.address}, {shippingAddress.district},{" "}
-                    {shippingAddress.city}
+                    {shippingAddress?.address}, {shippingAddress?.city},{" "}
+                    {shippingAddress?.country}
                   </p>
                 </div>
 

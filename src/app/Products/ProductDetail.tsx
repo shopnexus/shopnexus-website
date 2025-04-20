@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Stack from "../../blocks/Components/Stack/Stack";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
@@ -311,7 +311,10 @@ const VariantSelection: React.FC<VariantSelectionProps> = React.memo(
             <div>
               <p className="font-medium">Item added to cart!</p>
               <p className="text-sm text-gray-500">
-                Continue shopping or checkout
+                Continue shopping or checkout{" "}
+                <Link style={{ color: "blue" }} to="/cart">
+                  here
+                </Link>
               </p>
             </div>
           </div>
@@ -490,6 +493,10 @@ const ProductDetail: React.FC = () => {
     // Find the matching product variant
     const matchingProduct = products?.data.find((product) => {
       const metadata = parseMetadata(product.metadata);
+
+      if (Object.keys(selectedVariantOptions).length === 0) {
+        return false;
+      }
 
       // Check if this product matches all selected options
       for (const [key, value] of Object.entries(selectedVariantOptions)) {

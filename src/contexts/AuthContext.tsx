@@ -1,39 +1,52 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../app/firebase';
-import { User } from 'firebase/auth';
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import { useQuery } from "@connectrpc/connect-query";
+import { getUser, getAdmin } from "shopnexus-protobuf-gen-ts";
+import { GetUserResponse } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb";
 
 interface AuthContextType {
-  user: User | null;
+  user: GetUserResponse | undefined;
   isAdmin: boolean;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
+  user: undefined,
   isAdmin: false,
-  loading: true
+  loading: true,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setUser(user);
-      setIsAdmin(user?.email?.endsWith('@shopnexus.com') ?? false);
-      setLoading(false);
-    });
+  const { data: user, isError: isUserError } = useQuery(getUser);
+  const { data: admin } = useQuery(
+    getAdmin,
+    {},
+    {
+      enabled: isUserError,
+    }
+  );
 
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => {
+    if (user) {
+      setIsAdmin(false);
+      setLoading(false);
+    }
+    if (admin) {
+      setIsAdmin(true);
+      setLoading(false);
+    }
+  }, [user, admin]);
+
+  const contextValue = useMemo(
+    () => ({ user, isAdmin, loading }),
+    [user, isAdmin, loading]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading }}>
-      {!loading && children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => useContext(AuthContext);

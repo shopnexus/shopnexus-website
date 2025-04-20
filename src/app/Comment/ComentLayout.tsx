@@ -4,15 +4,21 @@ import CommentList, { Comment } from "./CommentList";
 import { ChevronDown } from "lucide-react";
 import {
   createComment,
+  deleteComment,
   listComments,
+  updateComment,
 } from "shopnexus-protobuf-gen-ts/pb/product/v1/service-ProductService_connectquery";
-import { useInfiniteQuery, useMutation, useQuery } from "@connectrpc/connect-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+} from "@connectrpc/connect-query";
 import { getUser } from "shopnexus-protobuf-gen-ts";
 
 const CommentLayout: React.FC<{
   dest_id: bigint;
 }> = ({ dest_id }) => {
-  const { data: listcomments } = useInfiniteQuery(
+  const { data: listcomments, refetch } = useInfiniteQuery(
     listComments,
     {
       destId: dest_id,
@@ -35,16 +41,45 @@ const CommentLayout: React.FC<{
   const { data: me } = useQuery(getUser);
 
   // Check if the first comment belongs to the current user
-  const hasUserCommented = comments.length > 0 && me && comments[0].userId === me.id;
+  const hasUserCommented =
+    comments.length > 0 && me && comments[0].userId === me.id;
 
   const { mutateAsync: mutateCreateComment } = useMutation(createComment);
+  const { mutateAsync: mutateDeleteComment } = useMutation(deleteComment);
+  const { mutateAsync: mutateUpdateComment } = useMutation(updateComment);
 
-  const handleSubmitComment = (comment: Comment) => {
-    mutateCreateComment({
+  const handleSubmitComment = async (comment: Comment) => {
+    await mutateCreateComment({
       body: comment.body,
       destId: dest_id,
       resources: comment.resources,
     });
+    refetch();
+  };
+
+  const handleDeleteComment = async (commentId: bigint) => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      try {
+        await mutateDeleteComment({
+          id: commentId,
+        });
+        refetch();
+      } catch (error) {
+        console.error("Failed to delete comment:", error);
+      }
+    }
+  };
+
+  const handleEditComment = async (commentId: bigint, newBody: string) => {
+    try {
+      await mutateUpdateComment({
+        id: commentId,
+        body: newBody,
+      });
+      refetch();
+    } catch (error) {
+      console.error("Failed to update comment:", error);
+    }
   };
 
   return (
@@ -65,7 +100,12 @@ const CommentLayout: React.FC<{
             <ChevronDown className="w-4 h-4 ml-1" />
           </div>
         </div>
-        <CommentList comments={comments} postId={dest_id} />
+        <CommentList
+          comments={comments}
+          postId={dest_id}
+          handleDeleteComment={handleDeleteComment}
+          handleEditComment={handleEditComment}
+        />
       </div>
     </div>
   );

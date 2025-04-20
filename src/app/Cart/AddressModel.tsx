@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { X } from "lucide-react"; // Add these icons
 import Button from "../../components/ui/Button";
+import { AddressEntity } from "shopnexus-protobuf-gen-ts/pb/account/v1/address_pb";
 
 // Add this new component at the bottom of the file
 export function AddressModal({
@@ -12,8 +13,8 @@ export function AddressModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  currentAddress: typeof defaultAddress;
-  onSave: (address: typeof defaultAddress) => void;
+  currentAddress: AddressEntity;
+  onSave: (address: AddressEntity) => void;
 }) {
   const [newAddress, setNewAddress] = useState(currentAddress);
 

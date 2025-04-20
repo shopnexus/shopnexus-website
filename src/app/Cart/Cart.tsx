@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Check, ChevronRight, ShoppingBag, Trash } from "lucide-react";
 import Button from "../../components/ui/Button";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -130,7 +130,7 @@ export default function Cart() {
             Looks like you haven't added anything to your cart yet.
           </p>
           <Button size="lg">
-            <a href="/">Continue Shopping</a>
+            <Link to="/">Continue Shopping</Link>
           </Button>
         </div>
       </div>

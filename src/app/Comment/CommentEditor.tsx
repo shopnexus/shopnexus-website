@@ -52,7 +52,6 @@ const CommentEditor = ({
     fileInputRef.current?.click(); // Kích hoạt input file
   };
 
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

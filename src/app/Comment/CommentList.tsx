@@ -6,7 +6,11 @@ import { useState } from "react";
 import { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
 import Comment from "./Comment";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
-import { getUser, updateComment, deleteComment } from "shopnexus-protobuf-gen-ts";
+import {
+  getUser,
+  updateComment,
+  deleteComment,
+} from "shopnexus-protobuf-gen-ts";
 
 export interface Comment {
   id: bigint;
@@ -24,13 +28,17 @@ export interface Comment {
 interface CommentListProps {
   comments: CommentEntity[];
   postId: bigint;
+  handleDeleteComment: (commentId: bigint) => void;
+  handleEditComment: (commentId: bigint, newBody: string) => Promise<void>;
 }
 
-const CommentList = ({ comments, postId }: CommentListProps) => {
+const CommentList = ({
+  comments,
+  postId,
+  handleDeleteComment,
+  handleEditComment,
+}: CommentListProps) => {
   const { data: me } = useQuery(getUser);
-  const { mutateAsync: mutateUpdateComment } = useMutation(updateComment);
-  const { mutateAsync: mutateDeleteComment } = useMutation(deleteComment);
-
   const [visibleCount, setVisibleCount] = useState(2);
   const [voteStatus, setVoteStatus] = useState<
     Map<bigint, "up" | "down" | null>
@@ -39,7 +47,8 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
   const [editingComment, setEditingComment] = useState<bigint | null>(null);
 
   // Check if the first comment belongs to the current user
-  const isUserComment = comments.length > 0 && me && comments[0].userId === me.id;
+  const isUserComment =
+    comments.length > 0 && me && comments[0].userId === me.id;
 
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 10);
@@ -52,7 +61,6 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
       newMap.set(commentId, currentStatus === "up" ? null : "up");
       return newMap;
     });
-    console.log(`Liked comment ${commentId}`);
   };
 
   const handleDisLikeComment = (commentId: bigint) => {
@@ -79,36 +87,13 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
     console.log("cancel");
   };
 
-  const handleMoreOptions = (commentId: bigint) => {
-    console.log(`More options for comment ${commentId}`);
-  };
-
   const getReplies = (commentId: bigint) => {
     return comments.filter((c) => c.destId === commentId);
   };
 
-  const handleEditComment = async (commentId: bigint, newBody: string) => {
-    try {
-      await mutateUpdateComment({
-        id: commentId,
-        body: newBody,
-      });
-      setEditingComment(null);
-    } catch (error) {
-      console.error('Failed to update comment:', error);
-    }
-  };
-
-  const handleDeleteComment = async (commentId: bigint) => {
-    if (window.confirm('Are you sure you want to delete this comment?')) {
-      try {
-        await mutateDeleteComment({
-          id: commentId,
-        });
-      } catch (error) {
-        console.error('Failed to delete comment:', error);
-      }
-    }
+  const handleEditComment2 = async (commentId: bigint, newBody: string) => {
+    await handleEditComment(commentId, newBody);
+    setEditingComment(null);
   };
 
   const renderComment = (
@@ -131,7 +116,7 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
         postId={postId}
         replyingTo={replyingTo}
         editingComment={editingComment}
-        onEdit={handleEditComment}
+        onEdit={handleEditComment2}
         onDelete={handleDeleteComment}
         onStartEdit={() => setEditingComment(comment.id)}
         onCancelEdit={() => setEditingComment(null)}
@@ -162,7 +147,9 @@ const CommentList = ({ comments, postId }: CommentListProps) => {
     <div className="space-y-4">
       {isUserComment && (
         <div className="bg-blue-50 p-4 rounded-lg mb-4">
-          <p className="text-blue-700 font-medium">You have already commented on this product.</p>
+          <p className="text-blue-700 font-medium">
+            You have already commented on this product.
+          </p>
         </div>
       )}
       {visibleComments.map((comment) => renderComment(comment))}
