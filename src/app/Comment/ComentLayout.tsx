@@ -6,7 +6,9 @@ import {
   createComment,
   listComments,
 } from "shopnexus-protobuf-gen-ts/pb/product/v1/service-ProductService_connectquery";
-import { useInfiniteQuery, useMutation } from "@connectrpc/connect-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@connectrpc/connect-query";
+import { getUser } from "shopnexus-protobuf-gen-ts";
+
 const CommentLayout: React.FC<{
   dest_id: bigint;
 }> = ({ dest_id }) => {
@@ -30,6 +32,10 @@ const CommentLayout: React.FC<{
     }
   );
   const comments = listcomments?.pages.flatMap((page) => page.data) || [];
+  const { data: me } = useQuery(getUser);
+
+  // Check if the first comment belongs to the current user
+  const hasUserCommented = comments.length > 0 && me && comments[0].userId === me.id;
 
   const { mutateAsync: mutateCreateComment } = useMutation(createComment);
 
@@ -43,7 +49,9 @@ const CommentLayout: React.FC<{
 
   return (
     <div className="max-w mx-auto pt-4 bg-white p-8 mt-8">
-      <CommentEditor onSubmit={handleSubmitComment} postId={dest_id} />
+      {!hasUserCommented && (
+        <CommentEditor onSubmit={handleSubmitComment} postId={dest_id} />
+      )}
       <div className="mt-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
