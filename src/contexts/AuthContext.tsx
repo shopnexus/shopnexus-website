@@ -1,16 +1,21 @@
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { useQuery } from "@connectrpc/connect-query";
 import { getUser, getAdmin } from "shopnexus-protobuf-gen-ts";
-import { GetUserResponse } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb";
+import {
+  GetAdminResponse,
+  GetUserResponse,
+} from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb";
 
 interface AuthContextType {
   user: GetUserResponse | undefined;
+  admin: GetAdminResponse | undefined;
   isAdmin: boolean;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: undefined,
+  admin: undefined,
   isAdmin: false,
   loading: true,
 });
@@ -40,8 +45,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, admin]);
 
   const contextValue = useMemo(
-    () => ({ user, isAdmin, loading }),
-    [user, isAdmin, loading]
+    () => ({ user, admin, isAdmin, loading }),
+    [user, admin, isAdmin, loading]
   );
 
   return (

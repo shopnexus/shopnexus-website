@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Search, ShoppingBag, User, ChevronDown, X } from "lucide-react";
 import { cn } from "../utils/utils";
@@ -60,7 +60,20 @@ export default function NavigationBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/search?name=${encodeURIComponent(searchQuery)}`);
+      // Reset the search query after navigation
+      setSearchQuery("");
+    }
+  };
+
+  // Update the handleSearchInput function
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim()) {
+      navigate(`/search?name=${encodeURIComponent(query)}`);
+    } else {
+      navigate("/"); // Navigate to home page when search is empty
     }
   };
 
@@ -159,7 +172,7 @@ export default function NavigationBar() {
             placeholder="Search products..."
             className="w-full rounded-md border border-gray-200 bg-gray-50/50 pl-8 pr-4 py-2 text-sm outline-none focus:border-gray-300"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchInput}
           />
         </form>
 
@@ -213,7 +226,7 @@ export default function NavigationBar() {
             placeholder="Search products..."
             className="w-full rounded-md border border-gray-200 bg-gray-50/50 pl-8 pr-4 py-2 text-sm outline-none focus:border-gray-300"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onInput={handleSearchInput}
           />
         </div>
       </form>

@@ -1,249 +1,373 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { ChevronDown, ShoppingBag, User, Eye, EyeOff,LogOut } from "lucide-react"
-import PurchaseHistory from "../../components/PurchaseHistory"
-import AddressManagement from "../../components/AddressManagement"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import {
+  ChevronDown,
+  ShoppingBag,
+  User,
+  Eye,
+  EyeOff,
+  LogOut,
+} from "lucide-react";
+import PurchaseHistory from "../../components/PurchaseHistory";
+import AddressManagement from "../../components/AddressManagement";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import {
+  getUser,
+  listAddresses,
+  updateAccount,
+  updateUser,
+} from "shopnexus-protobuf-gen-ts";
+import { Gender } from "shopnexus-protobuf-gen-ts/pb/account/v1/account_pb";
+import * as tus from "tus-js-client";
+import { BASE_URL } from "../../core/query-client";
 
-type Section = "profile" | "address" | "password" | "orders"
-type MainSection = "account" | "orders"
+type Section = "profile" | "address" | "password" | "orders";
+type MainSection = "account" | "orders";
 
 export interface UserInfor {
-  Username: string
-  password: string
-  name: string
-  email: string
-  phone: string
-  gender: string
-  birthday: string
+  Username: string;
+  password: string;
+  name: string;
+  email: string;
+  phone: string;
+  gender: string;
+  birthday: string;
 }
 
 export interface Address {
-  id: string
-  name: string
-  phone: string
-  address: string
-  isDefault: boolean
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  isDefault: boolean;
 }
 
 const UserProfile = () => {
-  const [activeMainSection, setActiveMainSection] = useState<MainSection>("account")
-  const [activeSection, setActiveSection] = useState<Section>("profile")
-  const [accountExpanded, setAccountExpanded] = useState(true)
+  const [activeMainSection, setActiveMainSection] =
+    useState<MainSection>("account");
+  const [activeSection, setActiveSection] = useState<Section>("profile");
+  const [accountExpanded, setAccountExpanded] = useState(true);
+  const { data: user } = useQuery(getUser);
 
   // Refs for measuring submenu height
-  const accountSubMenuRef = useRef<HTMLDivElement>(null)
+  const accountSubMenuRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
-    username: "ntri2004",
-    password: "ntri2004",
-    name: "user",
-    email: "abcxyz@gmail.com",
-    phone: "01234567890",
-    gender: "Nam",
-    birthDate: "12/01/2000",
-  })
+    username: user?.username,
+    password: "********",
+    name: user?.fullName,
+    email: user?.email,
+    phone: user?.phone,
+    gender: user?.gender,
+  });
 
-  const [isChangingEmail, setIsChangingEmail] = useState(false)
-  const [isChangingPhone, setIsChangingPhone] = useState(false)
-  const [isChangingBirthday, setIsChangingBirthday] = useState(false)
-  const [newEmail, setNewEmail] = useState(formData.email)
-  const [newPhone, setNewPhone] = useState(formData.phone)
-  const [newBirthday, setNewBirthday] = useState(formData.birthDate)
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
+  const [isChangingPhone, setIsChangingPhone] = useState(false);
+  const [isChangingBirthday, setIsChangingBirthday] = useState(false);
+  const [newEmail, setNewEmail] = useState(formData.email);
+  const [newPhone, setNewPhone] = useState(formData.phone);
+  const [newBirthday, setNewBirthday] = useState(formData.birthDate);
 
   // For password change
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [passwordError, setPasswordError] = useState("")
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [profileImage, setProfileImage] = useState("/placeholder2.jpeg")
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [profileImage, setProfileImage] = useState("/placeholder2.jpeg");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mutateAsync: mutateUpdateAccount } = useMutation(updateAccount);
+  const { mutateAsync: mutateUpdateUser } = useMutation(updateUser);
 
-  const [addresses, setAddresses] = useState<Address[]>([
+  const { data: addressesResponse, refetch: refetchAddresses } = useQuery(
+    listAddresses,
     {
-      id: "1",
-      name: "Nguyễn Văn A",
-      phone: "(+84) 123456789",
-      address: "123 Đường ABC, Phường XYZ, Quận 1, TP. Hồ Chí Minh",
-      isDefault: true,
-    },
-    {
-      id: "2",
-      name: "Nguyễn Văn A",
-      phone: "(+84) 987654321",
-      address: "456 Đường DEF, Phường UVW, Quận 2, TP. Hồ Chí Minh",
-      isDefault: false,
-    },
-  ])
+      pagination: {
+        page: 1,
+        limit: 10,
+      },
+    }
+  );
 
-  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null)
+  const addresses = addressesResponse?.data ?? [];
+
+  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
 
   // Find default address
   useEffect(() => {
-    const foundDefault = addresses.find((addr) => addr.isDefault)
-    setDefaultAddress(foundDefault || null)
-  }, [addresses])
+    const foundDefault = addresses.find((addr) => addr.isDefault);
+    setDefaultAddress(foundDefault || null);
+  }, [addresses]);
+
+  useEffect(() => {
+    setProfileImage(user?.avatar || "/placeholder2.jpeg");
+    setFormData((prev) => ({
+      ...prev,
+      email: user?.email || "",
+      phone: user?.phone || "",
+      name: user?.fullName || "",
+      gender: user?.gender || Gender.OTHER,
+    }));
+  }, [user]);
 
   // ẩn hiện số điện thoại
   const ShowHidePhone = ({ phoneNumber }) => {
-    const [showPhone, setShowPhone] = useState(false)
+    const [showPhone, setShowPhone] = useState(false);
     const togglePhoneVisibility = () => {
-      setShowPhone((prev) => !prev)
-    }
+      setShowPhone((prev) => !prev);
+    };
 
-    const displayPhone = showPhone ? phoneNumber : phoneNumber.replace(/\d(?=\d{3})/g, "*")
-  }
+    const displayPhone = showPhone
+      ? phoneNumber
+      : phoneNumber.replace(/\d(?=\d{3})/g, "*");
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleGenderChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, gender: value }))
-  }
-  
+  const handleGenderChange = (value: number) => {
+    setFormData((prev) => ({ ...prev, gender: value }));
+  };
+
   const handleLogout = () => {
-		// Chuyển hướng về trang đăng nhập (tuỳ thuộc vào router bạn đang dùng)
-		localStorage.removeItem("token")
-		window.location.href = "/"
-	}
+    // Chuyển hướng về trang đăng nhập (tuỳ thuộc vào router bạn đang dùng)
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
 
   const handleEmailChange = () => {
     if (isChangingEmail) {
       // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(newEmail)) {
-        alert("Please enter a valid email address")
-        return
+        alert("Please enter a valid email address");
+        return;
       }
 
       // Update email in formData
-      setFormData((prev) => ({ ...prev, email: newEmail }))
-      setIsChangingEmail(false)
+      setFormData((prev) => ({ ...prev, email: newEmail }));
+      setIsChangingEmail(false);
     } else {
-      setIsChangingEmail(true)
+      setIsChangingEmail(true);
     }
-  }
+  };
 
   const handlePhoneChange = () => {
     if (isChangingPhone) {
       // Validate phone number (simple validation)
       if (newPhone.length < 10) {
-        alert("Please enter a valid phone number")
-        return
+        alert("Please enter a valid phone number");
+        return;
       }
 
       // Update phone in formData
-      setFormData((prev) => ({ ...prev, phone: newPhone }))
-      setIsChangingPhone(false)
+      setFormData((prev) => ({ ...prev, phone: newPhone }));
+      setIsChangingPhone(false);
     } else {
-      setIsChangingPhone(true)
+      setIsChangingPhone(true);
     }
-  }
+  };
 
   const handleBirthdayChange = () => {
     if (isChangingBirthday) {
       // Update birthday in formData
-      setFormData((prev) => ({ ...prev, birthDate: newBirthday }))
-      setIsChangingBirthday(false)
+      setFormData((prev) => ({ ...prev, birthDate: newBirthday }));
+      setIsChangingBirthday(false);
     } else {
-      setIsChangingBirthday(true)
+      setIsChangingBirthday(true);
     }
-  }
+  };
 
   const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault()
-    setPasswordError("")
-
-    // Validate current password
-    if (currentPassword !== formData.password) {
-      setPasswordError("Current password is incorrect")
-      return
-    }
+    e.preventDefault();
+    setPasswordError("");
 
     // Validate new password
     if (newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters")
-      return
+      setPasswordError("New password must be at least 6 characters");
+      return;
     }
 
     // Validate password confirmation
     if (newPassword !== confirmPassword) {
-      setPasswordError("Passwords do not match")
-      return
+      setPasswordError("Passwords do not match");
+      return;
     }
 
     // Update password
-    setFormData((prev) => ({ ...prev, password: newPassword }))
+    setFormData((prev) => ({ ...prev, password: newPassword }));
 
     // Reset fields
-    setCurrentPassword("")
-    setNewPassword("")
-    setConfirmPassword("")
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
 
     // Show success message
-    alert("Password changed successfully")
-  }
+    alert("Password changed successfully");
+  };
 
   const togglePasswordVisibility = (field: "current" | "new" | "confirm") => {
     if (field === "current") {
-      setShowCurrentPassword(!showCurrentPassword)
+      setShowCurrentPassword(!showCurrentPassword);
     } else if (field === "new") {
-      setShowNewPassword(!showNewPassword)
+      setShowNewPassword(!showNewPassword);
     } else if (field === "confirm") {
-      setShowConfirmPassword(!showConfirmPassword)
+      setShowConfirmPassword(!showConfirmPassword);
     }
-  }
+  };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setProfileImage(e.target.result as string)
-        }
-      }
-      reader.readAsDataURL(file)
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Create a new tus upload
+      const upload = new tus.Upload(file, {
+        endpoint: `${BASE_URL}/files/`,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        metadata: {
+          filename: file.name,
+          filetype: file.type,
+        },
+        onError: (error) => {
+          console.error("Failed to upload avatar:", error);
+          alert("Failed to upload avatar. Please try again.");
+        },
+        onProgress: (bytesUploaded, bytesTotal) => {
+          const percentage = Math.round((bytesUploaded / bytesTotal) * 100);
+          console.log("Upload progress:", percentage + "%");
+        },
+        onSuccess: () => {
+          if (upload.url) {
+            setProfileImage(upload.url);
+          }
+        },
+      });
+
+      // Start the upload
+      await upload.start();
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      alert("Failed to upload avatar. Please try again.");
     }
-  }
+  };
 
   const triggerFileInput = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const navigateToChangePassword = () => {
-    handleSubSectionClick("password")
-  }
+    handleSubSectionClick("password");
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log(formData)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const accountChanges: Record<string, any> = {
+        id: user?.id,
+      };
+
+      // Only include avatar if it's changed from the default or previous value
+      if (
+        profileImage !== "/placeholder2.jpeg" &&
+        profileImage !== user?.avatar
+      ) {
+        accountChanges.avatar = profileImage;
+      }
+
+      // Only include username if it's changed
+      if (formData.username !== user?.username) {
+        accountChanges.username = formData.username;
+      }
+
+      // Only include password if it was changed from the default asterisks
+      if (formData.password !== "********") {
+        accountChanges.password = formData.password;
+      }
+
+      // Only call mutateUpdateAccount if there are changes
+      if (Object.keys(accountChanges).length > 1) {
+        // > 1 because id is always included
+        await mutateUpdateAccount(accountChanges);
+      }
+
+      const userChanges: Record<string, any> = {
+        id: user?.id,
+      };
+
+      // Only include email if it's changed
+      if (formData.email !== user?.email) {
+        userChanges.email = formData.email;
+      }
+
+      // Only include phone if it's changed
+      if (formData.phone !== user?.phone) {
+        userChanges.phone = formData.phone;
+      }
+
+      // Only include fullName if it's changed
+      if (formData.name !== user?.fullName) {
+        userChanges.fullName = formData.name;
+      }
+
+      // Only include gender if it's changed
+      if (formData.gender !== user?.gender) {
+        userChanges.gender = formData.gender;
+      }
+
+      // Only include defaultAddressId if it exists and has changed
+      if (defaultAddress?.id && defaultAddress.id !== user?.defaultAddressId) {
+        userChanges.defaultAddressId = defaultAddress.id;
+      }
+
+      // Only call mutateUpdateUser if there are changes
+      if (Object.keys(userChanges).length > 1) {
+        // > 1 because id is always included
+        await mutateUpdateUser(userChanges);
+      }
+
+      // Only show success message if any updates were made
+      if (
+        Object.keys(accountChanges).length > 1 ||
+        Object.keys(userChanges).length > 1
+      ) {
+        alert("Profile updated successfully!");
+      } else {
+        alert("No changes to update!");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
+  };
 
   const handleMainSectionClick = (section: MainSection) => {
     if (section === "account") {
-      setAccountExpanded(!accountExpanded)
+      setAccountExpanded(!accountExpanded);
     }
 
-    setActiveMainSection(section)
+    setActiveMainSection(section);
     if (section === "account") {
-      setActiveSection("profile")
+      setActiveSection("profile");
     } else {
-      setActiveSection("orders")
+      setActiveSection("orders");
     }
-  }
+  };
 
   const handleSubSectionClick = (section: Section) => {
-    setActiveSection(section)
-  }
+    setActiveSection(section);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -263,13 +387,17 @@ const UserProfile = () => {
               <User className="h-10 w-10 text-gray-400" />
             </div>
           </div>
-          <div className="text-sm font-medium">{formData.username}</div>
+          <div className="text-sm font-medium">{user?.username}</div>
         </div>
 
         <nav className="space-y-1">
           {/* Account section with toggle */}
           <div
-            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeMainSection === "account" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${
+              activeMainSection === "account"
+                ? "text-blue-500 bg-blue-50 font-medium"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
             onClick={() => handleMainSectionClick("account")}
           >
             <div className="flex items-center gap-2">
@@ -277,7 +405,9 @@ const UserProfile = () => {
               <span>My Account</span>
             </div>
             <ChevronDown
-              className={`h-4 w-4 transition-transform duration-300 ${accountExpanded ? "rotate-180" : "rotate-0"}`}
+              className={`h-4 w-4 transition-transform duration-300 ${
+                accountExpanded ? "rotate-180" : "rotate-0"
+              }`}
             />
           </div>
 
@@ -293,19 +423,31 @@ const UserProfile = () => {
           >
             <div className="pl-7 space-y-1">
               <div
-                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "profile" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${
+                  activeSection === "profile"
+                    ? "text-blue-500 bg-blue-50 font-medium"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
                 onClick={() => handleSubSectionClick("profile")}
               >
                 Profile
               </div>
               <div
-                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "address" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${
+                  activeSection === "address"
+                    ? "text-blue-500 bg-blue-50 font-medium"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
                 onClick={() => handleSubSectionClick("address")}
               >
                 Address
               </div>
               <div
-                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeSection === "password" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                className={`p-2 cursor-pointer rounded-md transition-colors duration-200 ${
+                  activeSection === "password"
+                    ? "text-blue-500 bg-blue-50 font-medium"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
                 onClick={() => handleSubSectionClick("password")}
               >
                 Change Password
@@ -315,7 +457,11 @@ const UserProfile = () => {
 
           {/* Orders section */}
           <div
-            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${activeMainSection === "orders" ? "text-blue-500 bg-blue-50 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+            className={`flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 ${
+              activeMainSection === "orders"
+                ? "text-blue-500 bg-blue-50 font-medium"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
             onClick={() => handleMainSectionClick("orders")}
           >
             <div className="flex items-center gap-2 ">
@@ -325,21 +471,19 @@ const UserProfile = () => {
             {/* <ChevronDown
               className={`h-4 w-4 transition-transform duration-300 ${accountExpanded ? "rotate-180" : "rotate-0"}`}
             /> */}
-            
           </div>
         </nav>
         <hr className="my-2 border-gray-200" />
 
-<div 
-  className="flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 hover:bg-gray-100 text-gray-600"
-  onClick={() => handleLogout()}
->
-  <div className="flex items-center gap-2">
-    <LogOut className="h-5 w-5" />
-    <span>Logout</span>
-  </div>
-</div>
-
+        <div
+          className="flex items-center justify-between p-2 cursor-pointer rounded-md transition-colors duration-200 hover:bg-gray-100 text-gray-600"
+          onClick={() => handleLogout()}
+        >
+          <div className="flex items-center gap-2">
+            <LogOut className="h-5 w-5" />
+            <span>Logout</span>
+          </div>
+        </div>
       </div>
 
       {/* Main content */}
@@ -349,7 +493,9 @@ const UserProfile = () => {
             <div className="p-6">
               <div className="mb-6">
                 <h1 className="text-xl font-medium">My Profile</h1>
-                <p className="text-gray-500 text-sm">Manage your infomation in this profile</p>
+                <p className="text-gray-500 text-sm">
+                  Manage your infomation in this profile
+                </p>
               </div>
 
               <div className="border-t pt-6">
@@ -362,28 +508,13 @@ const UserProfile = () => {
 
                     <div className="grid grid-cols-[150px_1fr] items-center">
                       <label className="font-medium">Password</label>
-                      <div className="flex items-center">
-                        <div className="relative flex-1">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            value={formData.password}
-                            readOnly
-                            className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
+                      <div>
                         <button
                           type="button"
                           onClick={navigateToChangePassword}
-                          className="cursor-pointer text-blue-500 ml-2 text-sm hover:underline transition-colors duration-200"
+                          className="cursor-pointer text-blue-500 text-sm hover:underline transition-colors duration-200"
                         >
-                          Change
+                          Change Password
                         </button>
                       </div>
                     </div>
@@ -486,22 +617,33 @@ const UserProfile = () => {
                     <div className="grid grid-cols-[150px_1fr] items-center">
                       <label className="font-medium">Gender</label>
                       <div className="flex gap-6">
-                        {["Male", "Female", "Other"].map((option) => (
-                          <label key={option} className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name="gender"
-                              className="cursor-pointer w-4 h-4 text-blue-500 transition-colors duration-200"
-                              checked={formData.gender === option}
-                              onChange={() => handleGenderChange(option)}
-                            />
-                            {option}
-                          </label>
-                        ))}
+                        {[Gender.MALE, Gender.FEMALE, Gender.OTHER].map(
+                          (option) => (
+                            <label
+                              key={option}
+                              className="flex items-center gap-2"
+                            >
+                              <input
+                                type="radio"
+                                name="gender"
+                                className="cursor-pointer w-4 h-4 text-blue-500 transition-colors duration-200"
+                                defaultChecked={option == user?.gender}
+                                onChange={() => handleGenderChange(option)}
+                              />
+                              {
+                                {
+                                  [Gender.MALE]: "Male",
+                                  [Gender.FEMALE]: "Female",
+                                  [Gender.OTHER]: "Other",
+                                }[option]
+                              }
+                            </label>
+                          )
+                        )}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-[150px_1fr] items-center">
+                    {/* <div className="grid grid-cols-[150px_1fr] items-center">
                       <label className="font-medium">Birthday</label>
                       <div className="flex items-center">
                         {isChangingBirthday ? (
@@ -541,26 +683,34 @@ const UserProfile = () => {
                           </>
                         )}
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Default Address */}
                     <div className="grid grid-cols-[150px_1fr]">
-                      <label className="font-medium pt-1">Default Address</label>
+                      <label className="font-medium pt-1">
+                        Default Address
+                      </label>
                       <div className="space-y-1">
                         {defaultAddress ? (
                           <div className="border border-gray-200 rounded-md p-3 bg-gray-50">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium">{defaultAddress.name}</span>
+                              <span className="font-medium">
+                                {defaultAddress.name}
+                              </span>
                               <span className="text-gray-500">|</span>
                               <span>{defaultAddress.phone}</span>
                               <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded ml-auto">
                                 Default
                               </span>
                             </div>
-                            <div className="text-gray-700 text-sm">{defaultAddress.address}</div>
+                            <div className="text-gray-700 text-sm">
+                              {defaultAddress.address}
+                            </div>
                           </div>
                         ) : (
-                          <div className="text-gray-500 italic">No default address set</div>
+                          <div className="text-gray-500 italic">
+                            No default address set
+                          </div>
                         )}
                         <button
                           type="button"
@@ -617,19 +767,34 @@ const UserProfile = () => {
           </div>
         )}
 
-        {activeSection === "address" && <AddressManagement addresses={addresses} setAddresses={setAddresses} />}
+        {activeSection === "address" && (
+          <AddressManagement
+            addresses={addresses}
+            refetchAddresses={refetchAddresses}
+          />
+        )}
 
         {activeSection === "password" && (
           <div className="bg-white border-0 rounded-md shadow-sm transition-all duration-300 ease-in-out">
             <div className="p-6">
               <div className="mb-6">
                 <h1 className="text-xl font-medium">Change Password</h1>
-                <p className="text-gray-500 text-sm">Do not share your password with anyone to protect your account!</p>
+                <p className="text-gray-500 text-sm">
+                  Do not share your password with anyone to protect your
+                  account!
+                </p>
               </div>
 
               <div className="border-t pt-6">
-                <form onSubmit={handlePasswordChange} className="max-w-md space-y-6">
-                  {passwordError && <div className="text-red-500 bg-red-50 p-3 rounded-md mb-4">{passwordError}</div>}
+                <form
+                  onSubmit={handlePasswordChange}
+                  className="max-w-md space-y-6"
+                >
+                  {passwordError && (
+                    <div className="text-red-500 bg-red-50 p-3 rounded-md mb-4">
+                      {passwordError}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-[150px_1fr] items-center">
                     <label htmlFor="current-password" className="font-medium">
@@ -649,7 +814,11 @@ const UserProfile = () => {
                         onClick={() => togglePasswordVisibility("current")}
                         className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
-                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showCurrentPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -672,7 +841,11 @@ const UserProfile = () => {
                         onClick={() => togglePasswordVisibility("new")}
                         className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
-                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showNewPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -695,7 +868,11 @@ const UserProfile = () => {
                         onClick={() => togglePasswordVisibility("confirm")}
                         className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
-                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -718,7 +895,7 @@ const UserProfile = () => {
         {activeSection === "orders" && <PurchaseHistory />}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserProfile
+export default UserProfile;

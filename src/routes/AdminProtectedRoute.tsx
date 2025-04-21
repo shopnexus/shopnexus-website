@@ -1,14 +1,14 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const AdminProtectedRoute = () => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, admin, isAdmin, loading } = useAuth();
 
   if (loading) {
     return null; // Hoặc có thể trả về một loading spinner
   }
 
-  if (!user) {
+  if (!admin) {
     return <Navigate to="/admin-login" replace />;
   }
 
@@ -19,4 +19,4 @@ const AdminProtectedRoute = () => {
   return <Outlet />;
 };
 
-export default AdminProtectedRoute; 
+export default AdminProtectedRoute;

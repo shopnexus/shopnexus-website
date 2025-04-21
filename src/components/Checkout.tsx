@@ -15,6 +15,7 @@ import {
   getCart,
   getProduct,
   getProductModel,
+  getUser,
   listAddresses,
 } from "shopnexus-protobuf-gen-ts";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
@@ -50,12 +51,16 @@ export default function Checkout() {
   });
   const addresses = addressesResponse?.data ?? [];
   const { mutateAsync: mutateCreatePayment } = useMutation(createPayment);
+  const { data: user } = useQuery(getUser);
 
   useEffect(() => {
     if (addresses.length > 0) {
-      setShippingAddress(addresses[0]);
+      const defaultAddress = addresses.find(
+        (address) => address.id === user?.defaultAddressId
+      ) as AddressEntity;
+      setShippingAddress(defaultAddress);
     }
-  }, [addresses]);
+  }, [addresses, user?.defaultAddressId]);
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
