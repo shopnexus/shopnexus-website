@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import ProductCard from "../../components/ProductCard";
 import CategoryLayout from "../../components/CategoryLayout";
 
-
 const mockProducts = [
   {
     id: BigInt(1123231),
@@ -48,7 +47,7 @@ const mockProducts = [
   },
 ];
 export default function TagPage() {
-  const {  tagSlug } = useParams<{ tagSlug: string }>();
+  const { tagSlug } = useParams<{ tagSlug: string }>();
 
   // Lọc sản phẩm theo tagSlug
   const products = mockProducts.filter((product) =>
@@ -56,27 +55,25 @@ export default function TagPage() {
   );
 
   return (
-
-      <CategoryLayout
-        title={`Tag: ${tagSlug?.replace("-", " ")} Collection`}
-        description="Discover our latest collection of women's footwear, from elegant heels to comfortable sneakers."
-      >
-        {products.length === 0 ? (
-          <p>No products found in this Tag.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-3 md:grid-cols-4  lg:grid-cols-4 xl:grid-cols-6 xl:gap-x-8">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                image={product.image}
-                price={123}
-              />
-            ))}
-          </div>
-        )}
-      </CategoryLayout>
-
+    <CategoryLayout
+      title={`Tag: ${tagSlug?.replace("-", " ")} Collection`}
+      description="Discover our latest collection of women's footwear, from elegant heels to comfortable sneakers."
+    >
+      {products.length === 0 ? (
+        <p>No products found in this Tag.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-y-10 gap-x-6 md:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 xl:gap-x-8">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              image={product.image}
+              price={123}
+            />
+          ))}
+        </div>
+      )}
+    </CategoryLayout>
   );
 }

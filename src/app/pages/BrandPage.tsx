@@ -56,27 +56,25 @@ export default function BrandPage() {
   );
 
   return (
-
-      <CategoryLayout
-        title={`Brand: ${brandSlug?.replace("-", " ")} Collection`}
-        description="Discover our latest collection of women's footwear, from elegant heels to comfortable sneakers."
-      >
-        {products.length === 0 ? (
-          <p>No products found in this Brand.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-3 md:grid-cols-4  lg:grid-cols-4 xl:grid-cols-6 xl:gap-x-8">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                image={product.image}
-                price={123}
-              />
-            ))}
-          </div>
-        )}
-      </CategoryLayout>
-
+    <CategoryLayout
+      title={`Brand: ${brandSlug?.replace("-", " ")} Collection`}
+      description="Discover our latest collection of women's footwear, from elegant heels to comfortable sneakers."
+    >
+      {products.length === 0 ? (
+        <p>No products found in this Brand.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-y-10 gap-x-6 md:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 xl:gap-x-8">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              image={product.image}
+              price={123}
+            />
+          ))}
+        </div>
+      )}
+    </CategoryLayout>
   );
 }

@@ -24,14 +24,14 @@ export default function ProductCard({ id }: ProductCardProps) {
   return (
     <Link
       to={`/product/${id}`}
-      className="group relative flex flex-col justify-between rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-50 h-80 bg-white border border-gray-100"
+      className="group relative flex flex-col justify-between rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-72 h-96 bg-white border border-gray-100"
     >
       {/* Hình ảnh sản phẩm */}
       <div className="block w-full overflow-hidden rounded-lg">
         <img
           src={productModel?.resources[0] || "/placeholder.jpeg"}
           alt={productModel?.name || ""}
-          className="w-full h-40 object-cover object-center transform group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-48 object-cover object-center transform group-hover:scale-105 transition-transform duration-300"
         />
       </div>
 
