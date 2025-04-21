@@ -49,7 +49,7 @@ const UserProfile = () => {
     useState<MainSection>("account");
   const [activeSection, setActiveSection] = useState<Section>("profile");
   const [accountExpanded, setAccountExpanded] = useState(true);
-  const { data: user } = useQuery(getUser);
+  const { data: user, isLoading } = useQuery(getUser);
 
   // Refs for measuring submenu height
   const accountSubMenuRef = useRef<HTMLDivElement>(null);
@@ -80,7 +80,7 @@ const UserProfile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [profileImage, setProfileImage] = useState("/placeholder2.jpeg");
+  const [profileImage, setProfileImage] = useState("/avatar_placeholder.png");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync: mutateUpdateAccount } = useMutation(updateAccount);
   const { mutateAsync: mutateUpdateUser } = useMutation(updateUser);
@@ -106,7 +106,7 @@ const UserProfile = () => {
   }, [addresses]);
 
   useEffect(() => {
-    setProfileImage(user?.avatar || "/placeholder2.jpeg");
+    setProfileImage(user?.avatar || "/avatar_placeholder.png");
     setFormData((prev) => ({
       ...prev,
       email: user?.email || "",
@@ -280,7 +280,7 @@ const UserProfile = () => {
 
       // Only include avatar if it's changed from the default or previous value
       if (
-        profileImage !== "/placeholder2.jpeg" &&
+        profileImage !== "/avatar_placeholder.png" &&
         profileImage !== user?.avatar
       ) {
         accountChanges.avatar = profileImage;
@@ -378,11 +378,15 @@ const UserProfile = () => {
             className="relative h-20 w-20 mb-2 rounded-full overflow-hidden bg-gray-200 transition-all duration-300 hover:shadow-md cursor-pointer"
             onClick={triggerFileInput}
           >
-            <img
-              src={profileImage || "/placeholder.jpeg"}
-              alt="Profile"
-              className="h-full w-full object-cover transition-opacity duration-300"
-            />
+            {isLoading ? (
+              <div className="w-full h-full bg-gray-200 animate-pulse rounded-full" />
+            ) : (
+              <img
+                src={profileImage || "/placeholder.jpeg"}
+                alt="Profile"
+                className="h-full w-full object-cover transition-opacity duration-300"
+              />
+            )}
             <div className="absolute inset-0 flex items-center justify-center bg-gray-200 opacity-0 transition-opacity duration-300 hover:opacity-50">
               <User className="h-10 w-10 text-gray-400" />
             </div>
@@ -736,11 +740,15 @@ const UserProfile = () => {
                   <div className="w-48 flex flex-col items-center">
                     <div className="border border-dashed rounded-full h-32 w-32 flex items-center justify-center mb-4 hover:border-blue-300 transition-colors duration-200">
                       <div className="relative h-32 w-32 rounded-full overflow-hidden">
-                        <img
-                          src={profileImage || "/placeholder.svg"}
-                          alt="Profile"
-                          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                        />
+                        {isLoading ? (
+                          <div className="w-full h-full bg-gray-200 animate-pulse rounded-full" />
+                        ) : (
+                          <img
+                            src={profileImage || "/placeholder.svg"}
+                            alt="Profile"
+                            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                        )}
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-200 opacity-0 hover:opacity-50 transition-opacity duration-300">
                           <User className="h-16 w-16 text-gray-300" />
                         </div>

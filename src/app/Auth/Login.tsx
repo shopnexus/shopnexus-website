@@ -1,157 +1,159 @@
-import { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "../firebase"
-import { useAuth } from "../../contexts/AuthContext"
-import Button from "../../components/ui/Button"
-import Input from "../../components/ui/Input"
-import Checkbox from "../../components/ui/Checkbox"
-import {Card, CardHeader, CardBody } from "../../components/ui/Card"
-import { loginUser } from "shopnexus-protobuf-gen-ts"
-import { useMutation } from "@connectrpc/connect-query"
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
+import { useAuth } from "../../contexts/AuthContext";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Checkbox from "../../components/ui/Checkbox";
+import { Card, CardHeader, CardBody } from "../../components/ui/Card";
+import { getUser, loginUser } from "shopnexus-protobuf-gen-ts";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 
 const Login: React.FC = () => {
-	const [email, setEmail] = useState("")
-	const [password, setPassword] = useState("")
-	const [rememberMe, setRememberMe] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-	const [isLoading, setIsLoading] = useState(false)
-	const { mutateAsync: mutateLoginUser } = useMutation(loginUser)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { mutateAsync: mutateLoginUser } = useMutation(loginUser);
 
-	const navigate = useNavigate()
-	const location = useLocation()
-	const { isAdmin, user } = useAuth()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAdmin, user } = useAuth();
+  const { refetch: refetchUser } = useQuery(getUser);
 
-	useEffect(() => {
-		if (user) {
-			const redirectPath = localStorage.getItem('redirectAfterLogin')
-			if (redirectPath) {
-				localStorage.removeItem('redirectAfterLogin')
-				navigate(redirectPath)
-			} else {
-				navigate('/')
-			}
-		}
-	}, [user, navigate])
+  useEffect(() => {
+    if (user) {
+      const redirectPath = localStorage.getItem("redirectAfterLogin");
+      if (redirectPath) {
+        localStorage.removeItem("redirectAfterLogin");
+        navigate(redirectPath);
+      } else {
+        navigate("/");
+      }
+    }
+  }, [user, navigate]);
 
-	const handleLogin = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setError(null)
-		setIsLoading(true)
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
-		try {
-			const data = await mutateLoginUser({
-				username: email,
-				password: password,
-			})
+    try {
+      const data = await mutateLoginUser({
+        username: email,
+        password: password,
+      });
 
-			localStorage.setItem("token", data.token)
-			const from = location.state?.from?.pathname || (isAdmin ? "/admin" : "/")
-			navigate(from, { replace: true })
+      localStorage.setItem("token", data.token);
+      const from = location.state?.from?.pathname || (isAdmin ? "/admin" : "/");
+      refetchUser();
+      navigate(from, { replace: true });
 
-			// await signInWithEmailAndPassword(auth, email, password)
-		} catch (err: any) {
-			let errorMessage = "An error occurred during login"
+      // await signInWithEmailAndPassword(auth, email, password)
+    } catch (err: any) {
+      let errorMessage = "An error occurred during login";
 
-			switch (err.code) {
-				case "auth/invalid-email":
-					errorMessage = "Invalid email address"
-					break
-				case "auth/user-disabled":
-					errorMessage = "This account has been disabled"
-					break
-				case "auth/user-not-found":
-					errorMessage = "No account found with this email"
-					break
-				case "auth/wrong-password":
-					errorMessage = "Incorrect password"
-					break
-			}
+      switch (err.code) {
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address";
+          break;
+        case "auth/user-disabled":
+          errorMessage = "This account has been disabled";
+          break;
+        case "auth/user-not-found":
+          errorMessage = "No account found with this email";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "Incorrect password";
+          break;
+      }
 
-			setError(errorMessage)
-		} finally {
-			setIsLoading(false)
-		}
-	}
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-	const handleGoogleLogin = async () => {
-		setError(null)
-		setIsLoading(true)
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setIsLoading(true);
 
-		try {
-			const result = await signInWithPopup(auth, googleProvider)
-			const isAdminEmail = result.user.email?.endsWith("@shopnexus.com")
-			const from =
-				location.state?.from?.pathname || (isAdminEmail ? "/admin" : "/")
-			navigate(from, { replace: true })
-		} catch (err: any) {
-			setError("Failed to sign in with Google")
-		} finally {
-			setIsLoading(false)
-		}
-	}
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const isAdminEmail = result.user.email?.endsWith("@shopnexus.com");
+      const from =
+        location.state?.from?.pathname || (isAdminEmail ? "/admin" : "/");
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setError("Failed to sign in with Google");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-			<Card className="w-full max-w-md">
-				<CardHeader>
-					<h2 className="text-2xl font-bold text-center">Login</h2>
-				</CardHeader>
-				<CardBody>
-					{error && (
-						<div
-							className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg"
-							role="alert"
-						>
-							{error}
-						</div>
-					)}
-					<form onSubmit={handleLogin} className="space-y-4">
-						<Input
-							label="Email or Username"
-							type="text"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="you@example.com"
-							disabled={isLoading}
-							required
-						/>
-						<Input
-							label="Password"
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							placeholder="••••••••"
-							disabled={isLoading}
-							required
-						/>
-						<div className="flex items-center justify-between">
-							<Checkbox
-								label="Remember me"
-								checked={rememberMe}
-								onChange={(e) => setRememberMe(e.target.checked)}
-								disabled={isLoading}
-								className="cursor-pointer"
-							/>
-							<button
-								type="button"
-								onClick={() => navigate("/forgot-password")}
-								className="text-sm text-blue-600 hover:underline cursor-pointer"
-								disabled={isLoading}
-							>
-								Forgot password?
-							</button>
-						</div>
-						<Button
-							type="submit"
-							className="w-full cursor-pointer"
-							disabled={isLoading}
-						>
-							{isLoading ? "Logging in..." : "Login"}
-						</Button>
-					</form>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <h2 className="text-2xl font-bold text-center">Login</h2>
+        </CardHeader>
+        <CardBody>
+          {error && (
+            <div
+              className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <Input
+              label="Email or Username"
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              disabled={isLoading}
+              required
+            />
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={isLoading}
+              required
+            />
+            <div className="flex items-center justify-between">
+              <Checkbox
+                label="Remember me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={isLoading}
+                className="cursor-pointer"
+              />
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-blue-600 hover:underline cursor-pointer"
+                disabled={isLoading}
+              >
+                Forgot password?
+              </button>
+            </div>
+            <Button
+              type="submit"
+              className="w-full cursor-pointer"
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
 
-					{/* <div className="relative mt-6">
+          {/* <div className="relative mt-6">
 						<div className="absolute inset-0 flex items-center">
 							<span className="w-full border-t border-gray-300" />
 						</div>
@@ -162,7 +164,7 @@ const Login: React.FC = () => {
 						</div>
 					</div> */}
 
-					{/* <Button
+          {/* <Button
 						variant="outline"
 						className="mt-4 w-full cursor-pointer"
 						onClick={handleGoogleLogin}
@@ -190,41 +192,40 @@ const Login: React.FC = () => {
 						Sign in with Google
 					</Button> */}
 
-					<p className="mt-4 text-center text-sm text-gray-600">
-						Don't have an account?{" "}
-						<button
-							type="button"
-							onClick={() => navigate("/register")}
-							className="text-blue-600 hover:underline cursor-pointer"
-							disabled={isLoading}
-						>
-							Register
-						</button>
-					</p>
-					<div className="relative mt-6">
-						<div className="absolute inset-0 flex items-center">
-							<span className="w-full border-t border-gray-300" />
-						</div>
-						<div className="relative flex justify-center text-xs uppercase">
-							<span className="bg-white px-2 text-gray-500">
-								Or continue with
-							</span>
-						</div>
-					</div>
+          <p className="mt-4 text-center text-sm text-gray-600">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              className="text-blue-600 hover:underline cursor-pointer"
+              disabled={isLoading}
+            >
+              Register
+            </button>
+          </p>
+          <div className="relative mt-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">
+                Or continue with
+              </span>
+            </div>
+          </div>
           {/* create button redirect login admin here */}
           <Button
             variant="outline"
             className="mt-4 w-full cursor-pointer"
             onClick={() => navigate("/admin-login")}
-						disabled={isLoading}
-						>
-							Login as Admin
+            disabled={isLoading}
+          >
+            Login as Admin
           </Button>
-
-				</CardBody>
-			</Card>
+        </CardBody>
+      </Card>
     </div>
-	)
-}
+  );
+};
 
-export default Login
+export default Login;

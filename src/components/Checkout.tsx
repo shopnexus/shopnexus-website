@@ -85,6 +85,7 @@ export default function Checkout() {
       refetchAddresses();
     }
   };
+  const [itemPrices, setItemPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!addressesResponse?.data) return;
@@ -107,7 +108,7 @@ export default function Checkout() {
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
       // Get the price from the CartItem component's productModel
-      const price = item.price || 0; // You'll need to pass the price from CartItem
+      const price = itemPrices[item.itemId.toString()] || 0; // You'll need to pass the price from CartItem
       return sum + Number(price) * Number(item.quantity);
     }, 0);
   };
@@ -180,6 +181,10 @@ export default function Checkout() {
     }
   };
 
+  const updatePrice = (id: bigint, price: number) => {
+    setItemPrices((prev) => ({ ...prev, [id.toString()]: price }));
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 px-4">
       <div className="w-full max-w-screen-lg">
@@ -197,7 +202,11 @@ export default function Checkout() {
                 {/* Product List */}
                 <div className="space-y-4">
                   {cartItems.map((item) => (
-                    <CartItem key={item.itemId} item={item} />
+                    <CartItem
+                      key={item.itemId}
+                      item={item}
+                      updatePrice={updatePrice}
+                    />
                   ))}
                 </div>
 
@@ -321,7 +330,13 @@ export default function Checkout() {
   );
 }
 
-function CartItem({ item }: { item: ItemQuantityInt64 }) {
+function CartItem({
+  item,
+  updatePrice,
+}: {
+  item: ItemQuantityInt64;
+  updatePrice: (id: bigint, price: number) => void;
+}) {
   const { data: productResponse } = useQuery(getProduct, {
     id: item.itemId,
   });
@@ -333,6 +348,9 @@ function CartItem({ item }: { item: ItemQuantityInt64 }) {
 
   const price = Number(productModel?.listPrice) || 0;
   const totalPrice = price * Number(item.quantity);
+  useEffect(() => {
+    updatePrice(item.itemId, price);
+  }, [price]);
 
   return (
     <div key={item.itemId} className="flex items-start gap-4 border-b pb-4">

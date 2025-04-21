@@ -79,15 +79,7 @@ export default function NewProducts() {
                   key={product.id}
                   ref={index === array.length - 1 ? lastProductRef : undefined}
                 >
-                  <ProductCard
-                    id={product.id}
-                    name={product.name}
-                    price={Number(product.listPrice)}
-                    image={
-                      product.resources?.[0] ||
-                      "/placeholder.jpeg?height=300&width=300&text=Product"
-                    }
-                  />
+                  <ProductCard id={product.id} />
                 </div>
               ))}
           </div>

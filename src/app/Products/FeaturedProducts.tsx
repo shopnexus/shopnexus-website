@@ -106,10 +106,7 @@ export default function FeaturedProducts({
               key={productModel.id}
               ref={index === array.length - 1 ? lastProductRef : undefined}
             >
-              <ProductCard
-                id={productModel.id}
-
-              />
+              <ProductCard id={productModel.id} />
             </div>
           ))}
       </div>
