@@ -401,6 +401,11 @@ const ProductDetail: React.FC = () => {
       }
     }
   }, [productModel, products]);
+
+  // Add useEffect to scroll to top when id changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
   //#endregion
 
   //#region Stock & Quantity Handling
@@ -491,8 +496,8 @@ const ProductDetail: React.FC = () => {
     // Kiểm tra đăng nhập
     if (!user) {
       // Lưu lại product ID để quay về sau khi đăng nhập
-      localStorage.setItem('redirectAfterLogin', `/product/${id}`);
-      navigate('/login');
+      localStorage.setItem("redirectAfterLogin", `/product/${id}`);
+      navigate("/login");
       return;
     }
 
@@ -561,7 +566,17 @@ const ProductDetail: React.FC = () => {
         }, 800);
       }
     }
-  }, [user, id, navigate, addToCartSuccess, selectedVariantOptions, quantity, products, productModel, mutateAddCartItem]);
+  }, [
+    user,
+    id,
+    navigate,
+    addToCartSuccess,
+    selectedVariantOptions,
+    quantity,
+    products,
+    productModel,
+    mutateAddCartItem,
+  ]);
   //#endregion
 
   //#region Derived Data with useMemo
