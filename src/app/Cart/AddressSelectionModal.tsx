@@ -3,22 +3,15 @@ import Button from "../../components/ui/Button";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { AddressEntity } from "shopnexus-protobuf-gen-ts/pb/account/v1/address_pb";
-export interface Address {
-  id: string;
-  fullName: string;
-  phone: string;
-  address: string;
-  district: string;
-  city: string;
-  isDefault?: boolean;
-}
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { deleteAddress, listAddresses } from "shopnexus-protobuf-gen-ts";
 
 interface AddressSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   addresses: AddressEntity[];
-  selectedAddress: Address;
-  onSelect: (address: Address) => void;
+  selectedAddress?: AddressEntity;
+  onSelect: (address: AddressEntity) => void;
   onAddNew: () => void;
 }
 
@@ -30,12 +23,43 @@ export function AddressSelectionModal({
   onSelect,
   onAddNew,
 }: AddressSelectionModalProps) {
-  const [tempSelectedAddress, setTempSelectedAddress] =
-    useState<Address>(selectedAddress);
+  const [tempSelectedAddress, setTempSelectedAddress] = useState<
+    AddressEntity | undefined
+  >(selectedAddress);
+  const { mutateAsync: mutateDeleteAddress } = useMutation(deleteAddress);
+  const { refetch: refetchAddresses } = useQuery(listAddresses, {
+    pagination: { page: 1, limit: 10 },
+  });
+
+  const handleDelete = async (addressId: bigint) => {
+    if (window.confirm("Are you sure you want to delete this address?")) {
+      try {
+        await mutateDeleteAddress({ id: addressId });
+        await refetchAddresses();
+
+        // If deleted address was selected, clear selection
+        if (addressId === tempSelectedAddress?.id) {
+          setTempSelectedAddress(undefined);
+        }
+
+        // If no addresses left, close modal
+        if (addresses.length <= 1) {
+          onClose();
+        }
+      } catch (error) {
+        console.error("Failed to delete address:", error);
+        alert("Failed to delete address. Please try again.");
+      }
+    }
+  };
 
   const handleConfirm = () => {
-    onSelect(tempSelectedAddress);
-    onClose();
+    if (tempSelectedAddress) {
+      onSelect(tempSelectedAddress);
+      onClose();
+    } else {
+      alert("Please select an address");
+    }
   };
 
   useEffect(() => {
@@ -47,7 +71,6 @@ export function AddressSelectionModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg w-full max-w-md relative flex flex-col max-h-[80vh]">
-        {/* Fixed Header */}
         <div className="p-6 border-b">
           <button
             onClick={onClose}
@@ -58,58 +81,59 @@ export function AddressSelectionModal({
           <h2 className="text-xl font-semibold">Select Shipping Address</h2>
         </div>
 
-        {/* Scrollable Address List */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-4">
-            {addresses.map((address) => (
-              <button
-                key={address.id}
-                type="button"
-                className={`w-full text-left p-4 border border-gray-400 rounded-lg cursor-pointer transition-colors ${
-                  tempSelectedAddress.id === address.id
-                    ? "opacity-100"
-                    : "opacity-50"
-                }`}
-                onClick={() => {
-                  setTempSelectedAddress(address);
-                }}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium">
-                      {address.fullName}
-                      {address.isDefault && (
-                        <span className="ml-2 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
-                          Default
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-600">{address.phone}</p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {address.address}, {address.district}, {address.city}
-                    </p>
-                  </div>
-                  <div className="w-4 h-4 rounded-full border-2 border-gray-600 flex-shrink-0 mt-1">
-                    {tempSelectedAddress.id === address.id && (
-                      <div
-                        className={clsx(
-                          "w-2 h-2 m-0.5 rounded-full bg-primary",
-                          {
-                            "opacity-100 bg-black":
-                              tempSelectedAddress.id === address.id,
-                            "opacity-0": tempSelectedAddress.id !== address.id,
-                          }
-                        )}
-                      />
+            {addresses.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                No addresses found. Please add a new address.
+              </div>
+            ) : (
+              addresses.map((address) => (
+                <div
+                  key={String(address.id)}
+                  className={`w-full text-left p-4 border rounded-lg transition-colors ${
+                    tempSelectedAddress?.id === address.id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <button
+                      className="flex-grow text-left"
+                      onClick={() => setTempSelectedAddress(address)}
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {address.fullName}
+                          {address.isDefault && (
+                            <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                              Default
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-sm text-gray-600">{address.phone}</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {address.address}, {address.city}, {address.country}
+                        </p>
+                      </div>
+                    </button>
+                    {!address.isDefault && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => handleDelete(address.id)}
+                      >
+                        Delete
+                      </Button>
                     )}
                   </div>
                 </div>
-              </button>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
-        {/* Fixed Footer */}
         <div className="p-6 border-t bg-white">
           <div className="space-y-3">
             <Button
@@ -119,10 +143,12 @@ export function AddressSelectionModal({
             >
               Add New Address
             </Button>
-            <Button onClick={handleConfirm} className="w-full justify-center">
-              {tempSelectedAddress.id === selectedAddress.id
-                ? "Current Address"
-                : "Confirm Selection"}
+            <Button
+              onClick={handleConfirm}
+              className="w-full justify-center"
+              disabled={!tempSelectedAddress}
+            >
+              Confirm Selection
             </Button>
           </div>
         </div>

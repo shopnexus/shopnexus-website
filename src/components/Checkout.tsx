@@ -11,12 +11,14 @@ import {
   CardHeader,
 } from "./ui/Card";
 import {
+  createAddress,
   createPayment,
   getCart,
   getProduct,
   getProductModel,
   getUser,
   listAddresses,
+  updateAddress,
 } from "shopnexus-protobuf-gen-ts";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { ItemQuantityInt64 } from "shopnexus-protobuf-gen-ts/pb/common/item_quantity_pb";
@@ -43,24 +45,64 @@ export default function Checkout() {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSelectAddressModalOpen, setIsSelectAddressModalOpen] =
     useState(false);
-  const { data: addressesResponse } = useQuery(listAddresses, {
-    pagination: {
-      page: 1,
-      limit: 10,
-    },
-  });
+  const { data: addressesResponse, refetch: refetchAddresses } = useQuery(
+    listAddresses,
+    {
+      pagination: {
+        page: 1,
+        limit: 10,
+      },
+    }
+  );
   const addresses = addressesResponse?.data ?? [];
   const { mutateAsync: mutateCreatePayment } = useMutation(createPayment);
+  const { mutateAsync: mutateCreateAddress } = useMutation(createAddress);
+  const { mutateAsync: mutateUpdateAddress } = useMutation(updateAddress);
   const { data: user } = useQuery(getUser);
 
-  useEffect(() => {
-    if (addresses.length > 0) {
-      const defaultAddress = addresses.find(
-        (address) => address.id === user?.defaultAddressId
-      ) as AddressEntity;
-      setShippingAddress(defaultAddress);
+  const handleUpdateAddress = async (address: AddressEntity) => {
+    // check if creating or update
+    if (addresses.length === 0) {
+      await mutateCreateAddress({
+        address: address.address,
+        city: address.city,
+        country: address.country,
+        fullName: address.fullName,
+        phone: address.phone,
+        province: address.province,
+      });
+      refetchAddresses();
+    } else {
+      await mutateUpdateAddress({
+        id: address.id,
+        address: address.address,
+        city: address.city,
+        country: address.country,
+        fullName: address.fullName,
+        phone: address.phone,
+        province: address.province,
+      });
+      refetchAddresses();
     }
-  }, [addresses, user?.defaultAddressId]);
+  };
+
+  useEffect(() => {
+    if (!addressesResponse?.data) return;
+    if (addressesResponse.data.length > 0) {
+      if (user?.defaultAddressId) {
+        const defaultAddress = addressesResponse?.data.find(
+          (address) => address.id === user.defaultAddressId
+        ) as AddressEntity;
+        setShippingAddress(defaultAddress);
+      } else {
+        setShippingAddress(addressesResponse?.data[0]);
+      }
+    } else {
+      // Show dialog to user and open address modal
+      // alert("Please add a shipping address to continue with checkout.");
+      setIsAddressModalOpen(true);
+    }
+  }, [addressesResponse?.data, user?.defaultAddressId]);
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
@@ -120,6 +162,24 @@ export default function Checkout() {
     }
   };
 
+  // Handle saving new address
+  const handleSaveAddress = async (address: AddressEntity) => {
+    try {
+      await mutateCreateAddress({
+        fullName: address.fullName,
+        phone: address.phone,
+        address: address.address,
+        city: address.city,
+        country: address.country,
+      });
+      await refetchAddresses();
+      setIsAddressModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save address:", error);
+      alert("Failed to save address. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 px-4">
       <div className="w-full max-w-screen-lg">
@@ -157,7 +217,7 @@ export default function Checkout() {
                         <MapPin className="h-4 w-4" />
                         Choose Another
                       </Button>
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         className="flex items-center gap-2"
@@ -165,7 +225,7 @@ export default function Checkout() {
                       >
                         <MapPin className="h-4 w-4" />
                         Update Current
-                      </Button>
+                      </Button> */}
                     </div>
                   </div>
                   <p className="text-sm text-gray-700">
@@ -184,9 +244,9 @@ export default function Checkout() {
                   </h5>
                   <div className="space-y-2">
                     {[
-                      { id: "cod", label: "Cash on Delivery (COD)" },
+                      { id: "vnpay", label: "Pay via VNPay (recommended)" },
                       { id: "momo", label: "Pay via MoMo" },
-                      { id: "vnpay", label: "Pay via VNPay" },
+                      { id: "cod", label: "Cash on Delivery (COD)" },
                     ].map((method) => (
                       <label
                         key={method.id}
@@ -239,8 +299,10 @@ export default function Checkout() {
         <AddressModal
           isOpen={isAddressModalOpen}
           onClose={() => setIsAddressModalOpen(false)}
-          currentAddress={shippingAddress}
-          onSave={setShippingAddress}
+          currentAddress={undefined}
+          onSave={handleSaveAddress}
+          title="Add New Address"
+          description="Please enter your shipping address details"
         />
 
         <AddressSelectionModal
@@ -248,9 +310,7 @@ export default function Checkout() {
           onClose={() => setIsSelectAddressModalOpen(false)}
           addresses={addresses}
           selectedAddress={shippingAddress}
-          onSelect={(address) => {
-            setShippingAddress(address);
-          }}
+          onSelect={setShippingAddress}
           onAddNew={() => {
             setIsSelectAddressModalOpen(false);
             setIsAddressModalOpen(true);

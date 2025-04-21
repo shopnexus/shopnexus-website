@@ -10,13 +10,44 @@ export function AddressModal({
   onClose,
   currentAddress,
   onSave,
+  title = "Add New Address",
+  description = "Please fill in the address details below",
 }: {
   isOpen: boolean;
   onClose: () => void;
-  currentAddress: AddressEntity;
+  currentAddress?: AddressEntity;
   onSave: (address: AddressEntity) => void;
+  title?: string;
+  description?: string;
 }) {
-  const [newAddress, setNewAddress] = useState(currentAddress);
+  const [newAddress, setNewAddress] = useState(
+    currentAddress || {
+      id: BigInt(0),
+      fullName: "",
+      phone: "",
+      address: "",
+      city: "",
+      country: "",
+      isDefault: false,
+    }
+  );
+
+  const handleSave = () => {
+    // Validate required fields
+    if (
+      !newAddress.fullName ||
+      !newAddress.phone ||
+      !newAddress.address ||
+      !newAddress.city ||
+      !newAddress.country
+    ) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    onSave(newAddress as AddressEntity);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -30,8 +61,8 @@ export function AddressModal({
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-xl font-semibold mb-4">Update Shipping Address</h2>
-
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
+        <p className="text-sm text-gray-500 mb-4">{description}</p>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -77,20 +108,6 @@ export function AddressModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              District
-            </label>
-            <input
-              type="text"
-              value={newAddress.district}
-              onChange={(e) =>
-                setNewAddress({ ...newAddress, district: e.target.value })
-              }
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               City
             </label>
             <input
@@ -102,31 +119,29 @@ export function AddressModal({
               className="w-full p-2 border rounded-md"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Country
+            </label>
+            <input
+              type="text"
+              value={newAddress.country}
+              onChange={(e) =>
+                setNewAddress({ ...newAddress, country: e.target.value })
+              }
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end space-x-3">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            onClick={() => {
-              onSave(newAddress);
-              onClose();
-            }}
-          >
-            Save Address
-          </Button>
+          <Button onClick={handleSave}>Save Address</Button>
         </div>
       </div>
     </div>
   );
 }
-
-// Add this constant at the top of the file
-const defaultAddress = {
-  fullName: "Nguyen Van A",
-  phone: "0912345678",
-  address: "123 Le Loi Street",
-  district: "District 1",
-  city: "Ho Chi Minh City",
-};
