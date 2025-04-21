@@ -481,16 +481,19 @@ const ProductManagement = () => {
             />
           </div>
 
-          <div>
+          <div className="flex items-start gap-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Is Active
             </label>
             <input
               type="checkbox"
               name="isActive"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg"
-              defaultChecked={formData.isActive}
+              checked={formData.isActive}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                isActive: e.target.checked
+              }))}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
           </div>
 
