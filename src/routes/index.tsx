@@ -34,15 +34,6 @@ const UserProfile = lazy(() =>
     default: module.default,
   }))
 );
-const Women = lazy(() =>
-  import("../app/pages/Women").then((module) => ({ default: module.default }))
-);
-const Men = lazy(() =>
-  import("../app/pages/Men").then((module) => ({ default: module.default }))
-);
-const Kids = lazy(() =>
-  import("../app/pages/Kids").then((module) => ({ default: module.default }))
-);
 const About = lazy(() =>
   import("../app/pages/About").then((module) => ({ default: module.default }))
 );
@@ -144,9 +135,6 @@ const AppRoutes = () => {
         <Route path="/search" element={<Search />} />
         <Route path="/products" element={<FeaturedProducts />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/women" element={<Women />} />
-        <Route path="/men" element={<Men />} />
-        <Route path="/kids" element={<Kids />} />
         <Route path="/about" element={<About />} />
         <Route path="/tags/:tagSlug" element={<TagPage />} />
         <Route path="/brands/:brandSlug" element={<BrandPage />} />

@@ -144,7 +144,8 @@ export default function NavigationBar() {
 
                 {/* Dropdown cho subcategories */}
                 {hasSubcategories && hoveredCategory === item.name && (
-                  <div className="absolute left-1/2 top-full mt-1 w-64 -translate-x-1/2 bg-white shadow-lg rounded-md py-3 z-50">
+                  <div className="absolute left-1/2 top-full mt-2 w-64 -translate-x-1/2 bg-white shadow-lg rounded-md py-3 z-50">
+                    <div className="absolute -top-2 left-0 right-0 h-2" />
                     {item.subcategories.map((subcat) => (
                       <Link
                         key={subcat.name}

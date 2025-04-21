@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import Stack from "../../blocks/Components/Stack/Stack";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
@@ -16,6 +16,7 @@ import FeaturedProducts from "./FeaturedProducts";
 import NewProducts from "./NewProducts";
 import SimilarProductsByTagAndBrand from "./SimilarProducts";
 import { ShoppingCart } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 //#region Utility Functions
 // Convert Uint8Array metadata to object
@@ -328,6 +329,8 @@ const VariantSelection: React.FC<VariantSelectionProps> = React.memo(
 // Main Component
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariantOptions, setSelectedVariantOptions] = useState<
@@ -485,6 +488,14 @@ const ProductDetail: React.FC = () => {
   }, []);
 
   const handleAddToCart = useCallback(() => {
+    // Kiểm tra đăng nhập
+    if (!user) {
+      // Lưu lại product ID để quay về sau khi đăng nhập
+      localStorage.setItem('redirectAfterLogin', `/product/${id}`);
+      navigate('/login');
+      return;
+    }
+
     // Reset success state if it was previously set
     if (addToCartSuccess) {
       setAddToCartSuccess(false);
@@ -550,13 +561,7 @@ const ProductDetail: React.FC = () => {
         }, 800);
       }
     }
-  }, [
-    selectedVariantOptions,
-    quantity,
-    products,
-    productModel,
-    mutateAddCartItem,
-  ]);
+  }, [user, id, navigate, addToCartSuccess, selectedVariantOptions, quantity, products, productModel, mutateAddCartItem]);
   //#endregion
 
   //#region Derived Data with useMemo
