@@ -488,9 +488,9 @@ const ProductManagement = () => {
             <input
               type="checkbox"
               name="isActive"
-              checked={formData.isActive}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg"
+              defaultChecked={formData.isActive}
             />
           </div>
 
