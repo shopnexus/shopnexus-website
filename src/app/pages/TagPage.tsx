@@ -21,7 +21,7 @@ const mockProducts = [
     tags: ["boots"],
   },
   {
-    id: BigInt( 4),
+    id: BigInt(4),
     name: "Sandals",
     tags: ["sandals"],
   },
@@ -43,7 +43,8 @@ export default function TagPage() {
   const products = mockProducts.filter((product) =>
     product.tags.includes(tagSlug ?? "")
   );
-  const capitalizeTitle = tagSlug?.replace("-", " ")
+  const capitalizeTitle = tagSlug
+    ?.replace("-", " ")
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
@@ -58,10 +59,7 @@ export default function TagPage() {
       ) : (
         <div className="grid grid-cols-2 gap-y-10 gap-x-6 md:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 xl:gap-x-8">
           {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-            />
+            <ProductCard key={product.id} id={product.id} />
           ))}
         </div>
       )}
