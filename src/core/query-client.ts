@@ -7,8 +7,16 @@ export const BASE_URL = "http://khoakomlem-internal.ddns.net:50051";
 // export const BASE_URL = "http://localhost:50051";
 
 function handleUnAuthorized(error: any) {
-  if (error.code === CONNECT_UNAUTHORIZED_ERROR_CODE) {
-    location.href = "/login";
+  if (
+    error.code === CONNECT_UNAUTHORIZED_ERROR_CODE &&
+    window.location.pathname != "/login" &&
+    window.location.pathname != "/admin-login"
+  ) {
+    if (window.location.pathname.includes("/admin")) {
+      location.href = "/admin-login";
+    } else {
+      location.href = "/login";
+    }
   }
 }
 
