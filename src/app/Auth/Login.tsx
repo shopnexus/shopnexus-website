@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "../firebase"
@@ -20,7 +20,19 @@ const Login: React.FC = () => {
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { isAdmin } = useAuth()
+	const { isAdmin, user } = useAuth()
+
+	useEffect(() => {
+		if (user) {
+			const redirectPath = localStorage.getItem('redirectAfterLogin')
+			if (redirectPath) {
+				localStorage.removeItem('redirectAfterLogin')
+				navigate(redirectPath)
+			} else {
+				navigate('/')
+			}
+		}
+	}, [user, navigate])
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
