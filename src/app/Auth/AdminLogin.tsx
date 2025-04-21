@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Checkbox from "../../components/ui/Checkbox";
-import {Card, CardHeader, CardBody } from "../../components/ui/Card";
+import { Card, CardHeader, CardBody } from "../../components/ui/Card";
 import { loginAdmin, loginUser } from "shopnexus-protobuf-gen-ts";
 import { useMutation } from "@connectrpc/connect-query";
 
@@ -14,7 +14,7 @@ const AdminLogin: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { mutateAsync: mutateLoginUser } = useMutation(loginAdmin);
+  const { mutateAsync: mutateLoginAdmin } = useMutation(loginAdmin);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +26,7 @@ const AdminLogin: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const data = await mutateLoginUser({
+      const data = await mutateLoginAdmin({
         username: username,
         password: password,
       });
