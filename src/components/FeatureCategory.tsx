@@ -56,7 +56,7 @@ export const FeatureCategory = () => {
         <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
           Feature Categories
         </h2>
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 overflow-y-auto">
           {visibleTags.map((category) => (
             <Link
               key={category.name}

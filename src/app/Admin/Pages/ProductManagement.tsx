@@ -109,7 +109,6 @@ const ProductManagement = () => {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
-    serialId: "",
     productModelId: modelId ? Number(modelId) : 0,
     quantity: 0,
     sold: 0,
@@ -221,7 +220,7 @@ const ProductManagement = () => {
       const metadata = JSON.parse(new TextDecoder().decode(product.metadata));
 
       setFormData({
-        serialId: product.serialId,
+
         productModelId: Number(product.productModelId),
         quantity: Number(product.quantity),
         sold: Number(product.sold),
@@ -233,7 +232,6 @@ const ProductManagement = () => {
     } else {
       setSelectedProduct(null);
       setFormData({
-        serialId: "",
         productModelId: modelId ? Number(modelId) : 0,
         quantity: 0,
         sold: 0,
@@ -271,7 +269,6 @@ const ProductManagement = () => {
         // Update existing product
         await mutateUpdateProduct({
           id: BigInt(selectedProduct.id),
-          serialId: formData.serialId,
           productModelId: BigInt(formData.productModelId),
           quantity: BigInt(formData.quantity),
           addPrice: BigInt(formData.addPrice),
@@ -282,7 +279,6 @@ const ProductManagement = () => {
       } else {
         // Create new product
         await mutateCreateProduct({
-          serialId: formData.serialId,
           productModelId: BigInt(formData.productModelId),
           quantity: BigInt(formData.quantity),
           addPrice: BigInt(formData.addPrice),
@@ -436,7 +432,7 @@ const ProductManagement = () => {
             <input
               type="text"
               name="serialId"
-              value={formData.serialId}
+              value={formData.productModelId}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg"
               placeholder="Product serial ID"
@@ -485,7 +481,7 @@ const ProductManagement = () => {
             />
           </div>
 
-          <div>
+          <div className="flex items-start gap-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Is Active
             </label>
@@ -493,8 +489,11 @@ const ProductManagement = () => {
               type="checkbox"
               name="isActive"
               checked={formData.isActive}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg"
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                isActive: e.target.checked
+              }))}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
           </div>
 
