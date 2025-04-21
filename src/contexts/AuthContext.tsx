@@ -24,8 +24,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const { data: user, isError: isUserError } = useQuery(getUser);
-  const { data: admin } = useQuery(
+  const {
+    data: user,
+    isError: isUserError,
+    isLoading: isUserLoading,
+  } = useQuery(getUser);
+  const { data: admin, isLoading: isAdminLoading } = useQuery(
     getAdmin,
     {},
     {
@@ -36,13 +40,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (user) {
       setIsAdmin(false);
-      setLoading(false);
     }
     if (admin) {
       setIsAdmin(true);
-      setLoading(false);
     }
-  }, [user, admin]);
+    setLoading(isUserLoading || isAdminLoading);
+  }, [user, admin, isUserLoading, isAdminLoading]);
 
   const contextValue = useMemo(
     () => ({ user, admin, isAdmin, loading }),
