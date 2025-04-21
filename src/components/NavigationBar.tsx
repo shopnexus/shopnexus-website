@@ -1,61 +1,67 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Search, ShoppingBag, User, ChevronDown, X } from "lucide-react";
 import { cn } from "../utils/utils";
-
-const allTags = [
-  { name: "Sneakers", href: "/tags/sneakers" },
-  { name: "Running", href: "/tags/running" },
-  { name: "Athletic", href: "/tags/athletic" },
-  { name: "Boots", href: "/tags/boots" },
-  { name: "Sandals", href: "/tags/sandals" },
-  { name: "Heels", href: "/tags/heels" },
-  { name: "Loafers", href: "/tags/loafers" },
-  { name: "School Shoes", href: "/tags/school" },
-  { name: "Sports", href: "/tags/sports" },
-];
-const allBrands = [
-  { brandId: 101, name: "Nike", href: "/brands/101" },
-  { brandId: 2, name: "Adidas", href: "/brands/2" },
-  { brandId: 3, name: "New Balance", href: "/brands/3" },
-  { brandId: 4, name: "Puma", href: "/brands/4" },
-  { brandId: 5, name: "Converse", href: "/brands/5" },
-  { brandId: 6, name: "Vans", href: "/brands/6" },
-  { brandId: 7, name: "Reebok", href: "/brands/7" },
-  { brandId: 8, name: "Under Armour", href: "/brands/8" },
-];
-
-const navItems = [
-  { name: "HOME", href: "/" },
-  // { name: "WOMEN", href: "/women" },
-  // { name: "MEN", href: "/men" },
-  // { name: "KIDS", href: "/kids" },
-  {
-    name: "TAGS",
-    href: "/tags",
-    subcategories: allTags,
-  },
-  {
-    name: "BRANDS",
-    href: "/brands",
-    subcategories: allBrands,
-  },
-];
+import { useQuery } from "@connectrpc/connect-query";
+import { listBrands, listTags } from "shopnexus-protobuf-gen-ts";
 
 export default function NavigationBar() {
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("name") || ""
+  );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<
     string | null
   >(null);
+  const { data: brandsResponse } = useQuery(listBrands, {
+    pagination: {
+      page: 1,
+      limit: 10,
+    },
+  });
+  const { data: tagsResponse } = useQuery(listTags, {
+    pagination: {
+      page: 1,
+      limit: 10,
+    },
+  });
+
+  const brands = brandsResponse?.data ?? [];
+  const tags = tagsResponse?.data ?? [];
+  const navItems = useMemo(
+    () => [
+      { name: "HOME", href: "/" },
+      // { name: "WOMEN", href: "/women" },
+      // { name: "MEN", href: "/men" },
+      // { name: "KIDS", href: "/kids" },
+      // {
+      //   name: "TAGS",
+      //   href: "/tags",
+      //   subcategories: tags.map((tag) => ({
+      //     name: tag.tag,
+      //     href: `/tags/${tag.tag}`,
+      //   })),
+      // },
+      {
+        name: "BRANDS",
+        href: "/brands",
+        subcategories: brands.map((brand) => ({
+          name: brand.name,
+          href: `/brands/${brand.id}`,
+        })),
+      },
+    ],
+    [brands, tags]
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +72,6 @@ export default function NavigationBar() {
     }
   };
 
-  // Update the handleSearchInput function
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -163,10 +168,7 @@ export default function NavigationBar() {
         </nav>
 
         {/* Search Bar */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden md:flex relative w-full max-w-sm mx-4"
-        >
+        <div className="hidden md:flex relative w-full max-w-sm mx-4">
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <input
             type="search"
@@ -175,7 +177,7 @@ export default function NavigationBar() {
             value={searchQuery}
             onChange={handleSearchInput}
           />
-        </form>
+        </div>
 
         {/* Icons */}
         <div className="flex items-center space-x-4">
