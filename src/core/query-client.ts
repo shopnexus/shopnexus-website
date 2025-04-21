@@ -14,6 +14,18 @@ function handleUnAuthorized(error: any) {
   ) {
     if (window.location.pathname.includes("/admin")) {
       location.href = "/admin-login";
+    }
+  }
+}
+
+function handleUnAuthorizedMutation(error: any) {
+  if (
+    error.code === CONNECT_UNAUTHORIZED_ERROR_CODE &&
+    window.location.pathname != "/login" &&
+    window.location.pathname != "/admin-login"
+  ) {
+    if (window.location.pathname.includes("/admin")) {
+      location.href = "/admin-login";
     } else {
       location.href = "/login";
     }
@@ -54,7 +66,7 @@ export const queryClient = new QueryClient({
   }),
   mutationCache: new MutationCache({
     onError(error) {
-      handleUnAuthorized(error);
+      handleUnAuthorizedMutation(error);
     },
   }),
 });
