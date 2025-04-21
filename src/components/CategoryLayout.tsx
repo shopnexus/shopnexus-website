@@ -1,16 +1,24 @@
+import { useQuery } from "@connectrpc/connect-query";
 import React from "react";
+import { getBrand } from "shopnexus-protobuf-gen-ts";
 
 interface CategoryLayoutProps {
   title: string;
   description: string;
   children: React.ReactNode;
+  brandId?: string;
 }
 
 const CategoryLayout: React.FC<CategoryLayoutProps> = ({
   title,
   description,
   children,
+  brandId,
 }) => {
+  const { data: brandResponse } = useQuery(getBrand, {
+    id: BigInt(brandId ?? ""),
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Hero Section */}
@@ -36,7 +44,10 @@ const CategoryLayout: React.FC<CategoryLayoutProps> = ({
             {/* Right side - Image */}
             <div className="transform hover:scale-105 transition-transform duration-300">
               <img
-                src="/gif_placeholder.gif"
+                src={
+                  brandResponse?.data?.resources[0] ??
+                  "https://placehold.co/600x400"
+                }
                 alt="Category GIF"
                 className="rounded-2xl shadow-2xl max-w-full h-auto object-cover border-4 border-white/20"
               />

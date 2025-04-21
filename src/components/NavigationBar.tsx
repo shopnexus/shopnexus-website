@@ -7,7 +7,12 @@ import { useLocation } from "react-router-dom";
 import { Search, ShoppingBag, User, ChevronDown, X } from "lucide-react";
 import { cn } from "../utils/utils";
 import { useQuery } from "@connectrpc/connect-query";
-import { listBrands, listTags } from "shopnexus-protobuf-gen-ts";
+import {
+  listBrands,
+  listTags,
+  getUser,
+  getAdmin,
+} from "shopnexus-protobuf-gen-ts";
 
 export default function NavigationBar() {
   const location = useLocation();
@@ -34,6 +39,8 @@ export default function NavigationBar() {
       limit: 10,
     },
   });
+  const { data: userResponse } = useQuery(getUser);
+  const { data: adminResponse } = useQuery(getAdmin);
 
   const brands = brandsResponse?.data ?? [];
   const tags = tagsResponse?.data ?? [];
@@ -195,6 +202,7 @@ export default function NavigationBar() {
             <User className="h-5 w-5" />
             <span className="sr-only">User Account</span>
           </Link>
+          <p>{userResponse?.fullName ?? adminResponse?.username}</p>
         </div>
 
         {/* Mobile Menu Button */}
