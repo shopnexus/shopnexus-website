@@ -566,7 +566,7 @@ const ProductModelManagement = () => {
 				onClose={closeModal}
 				title={selectedModel ? "Edit Model" : "Add Model"}
 			>
-				<div className="space-y-4">
+				<div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
 					<div>
 						<label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
 							Name
