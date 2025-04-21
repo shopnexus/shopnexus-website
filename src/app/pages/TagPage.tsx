@@ -6,44 +6,34 @@ import CategoryLayout from "../../components/CategoryLayout";
 
 const mockProducts = [
   {
-    id: BigInt(1123231),
-    name: "Áo thun nam basic",
-    image:
-      "https://i.pinimg.com/736x/d8/1f/2e/d81f2e5f3fa6d8e2b1affcda685f58b4.jpg",
-    brandId: "101",
-    tags: ["Games", "nam"],
+    id: BigInt(1),
+    name: "Sneakers",
+    tags: ["sneakers", "running"],
   },
   {
-    id: BigInt(2123123),
-    name: "Quần jean nữ cá tính",
-    image:
-      "https://i.pinimg.com/736x/d8/1f/2e/d81f2e5f3fa6d8e2b1affcda685f58b4.jpg",
-    brandId: "101",
-    tags: ["Games", "nu"],
+    id: BigInt(2),
+    name: "Running Shoes",
+    tags: ["running", "athletic"],
   },
   {
-    id: BigInt(124124),
-    name: "Giày sneaker trắng",
-    image:
-      "https://i.pinimg.com/736x/d8/1f/2e/d81f2e5f3fa6d8e2b1affcda685f58b4.jpg",
-    brandId: "101",
-    tags: ["Games", "unisex"],
+    id: BigInt(3),
+    name: "Boots",
+    tags: ["boots"],
   },
   {
-    id: BigInt(23434),
-    name: "Túi xách thời trang",
-    image:
-      "https://i.pinimg.com/736x/d8/1f/2e/d81f2e5f3fa6d8e2b1affcda685f58b4.jpg",
-    brandId: "101",
-    tags: ["Shoes", "nu"],
+    id: BigInt( 4),
+    name: "Sandals",
+    tags: ["sandals"],
   },
   {
-    id: BigInt(234324),
-    name: "Mũ lưỡi trai đen",
-    image:
-      "https://i.pinimg.com/736x/d8/1f/2e/d81f2e5f3fa6d8e2b1affcda685f58b4.jpg",
-    brandId: "102",
-    tags: ["Shoes", "nam"],
+    id: BigInt(5),
+    name: "Heels",
+    tags: ["heels"],
+  },
+  {
+    id: BigInt(6),
+    name: "School Shoes",
+    tags: ["school"],
   },
 ];
 export default function TagPage() {
@@ -53,10 +43,14 @@ export default function TagPage() {
   const products = mockProducts.filter((product) =>
     product.tags.includes(tagSlug ?? "")
   );
+  const capitalizeTitle = tagSlug?.replace("-", " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
   return (
     <CategoryLayout
-      title={`Tag: ${tagSlug?.replace("-", " ")} Collection`}
+      title={`${capitalizeTitle} Collection`}
       description="Discover our latest collection of women's footwear, from elegant heels to comfortable sneakers."
     >
       {products.length === 0 ? (
@@ -67,9 +61,6 @@ export default function TagPage() {
             <ProductCard
               key={product.id}
               id={product.id}
-              name={product.name}
-              image={product.image}
-              price={123}
             />
           ))}
         </div>

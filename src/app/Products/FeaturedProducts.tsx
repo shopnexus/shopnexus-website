@@ -108,12 +108,7 @@ export default function FeaturedProducts({
             >
               <ProductCard
                 id={productModel.id}
-                name={productModel.name}
-                price={Number(productModel.listPrice)}
-                image={
-                  productModel.resources?.[0] ||
-                  "/placeholder.jpeg?height=300&width=300&text=Product"
-                }
+
               />
             </div>
           ))}
@@ -123,13 +118,13 @@ export default function FeaturedProducts({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       )}
-      {!hasNextPage &&
+      {/* {!hasNextPage &&
         productModels?.pages.length &&
         productModels?.pages.length > 0 && (
           <p className="text-center text-gray-500 mt-8">
             No more products to load
           </p>
-        )}
+        )} */}
     </section>
   );
 }

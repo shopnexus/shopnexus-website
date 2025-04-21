@@ -10,6 +10,7 @@ import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { listBrands, listTags, upload } from "shopnexus-protobuf-gen-ts";
 import { useRef } from "react";
 import CategoryLayout from "../../components/CategoryLayout";
+import { FeatureCategory } from "../../components/FeatureCategory";
 
 const handleAnimationComplete = () => {
   console.log("All letters have animated!");
@@ -89,11 +90,17 @@ export default function Home() {
           </Button>
         </div>
 
+
+
         {/* Featured Products */}
 
         <div ref={featuredProductsRef}>
           <FeaturedProducts />
         </div>
+
+        <section className="w-full max-w-7xl mx-auto mt-24 bg-gray-50">
+<FeatureCategory />          
+                  </section>
 
         {/* New Products */}
 
