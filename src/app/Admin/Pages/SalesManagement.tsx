@@ -564,7 +564,7 @@ const SalesManagement = () => {
 						<Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
 						<input
 							type="text"
-							placeholder="Search sales..."
+							placeholder="Search sales by tag..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-10 pr-4 py-2 border rounded-lg w-64"

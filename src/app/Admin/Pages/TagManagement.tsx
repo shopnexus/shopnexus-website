@@ -162,8 +162,8 @@ const TagManagement = () => {
 					</div>
 				</td>
 				<td className="px-6 py-4 text-gray-500">{tag.description}</td>
-				<td className="px-6 py-4">
-					<span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+				<td className="px-4 py-4">
+					<span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs ">
 						{tag.productCount} products
 					</span>
 				</td>
