@@ -23,6 +23,7 @@ export default function BrandPage() {
 
   return (
     <CategoryLayout
+      brandId={brandSlug ?? ""}
       title={`Brand: ${brandResponse?.data?.name} Collection`}
       description={brandResponse?.data?.description ?? ""}
     >
