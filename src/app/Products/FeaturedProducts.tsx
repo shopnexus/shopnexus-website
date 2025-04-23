@@ -1,7 +1,8 @@
 import ProductCard from "../../components/ProductCard";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { listProductModels } from "shopnexus-protobuf-gen-ts";
-import React from "react";
+import React, { useEffect } from "react";
+import Button from "../../components/ui/Button";
 
 interface FeaturedProductsProps {
   title?: string;
@@ -42,28 +43,12 @@ export default function FeaturedProducts({
     }
   );
 
-  // Create a ref for the last product element
-  const lastProductRef = React.useRef<HTMLDivElement>(null);
-
-  // Set up an intersection observer to detect when the last element is visible
-  React.useEffect(() => {
-    if (!hasNextPage || isFetchingNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 } // Trigger when at least 10% of the element is visible
-    );
-
-    if (lastProductRef.current) {
-      observer.observe(lastProductRef.current);
+  // Automatically load the second page after the first page is loaded
+  useEffect(() => {
+    if (productModels?.pages.length === 1 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, productModels]);
+  }, [productModels?.pages.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading) {
     return (
@@ -101,27 +86,23 @@ export default function FeaturedProducts({
       <div className="grid grid-cols-2 gap-y-10 gap-x-6 md:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 xl:gap-x-8">
         {productModels?.pages
           .flatMap((page) => page.data)
-          .map((productModel, index, array) => (
-            <div
-              key={productModel.id}
-              ref={index === array.length - 1 ? lastProductRef : undefined}
-            >
+          .map((productModel) => (
+            <div key={productModel.id}>
               <ProductCard id={productModel.id} />
             </div>
           ))}
       </div>
-      {isFetchingNextPage && (
+      {hasNextPage && productModels?.pages.length >= 2 && (
         <div className="flex justify-center mt-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <Button
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="px-6 py-3"
+          >
+            {isFetchingNextPage ? "Loading..." : "Load More"}
+          </Button>
         </div>
       )}
-      {/* {!hasNextPage &&
-        productModels?.pages.length &&
-        productModels?.pages.length > 0 && (
-          <p className="text-center text-gray-500 mt-8">
-            No more products to load
-          </p>
-        )} */}
     </section>
   );
 }
