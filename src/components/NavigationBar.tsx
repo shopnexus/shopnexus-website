@@ -47,17 +47,14 @@ export default function NavigationBar() {
   const navItems = useMemo(
     () => [
       { name: "HOME", href: "/" },
-      // { name: "WOMEN", href: "/women" },
-      // { name: "MEN", href: "/men" },
-      // { name: "KIDS", href: "/kids" },
-      // {
-      //   name: "TAGS",
-      //   href: "/tags",
-      //   subcategories: tags.map((tag) => ({
-      //     name: tag.tag,
-      //     href: `/tags/${tag.tag}`,
-      //   })),
-      // },
+      {
+        name: "TAGS",
+        href: "/tags",
+        subcategories: tags.map((tag) => ({
+          name: tag.tag,
+          href: `/tags/${tag.tag}`,
+        })),
+      },
       {
         name: "BRANDS",
         href: "/brands",
