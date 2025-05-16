@@ -1,5 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Edit2, Trash2, Search, ArrowLeft } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Search,
+  ArrowLeft,
+  CheckIcon,
+} from "lucide-react";
 import Button from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import Modal from "../../../components/ui/Modal";
@@ -20,9 +27,18 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Pagination from "../../../components/ui/Pagination";
 import MetadataEditor from "../../../components/ui/MetadataEditor";
 import FileUpload from "../../../components/ui/FileUpload";
+import clsx from "clsx";
 
 // Add this new component for product rows
-const ProductRow = ({ product, onEdit, onDelete }) => {
+function ProductRow({
+  product,
+  onEdit,
+  onDelete,
+}: {
+  product: ProductEntity;
+  onEdit: (product: ProductEntity) => void;
+  onDelete: (id: string) => void;
+}) {
   const { data: productModel } = useQuery(
     getProductModel,
     {
@@ -38,15 +54,12 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
       <td className="px-6 py-4">
         <img
           src={product.resources[0] || "https://placehold.co/150x150"}
-          alt={product.serialId}
+          alt={product.id.toString()}
           className="w-16 h-16 object-cover rounded-lg"
           onError={(e) => {
             (e.target as HTMLImageElement).src = "https://placehold.co/150x150";
           }}
         />
-      </td>
-      <td className="px-6 py-4">
-        <div className="font-medium">{product.serialId}</div>
       </td>
       <td className="px-6 py-4">
         <div>
@@ -68,6 +81,18 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
           }`}
         >
           {product.isActive ? "Active" : "Inactive"}
+        </span>
+      </td>
+      <td className="px-6 py-4">
+        <span className="flex justify-center">
+          <CheckIcon
+            className={clsx(
+              "w-5 h-5 rounded-full p-0.5",
+              product.canCombine
+                ? "bg-green-100 text-green-600"
+                : "bg-gray-100 text-gray-400"
+            )}
+          />
         </span>
       </td>
       <td className="px-6 py-4">
@@ -97,7 +122,7 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
       </td>
     </tr>
   );
-};
+}
 
 const ProductManagement = () => {
   const [searchParams] = useSearchParams();
@@ -114,6 +139,7 @@ const ProductManagement = () => {
     sold: 0,
     addPrice: 0,
     isActive: true,
+    canCombine: false,
     metadata: {},
     resources: [] as string[],
   });
@@ -220,12 +246,12 @@ const ProductManagement = () => {
       const metadata = JSON.parse(new TextDecoder().decode(product.metadata));
 
       setFormData({
-
         productModelId: Number(product.productModelId),
         quantity: Number(product.quantity),
         sold: Number(product.sold),
         addPrice: Number(product.addPrice),
         isActive: product.isActive,
+        canCombine: product.canCombine,
         metadata: metadata,
         resources: product.resources,
       });
@@ -237,6 +263,7 @@ const ProductManagement = () => {
         sold: 0,
         addPrice: 0,
         isActive: true,
+        canCombine: false,
         metadata: {},
         resources: [],
       });
@@ -272,6 +299,8 @@ const ProductManagement = () => {
           productModelId: BigInt(formData.productModelId),
           quantity: BigInt(formData.quantity),
           addPrice: BigInt(formData.addPrice),
+          sold: BigInt(formData.sold),
+          canCombine: formData.canCombine,
           isActive: formData.isActive,
           metadata: metadataBuffer,
           resources: formData.resources,
@@ -282,6 +311,7 @@ const ProductManagement = () => {
           productModelId: BigInt(formData.productModelId),
           quantity: BigInt(formData.quantity),
           addPrice: BigInt(formData.addPrice),
+          canCombine: formData.canCombine,
           isActive: formData.isActive,
           metadata: metadataBuffer,
           resources: formData.resources,
@@ -366,9 +396,6 @@ const ProductManagement = () => {
                   Image
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Serial ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Model
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -382,6 +409,9 @@ const ProductManagement = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Combine
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Created
@@ -425,20 +455,6 @@ const ProductManagement = () => {
         className="max-w-xl"
       >
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Serial ID
-            </label>
-            <input
-              type="text"
-              name="serialId"
-              value={formData.productModelId}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="Product serial ID"
-            />
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product Model ID
@@ -489,10 +505,30 @@ const ProductManagement = () => {
               type="checkbox"
               name="isActive"
               checked={formData.isActive}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                isActive: e.target.checked
-              }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  isActive: e.target.checked,
+                }))
+              }
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex items-start gap-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Can Combine
+            </label>
+            <input
+              type="checkbox"
+              name="canCombine"
+              checked={formData.canCombine}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  canCombine: e.target.checked,
+                }))
+              }
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
           </div>
