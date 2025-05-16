@@ -18,7 +18,6 @@ import {
   getProductModel,
   getUser,
   listAddresses,
-  updateAddress,
 } from "shopnexus-protobuf-gen-ts";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { ItemQuantityInt64 } from "shopnexus-protobuf-gen-ts/pb/common/item_quantity_pb";
@@ -26,6 +25,7 @@ import { AddressModal } from "../app/Cart/AddressModel";
 import { AddressSelectionModal } from "../app/Cart/AddressSelectionModal";
 import { PaymentMethod } from "shopnexus-protobuf-gen-ts/pb/payment/v1/payment_pb";
 import { AddressEntity } from "shopnexus-protobuf-gen-ts/pb/account/v1/address_pb";
+import { useLocation } from "react-router-dom";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -37,11 +37,16 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function Checkout() {
+  const location = useLocation();
+  const selectedItems =
+    (location.state as { selectedItems: bigint[] })?.selectedItems ?? [];
   const { data: cartResponse } = useQuery(getCart);
-  const cartItems = cartResponse?.items ?? [];
+  const cartItems = (cartResponse?.items ?? []).filter((item) =>
+    selectedItems.includes(item.itemId)
+  );
 
   const [shippingAddress, setShippingAddress] = useState<AddressEntity>();
-  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [paymentMethod, setPaymentMethod] = useState("vnpay");
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSelectAddressModalOpen, setIsSelectAddressModalOpen] =
     useState(false);
@@ -57,34 +62,8 @@ export default function Checkout() {
   const addresses = addressesResponse?.data ?? [];
   const { mutateAsync: mutateCreatePayment } = useMutation(createPayment);
   const { mutateAsync: mutateCreateAddress } = useMutation(createAddress);
-  const { mutateAsync: mutateUpdateAddress } = useMutation(updateAddress);
   const { data: user } = useQuery(getUser);
 
-  const handleUpdateAddress = async (address: AddressEntity) => {
-    // check if creating or update
-    if (addresses.length === 0) {
-      await mutateCreateAddress({
-        address: address.address,
-        city: address.city,
-        country: address.country,
-        fullName: address.fullName,
-        phone: address.phone,
-        province: address.province,
-      });
-      refetchAddresses();
-    } else {
-      await mutateUpdateAddress({
-        id: address.id,
-        address: address.address,
-        city: address.city,
-        country: address.country,
-        fullName: address.fullName,
-        phone: address.phone,
-        province: address.province,
-      });
-      refetchAddresses();
-    }
-  };
   const [itemPrices, setItemPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -150,6 +129,7 @@ export default function Checkout() {
         requestId: BigInt(1),
         address: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.country}`,
         method: method,
+        productIds: cartItems.map((item) => item.itemId),
       });
 
       if (!data.url) {

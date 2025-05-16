@@ -92,7 +92,6 @@ export default function Cart() {
   const handlePriceUpdate = (itemId: bigint, price: number) => {
     setItemPrices((prev) => {
       if (prev.get(itemId) !== price) {
-        console.log("price update", itemId, price);
         return new Map(prev).set(itemId, price);
       }
       return prev;
@@ -100,7 +99,7 @@ export default function Cart() {
   };
 
   const handleCheckout = () => {
-    navigate("/checkout");
+    navigate("/checkout", { state: { selectedItems } });
   };
 
   const subtotal = cartItems.reduce((acc, item) => {
