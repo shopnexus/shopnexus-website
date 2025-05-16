@@ -18,6 +18,12 @@ import SimilarProductsByTagAndBrand from "./SimilarProducts";
 import { ShoppingCart } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
+// type Variant = Record<string, any>;
+
+// function isEmpty(obj: Record<string, any>) {
+//   return Object.keys(obj).length === 0 && obj.constructor === Object;
+// }
+
 //#region Utility Functions
 // Convert Uint8Array metadata to object
 export const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
@@ -25,6 +31,9 @@ export const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
     const decoder = new TextDecoder();
     const jsonString = decoder.decode(metadata);
     const data = JSON.parse(jsonString);
+    for (const key in data) {
+      data[key] = String(data[key]);
+    }
     return data;
   } catch (error) {
     console.error("Error parsing metadata:", error);
@@ -32,36 +41,37 @@ export const parseMetadata = (metadata: Uint8Array): Record<string, any> => {
   }
 };
 
-// Get unique values from product metadata for a specific key
-const getUniqueMetadataValues = (
-  products: ProductEntity[],
-  key: string
-): any[] => {
-  const values = products
-    .map((product) => {
-      const metadata = parseMetadata(product.metadata);
-      return metadata[key];
-    })
-    .filter((value) => value !== undefined && value !== null);
+// // filter metadata
+// function getOptions(
+//   variants: Variant[],
+//   selected: Partial<Variant>
+// ): Record<string, string[]> {
+//   const filtered = isEmpty(selected)
+//     ? variants
+//     : variants.filter((variant) =>
+//         Object.entries(selected).every(([k, v]) => variant[k] === v)
+//       );
 
-  // Return unique values, ensuring proper comparison for numbers and strings
-  return Array.from(new Set(values.map(String))).map((value) => {
-    // Convert back to number if it was originally a number
-    const num = Number(value);
-    return !isNaN(num) ? num : value;
-  });
-};
+//   const options: Record<string, Set<string>> = {};
+//   for (const variant of filtered) {
+//     for (const [key, value] of Object.entries(variant)) {
+//       if (!options[key]) options[key] = new Set();
+//       options[key].add(value);
+//     }
+//   }
 
-// Sort numeric values
-const sortNumeric = (values: any[]): any[] => {
-  return [...values].sort((a, b) => {
-    if (typeof a === "number" && typeof b === "number") {
-      return a - b;
-    }
-    return String(a).localeCompare(String(b));
-  });
-};
-//#endregion
+//   // Convert sets to arrays for UI rendering
+//   return Object.fromEntries(
+//     Object.entries(options).map(([k, v]) => [k, Array.from(v)])
+//   );
+
+//   /*
+// {
+//   size: ["5", "6"],
+//   color: ["blue"]
+// }
+// */
+// }
 
 //#region Child Components
 // Component for thumbnail list
@@ -70,7 +80,6 @@ const ThumbnailList: React.FC<{
   selectedImage: string;
   onThumbnailClick: (image: string) => void;
 }> = React.memo(({ images, selectedImage, onThumbnailClick }) => {
-  console.log("images", images);
   return (
     <div className="grid grid-cols-6 gap-2">
       {images.map((image, index) => (
@@ -118,125 +127,147 @@ const VariantSelection: React.FC<VariantSelectionProps> = React.memo(
     isAddingToCart,
     addToCartSuccess,
   }) => {
-    // Get all possible variant keys from metadata
-    const variantKeys = useMemo(() => {
-      if (products.length === 0) return [];
+    // Get all possible variant keys and their values from metadata
+    const variantOptions = useMemo(() => {
+      if (products.length === 0) return {};
 
-      // Collect all unique keys from all products' metadata
-      const allKeys = new Set<string>();
+      const options: Record<string, Set<string>> = {};
       products.forEach((product) => {
         const metadata = parseMetadata(product.metadata);
-        Object.keys(metadata).forEach((key) => allKeys.add(key));
+        Object.entries(metadata).forEach(([key, value]) => {
+          if (!options[key]) options[key] = new Set();
+          options[key].add(value);
+        });
       });
 
-      return Array.from(allKeys);
+      return Object.fromEntries(
+        Object.entries(options).map(([k, v]) => [k, Array.from(v)])
+      );
     }, [products]);
 
-    // Check if a variant option is available
-    const isOptionAvailable = useCallback(
-      (key: string, value: any): boolean => {
-        // If no options are selected, all options with stock should be available
-        const hasAnySelection = Object.values(selectedVariantOptions).some(
-          (v) => v !== null
-        );
-        if (!hasAnySelection) {
-          return products.some((product) => {
-            const metadata = parseMetadata(product.metadata);
-            return metadata[key] === value && product.quantity > 0;
-          });
-        }
+    // Get available options based on current selection
+    const getAvailableOptions = (key: string): string[] => {
+      const currentSelection = { ...selectedVariantOptions };
+      delete currentSelection[key];
 
-        // Create a copy of current selections
-        const selections = { ...selectedVariantOptions };
-
-        // Check if any product matches the current selections with this option
-        return products.some((product) => {
+      return products
+        .filter((product) => {
           const metadata = parseMetadata(product.metadata);
+          return Object.entries(currentSelection).every(
+            ([k, v]) => metadata[k] === v
+          );
+        })
+        .map((product) => parseMetadata(product.metadata)[key])
+        .filter((value, index, self) => self.indexOf(value) === index);
+    };
 
-          // Check if this product matches all selected options
-          for (const [k, v] of Object.entries(selections)) {
-            // Skip null values (unselected options)
-            if (v === null) continue;
-            // Skip the current key we're checking
-            if (k === key) continue;
+    // Check if an option is available
+    const isOptionAvailable = (key: string, value: string): boolean => {
+      return getAvailableOptions(key).includes(value);
+    };
 
-            // If this option doesn't match, this product doesn't match
-            if (metadata[k] !== v) return false;
-          }
-
-          // Check if this product has the value we're testing for this key
-          return metadata[key] === value && product.quantity > 0;
-        });
-      },
-      [products, selectedVariantOptions]
-    );
+    // Check if an option is selected
+    const isOptionSelected = (key: string, value: string): boolean => {
+      return selectedVariantOptions[key] === value;
+    };
 
     return (
-      <div className="space-y-4">
-        {/* Render each variant type dynamically from metadata */}
-        {variantKeys.map((key) => (
-          <div key={key}>
-            <h3 className="font-medium capitalize">{key}:</h3>
-            <div className="flex space-x-2">
-              {sortNumeric(getUniqueMetadataValues(products, key)).map(
-                (value) => {
-                  // Check if this option is currently selected
-                  const isSelected = selectedVariantOptions[key] === value;
-                  // Only disable if it's not available AND not currently selected
-                  const shouldDisable =
-                    !isOptionAvailable(key, value) && !isSelected;
+      <div className="space-y-6">
+        {Object.entries(variantOptions).map(([key, values]) => (
+          <div key={key} className="space-y-3">
+            <h3 className="font-medium capitalize text-gray-700">{key}:</h3>
+            <div className="flex flex-wrap gap-3">
+              {Array.from(new Set(values)).map((value) => {
+                const isAvailable = isOptionAvailable(key, value);
+                const isSelected = isOptionSelected(key, value);
+                // Create a unique key by combining the variant key and value
+                const uniqueKey = `${key}-${value}`;
 
-                  return (
-                    <button
-                      key={`${key}-${value}`}
-                      disabled={shouldDisable}
-                      onClick={() =>
-                        onSelectVariantOption(key, isSelected ? null : value)
-                      }
-                      className={`px-3 py-1 border rounded transition duration-150 ease-in-out ${
+                return (
+                  <button
+                    key={uniqueKey}
+                    onClick={() =>
+                      isAvailable && onSelectVariantOption(key, value)
+                    }
+                    disabled={!isAvailable}
+                    className={`
+                      relative flex items-center justify-center
+                      min-w-[60px] px-4 py-2
+                      rounded-md border-2 transition-all duration-200
+                      ${
                         isSelected
-                          ? "bg-blue-500 text-white"
-                          : "bg-white text-black"
-                      } ${
-                        shouldDisable
-                          ? "opacity-50 cursor-not-allowed bg-gray-400"
-                          : ""
-                      }`}
-                    >
-                      {value}
-                    </button>
-                  );
-                }
-              )}
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }
+                      ${!isAvailable && "opacity-50 cursor-not-allowed"}
+                    `}
+                  >
+                    <span className="text-sm">{value}</span>
+                    {!isAvailable && (
+                      <div className="absolute inset-0 bg-gray-100 opacity-50 rounded-md" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
 
         {availableStock === 0 && (
-          <p className="text-red-500">This combination is out of stock</p>
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">
+              This combination is out of stock
+            </p>
+          </div>
         )}
 
-        {/* Quantity selection */}
+        {/* Quantity selector */}
         <div className="flex items-center space-x-4">
-          <label htmlFor="quantity" className="font-medium">
+          <label htmlFor="quantity" className="font-medium text-gray-700">
             Quantity:
           </label>
-          <input
-            type="number"
-            id="quantity"
-            value={quantity}
-            onChange={onQuantityChange}
-            min="1"
-            max={availableStock}
-            disabled={availableStock <= 0}
-            className="w-20 px-3 py-2 border rounded"
-          />
+          <div className="flex items-center border rounded-md">
+            <button
+              onClick={() =>
+                quantity > 1 &&
+                onQuantityChange({
+                  target: { value: String(quantity - 1) },
+                } as any)
+              }
+              disabled={quantity <= 1}
+              className="px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            >
+              -
+            </button>
+            <input
+              type="number"
+              id="quantity"
+              value={quantity}
+              onChange={onQuantityChange}
+              min="1"
+              max={availableStock}
+              disabled={availableStock <= 0}
+              className="w-16 text-center border-x py-2 focus:outline-none"
+            />
+            <button
+              onClick={() =>
+                quantity < availableStock &&
+                onQuantityChange({
+                  target: { value: String(quantity + 1) },
+                } as any)
+              }
+              disabled={quantity >= availableStock}
+              className="px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            >
+              +
+            </button>
+          </div>
+          <p className="text-sm text-gray-500">
+            {availableStock} items available
+          </p>
         </div>
-        <p className="text-sm text-gray-500">
-          {availableStock} items available
-        </p>
 
-        {/* Add to cart button with animation */}
+        {/* Add to cart button */}
         <button
           onClick={onAddToCart}
           disabled={availableStock <= 0 || isAddingToCart}
@@ -433,7 +464,7 @@ const ProductDetail: React.FC = () => {
 
       return true;
     });
-    console.log(matchingProducts);
+    console.log(matchingProducts?.map((p) => parseMetadata(p.metadata)));
 
     // Sum up quantities of matching products
     return (
@@ -486,10 +517,19 @@ const ProductDetail: React.FC = () => {
   );
 
   const handleSelectVariantOption = useCallback((key: string, value: any) => {
-    setSelectedVariantOptions((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setSelectedVariantOptions((prev) => {
+      // If the clicked option is already selected, remove it
+      if (prev[key] === value) {
+        const newOptions = { ...prev };
+        delete newOptions[key];
+        return newOptions;
+      }
+      // Otherwise, update with the new selection
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   }, []);
 
   const handleAddToCart = useCallback(() => {
