@@ -29,6 +29,7 @@
 		"@uppy/core": "^4.4.3",
 		"@uppy/dashboard": "^4.3.2",
 		"ai": "^4.3.2",
+		"canvas-confetti": "^1.9.3",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
 		"firebase": "^11.2.0",

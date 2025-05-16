@@ -37,10 +37,7 @@ const SimilarProductsByTagAndBrand: React.FC<
           <ProductCard
             key={product.id}
             id={BigInt(product.id)}
-            name={product.name}
-            price={199000} // 👈 giá tạm thời, bạn có thể thêm vào mock nếu cần giá thật
-            image={product.resources[0]}
-            description=""
+  
           />
         ))}
       </div>

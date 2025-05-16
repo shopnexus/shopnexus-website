@@ -1,10 +1,27 @@
 "use client";
 
 import { useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import ProductCard from "../../components/ProductCard";
 import CategoryLayout from "../../components/CategoryLayout";
 import { getBrand, listProductModels } from "shopnexus-protobuf-gen-ts";
 import { useQuery } from "@connectrpc/connect-query";
+import { ShoppingBag, Star, TrendingUp } from "lucide-react";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
 
 export default function BrandPage() {
   const { brandSlug } = useParams<{ brandSlug: string }>();
@@ -20,21 +37,40 @@ export default function BrandPage() {
   });
 
   const products = productModelsResponse?.data ?? [];
+  const brand = brandResponse?.data;
+
+  const brandTitle = `${brand?.name} Collection`;
+  const brandDescription = brand?.description ?? "";
 
   return (
     <CategoryLayout
       brandId={brandSlug ?? ""}
-      title={`Brand: ${brandResponse?.data?.name} Collection`}
-      description={brandResponse?.data?.description ?? ""}
+      title={brandTitle}
+      description={brandDescription}
     >
+
+
       {products.length === 0 ? (
-        <p>No products found in this Brand.</p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <p className="text-gray-500 text-lg">No products found in this brand.</p>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-2 gap-y-10 gap-x-6 md:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 xl:gap-x-8">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+        >
           {products.map((product) => (
-            <ProductCard key={product.id} id={product.id} />
+            <motion.div key={product.id} variants={item}>
+              <ProductCard id={product.id} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </CategoryLayout>
   );

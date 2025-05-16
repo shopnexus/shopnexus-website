@@ -92,7 +92,7 @@ export default function FeaturedProducts({
             </div>
           ))}
       </div>
-      {hasNextPage && productModels?.pages.length >= 2 && (
+      {hasNextPage && (productModels?.pages?.length ?? 0) >= 2 && (
         <div className="flex justify-center mt-8">
           <Button
             onClick={() => fetchNextPage()}

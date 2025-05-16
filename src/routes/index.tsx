@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminProtectedRoute from "./AdminProtectedRoute";
+import PaymentSuccess from "../app/pages/PaymentSuccess";
 
 // Lazy load components
 const Home = lazy(() =>
@@ -140,6 +141,7 @@ const AppRoutes = () => {
         <Route path="/brands/:brandSlug" element={<BrandPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
+        <Route path="/payment-success" element={<PaymentSuccess/>} />
         {/* Protected User Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<Cart />} />
@@ -147,6 +149,7 @@ const AppRoutes = () => {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/purchase-history" element={<PurchaseHistory />} />
           <Route path="/refund" element={<RefundProduct />} />
+          
         </Route>
 
         {/* Protected Admin Routes */}
