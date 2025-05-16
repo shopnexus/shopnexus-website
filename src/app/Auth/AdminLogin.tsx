@@ -34,8 +34,7 @@ const AdminLogin: React.FC = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAdmin", "true");
 
-      const from = location.state?.from?.pathname || "/admin";
-      navigate(from, { replace: true });
+      navigate("/admin", { replace: true });
     } catch (err: any) {
       let errorMessage = "An error occurred during login";
 
