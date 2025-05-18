@@ -1,6 +1,8 @@
-"use client";
+"use client"
 
-import { formatDistanceToNow } from "date-fns";
+import type React from "react"
+
+import { formatDistanceToNow } from "date-fns"
 import {
   MessageSquare,
   MoreHorizontal,
@@ -10,33 +12,35 @@ import {
   Trash2,
   Check,
   X,
-  Image as ImageIcon,
+  ImageIcon,
   GripVertical,
   XCircle,
-} from "lucide-react";
-import { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
-import { useQuery } from "@connectrpc/connect-query";
-import { getUserPublic, getUser } from "shopnexus-protobuf-gen-ts";
-import ReplyEditor from "../../components/ReplyEditor";
-import { useState, useRef, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+  Maximize2,
+} from "lucide-react"
+import type { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb"
+import { useQuery } from "@connectrpc/connect-query"
+import { getUserPublic, getUser } from "shopnexus-protobuf-gen-ts"
+import ReplyEditor from "../../components/ReplyEditor"
+import { useState, useRef, useEffect } from "react"
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
+import MediaViewer from "../../components/MediaViewer"
 
 interface CommentProps {
-  comment: CommentEntity;
-  level: number;
-  postId: bigint;
-  replyingTo: bigint | null;
-  editingComment: bigint | null;
-  onLike: (commentId: bigint) => void;
-  onDislike: (commentId: bigint) => void;
-  onReply: (commentId: bigint) => void;
-  onReplySubmit: (commentId: bigint) => void;
-  onReplyCancel: (commentId: bigint) => void;
-  onEdit: (commentId: bigint, newBody: string) => void;
-  onDelete: (commentId: bigint) => void;
-  onStartEdit: () => void;
-  onCancelEdit: () => void;
-  renderReplies: (comment: CommentEntity, level: number) => React.ReactNode;
+  comment: CommentEntity
+  level: number
+  postId: bigint
+  replyingTo: bigint | null
+  editingComment: bigint | null
+  onLike: (commentId: bigint) => void
+  onDislike: (commentId: bigint) => void
+  onReply: (commentId: bigint) => void
+  onReplySubmit: (commentId: bigint) => void
+  onReplyCancel: (commentId: bigint) => void
+  onEdit: (commentId: bigint, newBody: string) => void
+  onDelete: (commentId: bigint) => void
+  onStartEdit: () => void
+  onCancelEdit: () => void
+  renderReplies: (comment: CommentEntity, level: number) => React.ReactNode
 }
 
 const Comment = ({
@@ -58,102 +62,120 @@ const Comment = ({
 }: CommentProps) => {
   const { data: user } = useQuery(getUserPublic, {
     id: comment.userId,
-  });
-  const { data: me } = useQuery(getUser);
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [editBody, setEditBody] = useState(comment.body);
-  const [editResources, setEditResources] = useState<string[]>(comment.resources || []);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const contextMenuRef = useRef<HTMLDivElement>(null);
-  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  })
+  const { data: me } = useQuery(getUser)
+  const [showContextMenu, setShowContextMenu] = useState(false)
+  const [editBody, setEditBody] = useState(comment.body)
+  const [editResources, setEditResources] = useState<string[]>(comment.resources || [])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const contextMenuRef = useRef<HTMLDivElement>(null)
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const isUserComment = me && comment.userId === me.id;
-  const isEditing = editingComment === comment.id;
+  // Media viewer state
+  const [isMediaViewerOpen, setIsMediaViewerOpen] = useState(false)
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0)
+
+  const isUserComment = me && comment.userId === me.id
+  const isEditing = editingComment === comment.id
 
   useEffect(() => {
     if (isEditing && editTextareaRef.current) {
-      editTextareaRef.current.focus();
+      editTextareaRef.current.focus()
     }
-  }, [isEditing]);
+  }, [isEditing])
 
   // Close context menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
-        setShowContextMenu(false);
+        setShowContextMenu(false)
       }
-    };
+    }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const handleEdit = () => {
-    setShowContextMenu(false);
-    onStartEdit();
-  };
+    setShowContextMenu(false)
+    onStartEdit()
+  }
 
   const handleDelete = () => {
-    setShowContextMenu(false);
-    onDelete(comment.id);
-  };
+    setShowContextMenu(false)
+    onDelete(comment.id)
+  }
 
   const handleAddImage = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (event) => {
-        const imageUrl = event.target?.result as string;
-        setEditResources((prev) => [...prev, imageUrl]);
-      };
-      reader.readAsDataURL(file);
+        const imageUrl = event.target?.result as string
+        setEditResources((prev) => [...prev, imageUrl])
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleRemoveImage = (index: number) => {
-    setEditResources((prev) => prev.filter((_, i) => i !== index));
-  };
+    setEditResources((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
+    if (!result.destination) return
 
-    const items = Array.from(editResources);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const items = Array.from(editResources)
+    const [reorderedItem] = items.splice(result.source.index, 1)
+    items.splice(result.destination.index, 0, reorderedItem)
 
-    setEditResources(items);
-  };
+    setEditResources(items)
+  }
 
   const handleSaveEdit = () => {
-    onEdit(comment.id, editBody);
-  };
+    onEdit(comment.id, editBody)
+  }
 
   const handleCancelEdit = () => {
-    setEditBody(comment.body);
-    setEditResources(comment.resources || []);
-    onCancelEdit();
-  };
+    setEditBody(comment.body)
+    setEditResources(comment.resources || [])
+    onCancelEdit()
+  }
 
   const formatTime = (date: bigint) => {
     const distance = formatDistanceToNow(new Date(Number(date)), {
       addSuffix: false,
-    });
-    return distance === "less than a minute" ? "just now" : `${distance} ago`;
-  };
+    })
+    return distance === "less than a minute" ? "just now" : `${distance} ago`
+  }
+
+  // Open media viewer when clicking on an image
+  const openMediaViewer = (index: number) => {
+    setSelectedMediaIndex(index)
+    setIsMediaViewerOpen(true)
+  }
+
+  // Determine if a resource is a video
+  const isVideo = (url: string) => {
+    return url.match(/\.(mp4|webm|ogg)$/i) !== null
+  }
 
   return (
-    <div className={`flex space-x-3 ${level > 0 ? "ml-8" : ""} ${isUserComment ? 'bg-blue-50 p-4 rounded-lg border border-blue-200' : ''}`}>
+    <div
+      className={`flex space-x-3 ${level > 0 ? "ml-8" : ""} ${isUserComment ? "bg-blue-50 p-4 rounded-lg border border-blue-200" : ""}`}
+    >
       <div className="flex-shrink-0">
         <img
           src={
             user?.avatar ||
-            "https://i.pinimg.com/736x/72/26/c1/7226c196f74e1991e16350404b5e1706.jpg"
+            "https://i.pinimg.com/736x/72/26/c1/7226c196f74e1991e16350404b5e1706.jpg" ||
+            "/placeholder.svg"
           }
           alt={"avatar user"}
           className="w-8 h-8 rounded-full"
@@ -165,9 +187,7 @@ const Comment = ({
             {user?.fullName || "Anonymous"}
             {isUserComment && <span className="ml-2 text-xs text-blue-600">(You)</span>}
           </span>
-          <span className="ml-2 text-xs text-gray-500">
-            {formatTime(comment.dateCreated)}
-          </span>
+          <span className="ml-2 text-xs text-gray-500">{formatTime(comment.dateCreated)}</span>
         </div>
         {isEditing ? (
           <div className="mt-1">
@@ -188,28 +208,24 @@ const Comment = ({
                       className="grid grid-cols-2 sm:grid-cols-6 md:grid-cols-10 gap-2"
                     >
                       {editResources.map((imageUrl, index) => (
-                        <Draggable
-                          key={index}
-                          draggableId={`image-${index}`}
-                          index={index}
-                        >
+                        <Draggable key={index} draggableId={`image-${index}`} index={index}>
                           {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className="relative group"
-                            >
+                            <div ref={provided.innerRef} {...provided.draggableProps} className="relative group">
                               <div
                                 {...provided.dragHandleProps}
                                 className="absolute top-0 left-0 p-1 bg-black bg-opacity-50 text-white rounded-br-md cursor-move"
                               >
                                 <GripVertical className="w-3 h-3" />
                               </div>
-                              <img
-                                src={imageUrl}
-                                alt={`Image ${index + 1}`}
-                                className="w-20 h-20 object-cover rounded-md"
-                              />
+                              {isVideo(imageUrl) ? (
+                                <video src={imageUrl} className="w-20 h-20 object-cover rounded-md" />
+                              ) : (
+                                <img
+                                  src={imageUrl || "/placeholder.svg"}
+                                  alt={`Image ${index + 1}`}
+                                  className="w-20 h-20 object-cover rounded-md"
+                                />
+                              )}
                               <button
                                 className="absolute top-0 right-0 p-1 bg-black bg-opacity-50 text-white rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => handleRemoveImage(index)}
@@ -232,13 +248,7 @@ const Comment = ({
                 <ImageIcon className="w-4 h-4 mr-1" />
                 Add Image
               </button>
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                ref={fileInputRef}
-                onChange={handleFileChange}
-              />
+              <input type="file" accept="image/*,video/*" hidden ref={fileInputRef} onChange={handleFileChange} />
             </div>
             <div className="mt-2 flex space-x-2">
               <button
@@ -262,16 +272,31 @@ const Comment = ({
         )}
         {comment.resources && comment.resources.length > 0 && (
           <div className="mt-2 grid grid-cols-2 sm:grid-cols-6 md:grid-cols-10 gap-2">
-            {comment.resources.map((imageUrl, index) => (
+            {comment.resources.map((mediaUrl, index) => (
               <div
                 key={index}
-                className="relative aspect-square overflow-hidden rounded-md"
+                className="relative aspect-square overflow-hidden rounded-md group cursor-pointer"
+                onClick={() => openMediaViewer(index)}
               >
-                <img
-                  src={imageUrl || "/placeholder.svg"}
-                  alt={`Attachment ${index + 1}`}
-                  className="object-cover w-20 h-20 hover:opacity-90 transition-opacity"
-                />
+                {isVideo(mediaUrl) ? (
+                  <div className="relative w-20 h-20">
+                    <video src={mediaUrl} className="object-cover w-full h-full hover:opacity-90 transition-opacity" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Maximize2 className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative w-20 h-20">
+                    <img
+                      src={mediaUrl || "/placeholder.svg"}
+                      alt={`Attachment ${index + 1}`}
+                      className="object-cover w-full h-full hover:opacity-90 transition-opacity"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Maximize2 className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -279,24 +304,15 @@ const Comment = ({
         {!isEditing && (
           <div className="mt-2 flex items-center space-x-4 text-xs">
             <div className="flex items-center space-x-1">
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={() => onLike(comment.id)}
-              >
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => onLike(comment.id)}>
                 <ThumbsUp className="w-4 h-4" />
               </button>
               <span className="text-gray-700">{comment.score}</span>
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={() => onDislike(comment.id)}
-              >
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => onDislike(comment.id)}>
                 <ThumbsDown className="w-4 h-4" />
               </button>
             </div>
-            <button
-              className="flex items-center text-gray-500 hover:text-gray-700"
-              onClick={() => onReply(comment.id)}
-            >
+            <button className="flex items-center text-gray-500 hover:text-gray-700" onClick={() => onReply(comment.id)}>
               <MessageSquare className="w-4 h-4 mr-1" />
               <span>Reply</span>
             </button>
@@ -340,8 +356,18 @@ const Comment = ({
         )}
         {renderReplies(comment, level)}
       </div>
-    </div>
-  );
-};
 
-export default Comment;
+      {/* Media Viewer Modal */}
+      {comment.resources && comment.resources.length > 0 && (
+        <MediaViewer
+          isOpen={isMediaViewerOpen}
+          onClose={() => setIsMediaViewerOpen(false)}
+          mediaItems={comment.resources}
+          initialIndex={selectedMediaIndex}
+        />
+      )}
+    </div>
+  )
+}
+
+export default Comment

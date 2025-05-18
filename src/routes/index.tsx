@@ -89,7 +89,7 @@ const ProductModelManagement = lazy(() =>
   }))
 );
 const TagManagement = lazy(() =>
-  import("../app/Admin/Pages/TagManagement").then((module) => ({
+  import("../app/Admin/Pages/TagManagement").then((module) => ({  
     default: module.default,
   }))
 );
@@ -120,6 +120,12 @@ const RefundManagement = lazy(() =>
 );
 const AdminLogin = lazy(() =>
   import("../app/Auth/AdminLogin").then((module) => ({
+    default: module.default,
+  }))
+);
+
+const CommentProducts = lazy(() =>
+  import("../app/Admin/Pages/CommentProducts").then((module) => ({
     default: module.default,
   }))
 );
@@ -161,9 +167,10 @@ const AppRoutes = () => {
             <Route path="refund" element={<RefundManagement />} />
             <Route path="tags" element={<TagManagement />} />
             <Route path="sales" element={<SalesManagement />} />
-            <Route path="settings" element={<SettingManager />} />
             <Route path="customers" element={<CustomerManager />} />
             <Route path="message" element={<ChatManager />} />
+            <Route path="comment" element={<CommentProducts />} />
+            <Route path="settings" element={<SettingManager />} />
           </Route>
         </Route>
       </Routes>

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Package, Tag, Percent, Settings, Users, House, Repeat,MessageCircle } from "lucide-react"
+import { Package, Tag, Percent, Settings, Users, House, Repeat,MessageCircle, MessageSquareDot } from "lucide-react"
 
 const AdminSidebar = () => {
 	const location = useLocation()
@@ -15,8 +15,9 @@ const AdminSidebar = () => {
 		{ icon: Tag, label: "Tags", path: "/admin/tags" },
 		{ icon: Percent, label: "Sales", path: "/admin/sales" },
 		{ icon: Users, label: "Customers", path: "/admin/customers" },
-		{ icon: Settings, label: "Settings", path: "/admin/settings" },
 		{ icon: MessageCircle, label: "Message", path: "/admin/message"},
+		{ icon: MessageSquareDot, label: "Comment", path: "/admin/comment" },
+		{ icon: Settings, label: "Settings", path: "/admin/settings" },
 	]
 
 	return (

@@ -220,7 +220,6 @@ export default function Home() {
         variants={itemVariants}
         className="w-full mt-24"
       >
-        <InforFooter />
       </motion.div>
     </motion.div>
   );

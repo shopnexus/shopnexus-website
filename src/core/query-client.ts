@@ -3,7 +3,7 @@ import { createConnectTransport } from "@connectrpc/connect-web";
 
 const CONNECT_UNAUTHORIZED_ERROR_CODE = 16;
 
-export const BASE_URL = "http://khoakomlem-internal.ddns.net:50051";
+export const BASE_URL = "http://wagecloud.ddns.net:50051";
 // export const BASE_URL = "http://localhost:50051";
 
 function handleUnAuthorized(error: any) {
