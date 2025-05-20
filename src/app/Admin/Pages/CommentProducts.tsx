@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -20,24 +20,28 @@ import {
   X,
   ZoomIn,
   ZoomOut,
-} from "lucide-react"
+} from "lucide-react";
+import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
+import { listProductModels } from "shopnexus-protobuf-gen-ts";
+import { ProductModelEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/product_model_pb";
 //form data product model
 interface ProductModelFormData {
-  name: string
-  description: string
-  listPrice: number
-  brandId: number
-  type: number
-  dateManufactured: number
-  resources: string[]
-  tags: string[]
+  name: string;
+  description: string;
+  listPrice: number;
+  brandId: number;
+  type: number;
+  dateManufactured: number;
+  resources: string[];
+  tags: string[];
 }
 // Mock data for products with ProductModelFormData structure
 const mockProducts = [
   {
     id: "101",
     name: "Wireless Headphones",
-    description: "Premium wireless headphones with noise cancellation and long battery life",
+    description:
+      "Premium wireless headphones with noise cancellation and long battery life",
     listPrice: 129.99,
     brandId: 1, // SoundMax
     type: 1, // Audio
@@ -77,7 +81,8 @@ const mockProducts = [
   {
     id: "103",
     name: "Bluetooth Speaker",
-    description: "Portable Bluetooth speaker with waterproof design and 360° sound",
+    description:
+      "Portable Bluetooth speaker with waterproof design and 360° sound",
     listPrice: 79.99,
     brandId: 1, // SoundMax
     type: 1, // Audio
@@ -97,7 +102,8 @@ const mockProducts = [
   {
     id: "104",
     name: "Gaming Mouse",
-    description: "High-precision gaming mouse with customizable RGB lighting and programmable buttons",
+    description:
+      "High-precision gaming mouse with customizable RGB lighting and programmable buttons",
     listPrice: 59.99,
     brandId: 3, // GameTech
     type: 3, // Gaming
@@ -137,7 +143,8 @@ const mockProducts = [
   {
     id: "106",
     name: "Mechanical Keyboard",
-    description: "Mechanical gaming keyboard with tactile switches and customizable backlighting",
+    description:
+      "Mechanical gaming keyboard with tactile switches and customizable backlighting",
     listPrice: 129.99,
     brandId: 3, // GameTech
     type: 3, // Gaming
@@ -157,7 +164,8 @@ const mockProducts = [
   {
     id: "107",
     name: "Wireless Earbuds",
-    description: "True wireless earbuds with active noise cancellation and touch controls",
+    description:
+      "True wireless earbuds with active noise cancellation and touch controls",
     listPrice: 89.99,
     brandId: 1, // SoundMax
     type: 1, // Audio
@@ -177,7 +185,8 @@ const mockProducts = [
   {
     id: "108",
     name: "Gaming Laptop",
-    description: "High-performance gaming laptop with dedicated GPU and high refresh rate display",
+    description:
+      "High-performance gaming laptop with dedicated GPU and high refresh rate display",
     listPrice: 1299.99,
     brandId: 5, // TechPower
     type: 5, // Computers
@@ -194,7 +203,7 @@ const mockProducts = [
     image: "/placeholder.svg?height=200&width=200&text=Gaming+Laptop",
     commentCount: 14,
   },
-]
+];
 
 // Mock data for comments
 const mockComments = {
@@ -226,7 +235,8 @@ const mockComments = {
       userId: "user4",
       userName: "Emily Wilson",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "Good headphones for the price. Not the best I've used but definitely worth what I paid.",
+      content:
+        "Good headphones for the price. Not the best I've used but definitely worth what I paid.",
       rating: 4,
       status: "approved",
       hasMedia: false,
@@ -243,7 +253,8 @@ const mockComments = {
       userId: "user9",
       userName: "Thomas Wright",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "The battery life is not as advertised. They only last about 4 hours on a full charge.",
+      content:
+        "The battery life is not as advertised. They only last about 4 hours on a full charge.",
       rating: 3,
       status: "pending",
       hasMedia: false,
@@ -280,7 +291,8 @@ const mockComments = {
       userId: "user10",
       userName: "Olivia Martinez",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "The fitness tracking features are accurate and the sleep monitoring is very helpful.",
+      content:
+        "The fitness tracking features are accurate and the sleep monitoring is very helpful.",
       rating: 4,
       status: "approved",
       hasMedia: false,
@@ -319,7 +331,8 @@ const mockComments = {
       userId: "user5",
       userName: "Michael Brown",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "Perfect for gaming! The response time is excellent and the customizable buttons are very useful.",
+      content:
+        "Perfect for gaming! The response time is excellent and the customizable buttons are very useful.",
       rating: 5,
       status: "approved",
       hasMedia: true,
@@ -340,7 +353,8 @@ const mockComments = {
       userId: "user11",
       userName: "William Taylor",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "The mouse is a bit small for my hands, but the performance is great.",
+      content:
+        "The mouse is a bit small for my hands, but the performance is great.",
       rating: 4,
       status: "approved",
       hasMedia: false,
@@ -359,7 +373,8 @@ const mockComments = {
       userId: "user6",
       userName: "Sarah Davis",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "The colors on this monitor are not accurate. Not recommended for graphic design work.",
+      content:
+        "The colors on this monitor are not accurate. Not recommended for graphic design work.",
       rating: 2,
       status: "pending",
       hasMedia: true,
@@ -378,7 +393,8 @@ const mockComments = {
       userId: "user7",
       userName: "David Wilson",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "The keys have a nice tactile feel and the RGB lighting is customizable and bright.",
+      content:
+        "The keys have a nice tactile feel and the RGB lighting is customizable and bright.",
       rating: 5,
       status: "approved",
       hasMedia: false,
@@ -397,7 +413,8 @@ const mockComments = {
       userId: "user8",
       userName: "Lisa Anderson",
       userAvatar: "/placeholder.svg?height=40&width=40",
-      content: "Great sound quality and comfortable fit. The noise cancellation is decent for the price.",
+      content:
+        "Great sound quality and comfortable fit. The noise cancellation is decent for the price.",
       rating: 4,
       status: "approved",
       hasMedia: false,
@@ -432,214 +449,282 @@ const mockComments = {
       replies: 3,
     },
   ],
-}
+};
 
 export default function AdminProductCommentsPage() {
   // State
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
-  const [selectedComments, setSelectedComments] = useState<string[]>([])
-  const [viewingComment, setViewingComment] = useState<any>(null)
-  const [viewingMedia, setViewingMedia] = useState<any>(null)
-  const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
-  const [mediaZoom, setMediaZoom] = useState(1)
-  const [editingComment, setEditingComment] = useState<any>(null)
-  const [editedContent, setEditedContent] = useState("")
-  const [deletingComment, setDeletingComment] = useState<any>(null)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
-  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
-  const [sortOption, setSortOption] = useState("newest")
-  const [productSearchQuery, setProductSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedComments, setSelectedComments] = useState<string[]>([]);
+  const [viewingComment, setViewingComment] = useState<any>(null);
+  const [viewingMedia, setViewingMedia] = useState<any>(null);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [mediaZoom, setMediaZoom] = useState(1);
+  const [editingComment, setEditingComment] = useState<any>(null);
+  const [editedContent, setEditedContent] = useState("");
+  const [deletingComment, setDeletingComment] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [sortOption, setSortOption] = useState("newest");
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 10;
+
+  // Fetch product models from server
+  const {
+    data: productModelsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch: refetchProductModels,
+  } = useInfiniteQuery(
+    listProductModels,
+    {
+      pagination: {
+        page: 1,
+        limit: itemsPerPage,
+      },
+    },
+    {
+      getNextPageParam: (lastPage) =>
+        lastPage?.pagination?.nextPage
+          ? {
+              page: lastPage.pagination.nextPage,
+              limit: lastPage.pagination.limit,
+              cursor: lastPage.pagination.nextCursor,
+            }
+          : undefined,
+      pageParamKey: "pagination",
+    }
+  );
+
+  // Get current page items
+  const currentItems = productModelsData?.pages[currentPage - 1]?.data || [];
+
+  // Handle page change
+  const handlePageChange = async (page: number) => {
+    setCurrentPage(page);
+
+    const neededPages = page - (productModelsData?.pages.length ?? 0);
+
+    if (neededPages > 0 && hasNextPage) {
+      for (let i = 0; i < neededPages; i++) {
+        if (!hasNextPage || isFetchingNextPage) break;
+        await fetchNextPage();
+      }
+    }
+  };
+
+  // Filter products based on search query
+  const filteredProducts = currentItems.filter((product) => {
+    if (!productSearchQuery) return true;
+    return (
+      product.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+      product.description
+        .toLowerCase()
+        .includes(productSearchQuery.toLowerCase())
+    );
+  });
 
   // Refs
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const filterDropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(null)
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(null);
       }
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
-        setFilterDropdownOpen(false)
+      if (
+        filterDropdownRef.current &&
+        !filterDropdownRef.current.contains(event.target as Node)
+      ) {
+        setFilterDropdownOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  // Filter products based on search query
-  const filteredProducts = mockProducts.filter((product) => {
-    if (!productSearchQuery) return true
-    return (
-      product.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
-      product.brand.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(productSearchQuery.toLowerCase())
-    )
-  })
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Get comments for selected product
-  const productComments = selectedProduct ? mockComments[selectedProduct] || [] : []
+  const productComments = selectedProduct
+    ? mockComments[selectedProduct] || []
+    : [];
 
   // Filter comments based on search query
   const filteredComments = productComments.filter((comment) => {
-    if (!searchQuery) return true
+    if (!searchQuery) return true;
     return (
       comment.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       comment.userName.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })
+    );
+  });
 
   // Sort comments
   const sortedComments = [...filteredComments].sort((a, b) => {
     if (sortOption === "newest") {
-      return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
+      return (
+        new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
+      );
     }
     if (sortOption === "oldest") {
-      return new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
+      return (
+        new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
+      );
     }
     if (sortOption === "most-likes") {
-      return b.likes - a.likes
+      return b.likes - a.likes;
     }
-    return 0
-  })
+    return 0;
+  });
 
   // Handlers
   const handleSelectProduct = (productId: string) => {
-    setSelectedProduct(productId)
-    setSelectedComments([])
-    setSearchQuery("")
-    setSortOption("newest")
-  }
+    setSelectedProduct(productId);
+    setSelectedComments([]);
+    setSearchQuery("");
+    setSortOption("newest");
+  };
 
   const handleBackToProducts = () => {
-    setSelectedProduct(null)
-    setSelectedComments([])
-  }
+    setSelectedProduct(null);
+    setSelectedComments([]);
+  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedComments(sortedComments.map((comment) => comment.id))
+      setSelectedComments(sortedComments.map((comment) => comment.id));
     } else {
-      setSelectedComments([])
+      setSelectedComments([]);
     }
-  }
+  };
 
   const handleSelectComment = (commentId: string, checked: boolean) => {
     if (checked) {
-      setSelectedComments([...selectedComments, commentId])
+      setSelectedComments([...selectedComments, commentId]);
     } else {
-      setSelectedComments(selectedComments.filter((id) => id !== commentId))
+      setSelectedComments(selectedComments.filter((id) => id !== commentId));
     }
-  }
+  };
 
   const handleRefresh = () => {
-    setIsRefreshing(true)
+    setIsRefreshing(true);
     // Simulate API call
     setTimeout(() => {
-      setIsRefreshing(false)
-    }, 1000)
-  }
+      setIsRefreshing(false);
+    }, 1000);
+  };
 
   const handleViewComment = (comment: any) => {
-    setViewingComment(comment)
-  }
+    setViewingComment(comment);
+  };
 
   const handleViewMedia = (comment: any, index = 0) => {
-    setViewingMedia(comment)
-    setCurrentMediaIndex(index)
-    setMediaZoom(1)
-  }
+    setViewingMedia(comment);
+    setCurrentMediaIndex(index);
+    setMediaZoom(1);
+  };
 
   const handleEditComment = (comment: any) => {
-    setEditingComment(comment)
-    setEditedContent(comment.content)
-  }
+    setEditingComment(comment);
+    setEditedContent(comment.content);
+  };
 
   const handleSaveEdit = () => {
     console.log("Saving edited comment:", {
       ...editingComment,
       content: editedContent,
-    })
-    setEditingComment(null)
-  }
+    });
+    setEditingComment(null);
+  };
 
   const handleDeleteComment = (comment: any) => {
-    setDeletingComment(comment)
-  }
+    setDeletingComment(comment);
+  };
 
   const confirmDelete = () => {
-    console.log("Deleting comment:", deletingComment)
-    setDeletingComment(null)
-  }
+    console.log("Deleting comment:", deletingComment);
+    setDeletingComment(null);
+  };
 
   const handleChangeStatus = (commentId: string, status: string) => {
-    console.log(`Changing comment ${commentId} status to ${status}`)
+    console.log(`Changing comment ${commentId} status to ${status}`);
     // In a real app, you would update the comment status via API
-  }
+  };
 
   const handleBulkAction = (action: string) => {
-    console.log(`Performing bulk action: ${action} on comments:`, selectedComments)
-    setSelectedComments([])
-  }
+    console.log(
+      `Performing bulk action: ${action} on comments:`,
+      selectedComments
+    );
+    setSelectedComments([]);
+  };
 
   const handleNextMedia = () => {
-    if (!viewingMedia) return
-    const nextIndex = (currentMediaIndex + 1) % viewingMedia.media.length
-    setCurrentMediaIndex(nextIndex)
-    setMediaZoom(1)
-  }
+    if (!viewingMedia) return;
+    const nextIndex = (currentMediaIndex + 1) % viewingMedia.media.length;
+    setCurrentMediaIndex(nextIndex);
+    setMediaZoom(1);
+  };
 
   const handlePrevMedia = () => {
-    if (!viewingMedia) return
-    const prevIndex = (currentMediaIndex - 1 + viewingMedia.media.length) % viewingMedia.media.length
-    setCurrentMediaIndex(prevIndex)
-    setMediaZoom(1)
-  }
+    if (!viewingMedia) return;
+    const prevIndex =
+      (currentMediaIndex - 1 + viewingMedia.media.length) %
+      viewingMedia.media.length;
+    setCurrentMediaIndex(prevIndex);
+    setMediaZoom(1);
+  };
 
   const handleZoomIn = () => {
-    setMediaZoom((prev) => Math.min(prev + 0.25, 3))
-  }
+    setMediaZoom((prev) => Math.min(prev + 0.25, 3));
+  };
 
   const handleZoomOut = () => {
-    setMediaZoom((prev) => Math.max(prev - 0.25, 0.5))
-  }
+    setMediaZoom((prev) => Math.max(prev - 0.25, 0.5));
+  };
 
   const handleDownloadMedia = () => {
-    if (!viewingMedia) return
-    const link = document.createElement("a")
-    link.href = viewingMedia.media[currentMediaIndex]
-    link.download = `comment-media-${viewingMedia.id}-${currentMediaIndex + 1}`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+    if (!viewingMedia) return;
+    const link = document.createElement("a");
+    link.href = viewingMedia.media[currentMediaIndex];
+    link.download = `comment-media-${viewingMedia.id}-${currentMediaIndex + 1}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(date)
-  }
+    }).format(date);
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-    }).format(price)
-  }
+    }).format(price);
+  };
 
   // Get selected product details
-  const selectedProductDetails = selectedProduct ? mockProducts.find((product) => product.id === selectedProduct) : null
+  const selectedProductDetails = selectedProduct
+    ? currentItems.find((product) => product.id === selectedProduct)
+    : null;
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -650,7 +735,11 @@ export default function AdminProductCommentsPage() {
           className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isRefreshing}
         >
-          {isRefreshing ? <Loader className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+          {isRefreshing ? (
+            <Loader className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4 mr-2" />
+          )}
           Refresh
         </button>
       </div>
@@ -669,36 +758,52 @@ export default function AdminProductCommentsPage() {
               </button>
               <div className="flex-shrink-0 mr-4">
                 <img
-                  src={selectedProductDetails?.resources?.[0] || selectedProductDetails?.image || "/placeholder.svg"}
+                  src={
+                    selectedProductDetails?.resources?.[0] ||
+                    selectedProductDetails?.image ||
+                    "/placeholder.svg"
+                  }
                   alt={selectedProductDetails?.name}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold">{selectedProductDetails?.name}</h2>
-                <div className="mt-1 text-sm text-gray-500 line-clamp-2">{selectedProductDetails?.description}</div>
-                
+                <h2 className="text-2xl font-bold">
+                  {selectedProductDetails?.name}
+                </h2>
+                <div className="mt-1 text-sm text-gray-500 line-clamp-2">
+                  {selectedProductDetails?.description}
+                </div>
+
                 <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-medium">Type:</span> {selectedProductDetails?.type}
+                  <span className="font-medium">Type:</span>{" "}
+                  {selectedProductDetails?.type}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-medium">Price:</span> {formatPrice(selectedProductDetails?.listPrice || 0)}
+                  <span className="font-medium">Price:</span>{" "}
+                  {formatPrice(selectedProductDetails?.listPrice || 0)}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
                   <span className="font-medium">Manufactured:</span>{" "}
                   {selectedProductDetails?.dateManufactured
-                    ? new Date(selectedProductDetails.dateManufactured).toLocaleDateString()
+                    ? new Date(
+                        selectedProductDetails.dateManufactured
+                      ).toLocaleDateString()
                     : "Unknown"}
                 </div>
-                {selectedProductDetails?.tags && selectedProductDetails.tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {selectedProductDetails.tags.map((tag, index) => (
-                      <span key={index} className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {selectedProductDetails?.tags &&
+                  selectedProductDetails.tags.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {selectedProductDetails.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 <div className="mt-2 flex items-center">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     <MessageSquare className="w-3 h-3 mr-1" />
@@ -707,21 +812,26 @@ export default function AdminProductCommentsPage() {
                 </div>
               </div>
             </div>
-            {selectedProductDetails?.resources && selectedProductDetails.resources.length > 1 && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Product Resources:</h3>
-                <div className="flex overflow-x-auto space-x-2 pb-2">
-                  {selectedProductDetails.resources.map((resource, index) => (
-                    <img
-                      key={index}
-                      src={resource || "/placeholder.svg"}
-                      alt={`${selectedProductDetails.name} resource ${index + 1}`}
-                      className="h-16 w-16 object-cover rounded-md flex-shrink-0"
-                    />
-                  ))}
+            {selectedProductDetails?.resources &&
+              selectedProductDetails.resources.length > 1 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    Product Resources:
+                  </h3>
+                  <div className="flex overflow-x-auto space-x-2 pb-2">
+                    {selectedProductDetails.resources.map((resource, index) => (
+                      <img
+                        key={index}
+                        src={resource || "/placeholder.svg"}
+                        alt={`${selectedProductDetails.name} resource ${
+                          index + 1
+                        }`}
+                        className="h-16 w-16 object-cover rounded-md flex-shrink-0"
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Comments management */}
@@ -756,33 +866,39 @@ export default function AdminProductCommentsPage() {
                       <div className="py-1">
                         <button
                           onClick={() => {
-                            setSortOption("newest")
-                            setFilterDropdownOpen(false)
+                            setSortOption("newest");
+                            setFilterDropdownOpen(false);
                           }}
                           className={`block px-4 py-2 text-sm w-full text-left ${
-                            sortOption === "newest" ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                            sortOption === "newest"
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           Newest
                         </button>
                         <button
                           onClick={() => {
-                            setSortOption("oldest")
-                            setFilterDropdownOpen(false)
+                            setSortOption("oldest");
+                            setFilterDropdownOpen(false);
                           }}
                           className={`block px-4 py-2 text-sm w-full text-left ${
-                            sortOption === "oldest" ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                            sortOption === "oldest"
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           Oldest
                         </button>
                         <button
                           onClick={() => {
-                            setSortOption("most-likes")
-                            setFilterDropdownOpen(false)
+                            setSortOption("most-likes");
+                            setFilterDropdownOpen(false);
                           }}
                           className={`block px-4 py-2 text-sm w-full text-left ${
-                            sortOption === "most-likes" ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                            sortOption === "most-likes"
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           Most Likes
@@ -798,7 +914,8 @@ export default function AdminProductCommentsPage() {
             {selectedComments.length > 0 && (
               <div className="bg-gray-50 p-3 flex items-center justify-between border-b">
                 <div className="text-sm">
-                  Selected {selectedComments.length} {selectedComments.length === 1 ? "comment" : "comments"}
+                  Selected {selectedComments.length}{" "}
+                  {selectedComments.length === 1 ? "comment" : "comments"}
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -823,7 +940,10 @@ export default function AdminProductCommentsPage() {
                     >
                       <input
                         type="checkbox"
-                        checked={sortedComments.length > 0 && selectedComments.length === sortedComments.length}
+                        checked={
+                          sortedComments.length > 0 &&
+                          selectedComments.length === sortedComments.length
+                        }
                         onChange={(e) => handleSelectAll(e.target.checked)}
                         className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
@@ -857,7 +977,10 @@ export default function AdminProductCommentsPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {sortedComments.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                      <td
+                        colSpan={7}
+                        className="px-6 py-10 text-center text-gray-500"
+                      >
                         No comments found
                       </td>
                     </tr>
@@ -868,7 +991,9 @@ export default function AdminProductCommentsPage() {
                           <input
                             type="checkbox"
                             checked={selectedComments.includes(comment.id)}
-                            onChange={(e) => handleSelectComment(comment.id, e.target.checked)}
+                            onChange={(e) =>
+                              handleSelectComment(comment.id, e.target.checked)
+                            }
                             className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                         </td>
@@ -882,33 +1007,46 @@ export default function AdminProductCommentsPage() {
                               />
                             </div>
                             <div className="ml-3">
-                              <div className="text-sm font-medium text-gray-900">{comment.userName}</div>
-                              <div className="text-xs text-gray-500">ID: {comment.userId}</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {comment.userName}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                ID: {comment.userId}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 mb-2">{comment.content}</div>
+                          <div className="text-sm text-gray-900 mb-2">
+                            {comment.content}
+                          </div>
                           {comment.hasMedia && (
                             <div className="grid grid-cols-3 gap-2 mt-2">
-                              {comment.media.slice(0, 3).map((url: string, index: number) => (
-                                <div
-                                  key={index}
-                                  className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
-                                  onClick={() => handleViewMedia(comment, index)}
-                                >
-                                  <img
-                                    src={url || "/placeholder.svg"}
-                                    alt={`Media ${index + 1}`}
-                                    className="object-cover w-full h-full"
-                                  />
-                                  {index === 2 && comment.media.length > 3 && (
-                                    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                                      <span className="text-white font-medium">+{comment.media.length - 3}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
+                              {comment.media
+                                .slice(0, 3)
+                                .map((url: string, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
+                                    onClick={() =>
+                                      handleViewMedia(comment, index)
+                                    }
+                                  >
+                                    <img
+                                      src={url || "/placeholder.svg"}
+                                      alt={`Media ${index + 1}`}
+                                      className="object-cover w-full h-full"
+                                    />
+                                    {index === 2 &&
+                                      comment.media.length > 3 && (
+                                        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                                          <span className="text-white font-medium">
+                                            +{comment.media.length - 3}
+                                          </span>
+                                        </div>
+                                      )}
+                                  </div>
+                                ))}
                             </div>
                           )}
                         </td>
@@ -916,9 +1054,20 @@ export default function AdminProductCommentsPage() {
                           {formatDate(comment.dateCreated)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="relative" ref={dropdownOpen === comment.id ? dropdownRef : null}>
+                          <div
+                            className="relative"
+                            ref={
+                              dropdownOpen === comment.id ? dropdownRef : null
+                            }
+                          >
                             <button
-                              onClick={() => setDropdownOpen(dropdownOpen === comment.id ? null : comment.id)}
+                              onClick={() =>
+                                setDropdownOpen(
+                                  dropdownOpen === comment.id
+                                    ? null
+                                    : comment.id
+                                )
+                              }
                               className="text-gray-400 hover:text-gray-600"
                             >
                               <MoreHorizontal className="w-5 h-5" />
@@ -928,8 +1077,8 @@ export default function AdminProductCommentsPage() {
                                 <div className="py-1">
                                   <button
                                     onClick={() => {
-                                      handleViewComment(comment)
-                                      setDropdownOpen(null)
+                                      handleViewComment(comment);
+                                      setDropdownOpen(null);
                                     }}
                                     className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
                                   >
@@ -938,8 +1087,8 @@ export default function AdminProductCommentsPage() {
                                   </button>
                                   <button
                                     onClick={() => {
-                                      handleEditComment(comment)
-                                      setDropdownOpen(null)
+                                      handleEditComment(comment);
+                                      setDropdownOpen(null);
                                     }}
                                     className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
                                   >
@@ -948,8 +1097,8 @@ export default function AdminProductCommentsPage() {
                                   </button>
                                   <button
                                     onClick={() => {
-                                      handleDeleteComment(comment)
-                                      setDropdownOpen(null)
+                                      handleDeleteComment(comment);
+                                      setDropdownOpen(null);
                                     }}
                                     className="flex items-center px-4 py-2 text-sm w-full text-left text-red-600 hover:bg-gray-100"
                                   >
@@ -972,8 +1121,12 @@ export default function AdminProductCommentsPage() {
             {productComments.length === 0 && (
               <div className="py-12 flex flex-col items-center justify-center">
                 <MessageSquare className="w-16 h-16 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">No comments found</h3>
-                <p className="mt-1 text-sm text-gray-500">This product has no comments yet.</p>
+                <h3 className="text-lg font-medium text-gray-900">
+                  No comments found
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  This product has no comments yet.
+                </p>
               </div>
             )}
           </div>
@@ -999,8 +1152,12 @@ export default function AdminProductCommentsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.length === 0 ? (
               <div className="col-span-full py-12 flex flex-col items-center justify-center">
-                <h3 className="text-lg font-medium text-gray-900">No products found</h3>
-                <p className="mt-1 text-sm text-gray-500">Try searching with different keywords.</p>
+                <h3 className="text-lg font-medium text-gray-900">
+                  No products found
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Try searching with different keywords.
+                </p>
               </div>
             ) : (
               filteredProducts.map((product) => (
@@ -1011,19 +1168,31 @@ export default function AdminProductCommentsPage() {
                 >
                   <div className="h-48 overflow-hidden">
                     <img
-                      src={product.resources[0] || product.image || "/placeholder.svg"}
+                      src={
+                        product.resources[0] ||
+                        product.image ||
+                        "/placeholder.svg"
+                      }
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform hover:scale-105"
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+                      {product.name}
+                    </h3>
                     <div className="mt-1 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">{formatPrice(product.listPrice)}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {formatPrice(product.listPrice)}
+                      </span>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 line-clamp-2">{product.description}</div>
+                    <div className="mt-2 text-xs text-gray-500 line-clamp-2">
+                      {product.description}
+                    </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">Type: {product.type}</span>
+                      <span className="text-xs text-gray-500">
+                        Type: {product.type}
+                      </span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                         <MessageSquare className="w-3 h-3 mr-1" />
                         {product.commentCount}
@@ -1032,7 +1201,10 @@ export default function AdminProductCommentsPage() {
                     {product.tags && product.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {product.tags.slice(0, 3).map((tag, index) => (
-                          <span key={index} className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full">
+                          <span
+                            key={index}
+                            className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -1050,10 +1222,16 @@ export default function AdminProductCommentsPage() {
       {viewingComment && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
               <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
               &#8203;
             </span>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
@@ -1063,7 +1241,9 @@ export default function AdminProductCommentsPage() {
                     <MessageSquare className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Comment Details</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                      Comment Details
+                    </h3>
                     <div className="flex items-start space-x-4 mb-4">
                       <div className="flex-shrink-0">
                         <img
@@ -1073,8 +1253,12 @@ export default function AdminProductCommentsPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{viewingComment.userName}</p>
-                        <p className="text-sm text-gray-500">{formatDate(viewingComment.dateCreated)}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {viewingComment.userName}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {formatDate(viewingComment.dateCreated)}
+                        </p>
                       </div>
                       <div>
                         <span
@@ -1082,40 +1266,50 @@ export default function AdminProductCommentsPage() {
                             viewingComment.status === "approved"
                               ? "bg-green-100 text-green-800"
                               : viewingComment.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                           }`}
                         >
                           {viewingComment.status === "approved"
                             ? "Approved"
                             : viewingComment.status === "pending"
-                              ? "Pending"
-                              : "Rejected"}
+                            ? "Pending"
+                            : "Rejected"}
                         </span>
                       </div>
                     </div>
                     <div className="border-t border-gray-200 pt-4">
                       <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Content:</p>
-                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{viewingComment.content}</p>
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Content:
+                        </p>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                          {viewingComment.content}
+                        </p>
                       </div>
                       {viewingComment.hasMedia && (
                         <div className="mt-4">
-                          <p className="text-sm font-medium text-gray-700 mb-2">Media:</p>
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Media:
+                          </p>
                           <div className="grid grid-cols-2 gap-2">
-                            {viewingComment.media.map((url: string, index: number) => (
-                              <div
-                                key={index}
-                                className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
-                                onClick={() => handleViewMedia(viewingComment, index)}
-                              >
-                                <img
-                                  src={url || "/placeholder.svg"}
-                                  alt={`Media ${index + 1}`}
-                                  className="object-cover w-full h-full"
-                                />
-                              </div>
-                            ))}
+                            {viewingComment.media.map(
+                              (url: string, index: number) => (
+                                <div
+                                  key={index}
+                                  className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
+                                  onClick={() =>
+                                    handleViewMedia(viewingComment, index)
+                                  }
+                                >
+                                  <img
+                                    src={url || "/placeholder.svg"}
+                                    alt={`Media ${index + 1}`}
+                                    className="object-cover w-full h-full"
+                                  />
+                                </div>
+                              )
+                            )}
                           </div>
                         </div>
                       )}
@@ -1160,9 +1354,13 @@ export default function AdminProductCommentsPage() {
               {/* Header */}
               <div className="flex items-center justify-between p-4 text-white">
                 <h3 className="text-lg font-medium">
-                  Media from {viewingMedia.userName} ({currentMediaIndex + 1}/{viewingMedia.media.length})
+                  Media from {viewingMedia.userName} ({currentMediaIndex + 1}/
+                  {viewingMedia.media.length})
                 </h3>
-                <button onClick={() => setViewingMedia(null)} className="text-white hover:text-gray-300">
+                <button
+                  onClick={() => setViewingMedia(null)}
+                  className="text-white hover:text-gray-300"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -1170,7 +1368,9 @@ export default function AdminProductCommentsPage() {
               {/* Media Content */}
               <div className="flex-1 flex items-center justify-center p-4">
                 <img
-                  src={viewingMedia.media[currentMediaIndex] || "/placeholder.svg"}
+                  src={
+                    viewingMedia.media[currentMediaIndex] || "/placeholder.svg"
+                  }
                   alt={`Media ${currentMediaIndex + 1}`}
                   className="max-h-full max-w-full object-contain transition-transform"
                   style={{ transform: `scale(${mediaZoom})` }}
@@ -1197,7 +1397,9 @@ export default function AdminProductCommentsPage() {
 
               {/* Controls */}
               <div className="flex items-center justify-between p-4 bg-black bg-opacity-50 text-white">
-                <div className="text-sm">{formatDate(viewingMedia.dateCreated)}</div>
+                <div className="text-sm">
+                  {formatDate(viewingMedia.dateCreated)}
+                </div>
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={handleZoomOut}
@@ -1206,7 +1408,9 @@ export default function AdminProductCommentsPage() {
                   >
                     <ZoomOut className="w-5 h-5" />
                   </button>
-                  <span className="text-sm">{Math.round(mediaZoom * 100)}%</span>
+                  <span className="text-sm">
+                    {Math.round(mediaZoom * 100)}%
+                  </span>
                   <button
                     onClick={handleZoomIn}
                     className="p-1 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70"
@@ -1231,10 +1435,16 @@ export default function AdminProductCommentsPage() {
       {editingComment && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
               <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
               &#8203;
             </span>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
@@ -1244,7 +1454,9 @@ export default function AdminProductCommentsPage() {
                     <Edit className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Comment</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                      Edit Comment
+                    </h3>
                     <div className="flex items-start space-x-4 mb-4">
                       <div className="flex-shrink-0">
                         <img
@@ -1254,13 +1466,20 @@ export default function AdminProductCommentsPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{editingComment.userName}</p>
-                        <p className="text-sm text-gray-500">{formatDate(editingComment.dateCreated)}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {editingComment.userName}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {formatDate(editingComment.dateCreated)}
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="content"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Content
                         </label>
                         <textarea
@@ -1300,10 +1519,16 @@ export default function AdminProductCommentsPage() {
       {deletingComment && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
               <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
               &#8203;
             </span>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
@@ -1313,14 +1538,19 @@ export default function AdminProductCommentsPage() {
                     <Trash2 className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">Delete Comment</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Delete Comment
+                    </h3>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        Are you sure you want to delete this comment? This action cannot be undone.
+                        Are you sure you want to delete this comment? This
+                        action cannot be undone.
                       </p>
                     </div>
                     <div className="mt-3 p-3 bg-gray-50 rounded-md">
-                      <p className="text-sm text-gray-700">{deletingComment.content}</p>
+                      <p className="text-sm text-gray-700">
+                        {deletingComment.content}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1346,5 +1576,5 @@ export default function AdminProductCommentsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

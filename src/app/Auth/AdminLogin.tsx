@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Checkbox from "../../components/ui/Checkbox";
 import { Card, CardHeader, CardBody } from "../../components/ui/Card";
-import { loginAdmin, loginUser } from "shopnexus-protobuf-gen-ts";
+import { loginAdmin } from "shopnexus-protobuf-gen-ts";
 import { useMutation } from "@connectrpc/connect-query";
 
 const AdminLogin: React.FC = () => {
@@ -17,8 +16,6 @@ const AdminLogin: React.FC = () => {
   const { mutateAsync: mutateLoginAdmin } = useMutation(loginAdmin);
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const { isAdmin } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +31,7 @@ const AdminLogin: React.FC = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAdmin", "true");
 
-      navigate("/admin", { replace: true });
+      window.location.href = "/admin";
     } catch (err: any) {
       let errorMessage = "An error occurred during login";
 
