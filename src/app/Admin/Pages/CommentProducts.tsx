@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import {
-  CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -10,30 +9,47 @@ import {
   Edit,
   Eye,
   Filter,
-  ImageIcon,
   Loader,
   MessageSquare,
   MoreHorizontal,
   RefreshCw,
   Search,
-  Star,
   ThumbsDown,
   ThumbsUp,
   Trash2,
   X,
-  XCircle,
   ZoomIn,
   ZoomOut,
 } from "lucide-react"
-
-// Mock data for products
+//form data product model
+interface ProductModelFormData {
+  name: string
+  description: string
+  listPrice: number
+  brandId: number
+  type: number
+  dateManufactured: number
+  resources: string[]
+  tags: string[]
+}
+// Mock data for products with ProductModelFormData structure
 const mockProducts = [
   {
     id: "101",
     name: "Wireless Headphones",
+    description: "Premium wireless headphones with noise cancellation and long battery life",
+    listPrice: 129.99,
+    brandId: 1, // SoundMax
+    type: 1, // Audio
+    dateManufactured: 1620000000000, // May 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Headphones",
+      "/placeholder.svg?height=200&width=200&text=Headphones+Side",
+    ],
+    tags: ["wireless", "noise-cancellation", "premium"],
+    // Additional fields for UI display
     brand: "SoundMax",
     category: "Audio",
-    price: 129.99,
     stock: 45,
     image: "/placeholder.svg?height=200&width=200&text=Headphones",
     commentCount: 12,
@@ -41,9 +57,19 @@ const mockProducts = [
   {
     id: "102",
     name: "Smart Watch",
+    description: "Advanced smartwatch with health monitoring and GPS tracking",
+    listPrice: 199.99,
+    brandId: 2, // TechWear
+    type: 2, // Wearables
+    dateManufactured: 1630000000000, // August 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Smart+Watch",
+      "/placeholder.svg?height=200&width=200&text=Watch+Features",
+    ],
+    tags: ["smartwatch", "fitness", "gps"],
+    // Additional fields for UI display
     brand: "TechWear",
     category: "Wearables",
-    price: 199.99,
     stock: 28,
     image: "/placeholder.svg?height=200&width=200&text=Smart+Watch",
     commentCount: 8,
@@ -51,9 +77,19 @@ const mockProducts = [
   {
     id: "103",
     name: "Bluetooth Speaker",
+    description: "Portable Bluetooth speaker with waterproof design and 360° sound",
+    listPrice: 79.99,
+    brandId: 1, // SoundMax
+    type: 1, // Audio
+    dateManufactured: 1625000000000, // June 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Speaker",
+      "/placeholder.svg?height=200&width=200&text=Speaker+Features",
+    ],
+    tags: ["bluetooth", "waterproof", "portable"],
+    // Additional fields for UI display
     brand: "SoundMax",
     category: "Audio",
-    price: 79.99,
     stock: 60,
     image: "/placeholder.svg?height=200&width=200&text=Speaker",
     commentCount: 5,
@@ -61,9 +97,19 @@ const mockProducts = [
   {
     id: "104",
     name: "Gaming Mouse",
+    description: "High-precision gaming mouse with customizable RGB lighting and programmable buttons",
+    listPrice: 59.99,
+    brandId: 3, // GameTech
+    type: 3, // Gaming
+    dateManufactured: 1622000000000, // May 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Gaming+Mouse",
+      "/placeholder.svg?height=200&width=200&text=Mouse+RGB",
+    ],
+    tags: ["gaming", "rgb", "programmable"],
+    // Additional fields for UI display
     brand: "GameTech",
     category: "Gaming",
-    price: 59.99,
     stock: 32,
     image: "/placeholder.svg?height=200&width=200&text=Gaming+Mouse",
     commentCount: 15,
@@ -71,9 +117,19 @@ const mockProducts = [
   {
     id: "105",
     name: "4K Monitor",
+    description: "Ultra-sharp 4K monitor with HDR support and wide color gamut",
+    listPrice: 349.99,
+    brandId: 4, // ViewClear
+    type: 4, // Monitors
+    dateManufactured: 1615000000000, // March 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=4K+Monitor",
+      "/placeholder.svg?height=200&width=200&text=Monitor+Side",
+    ],
+    tags: ["4k", "hdr", "professional"],
+    // Additional fields for UI display
     brand: "ViewClear",
     category: "Monitors",
-    price: 349.99,
     stock: 18,
     image: "/placeholder.svg?height=200&width=200&text=4K+Monitor",
     commentCount: 7,
@@ -81,9 +137,19 @@ const mockProducts = [
   {
     id: "106",
     name: "Mechanical Keyboard",
+    description: "Mechanical gaming keyboard with tactile switches and customizable backlighting",
+    listPrice: 129.99,
+    brandId: 3, // GameTech
+    type: 3, // Gaming
+    dateManufactured: 1618000000000, // April 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Keyboard",
+      "/placeholder.svg?height=200&width=200&text=Keyboard+Lighting",
+    ],
+    tags: ["mechanical", "gaming", "rgb"],
+    // Additional fields for UI display
     brand: "GameTech",
     category: "Gaming",
-    price: 129.99,
     stock: 25,
     image: "/placeholder.svg?height=200&width=200&text=Keyboard",
     commentCount: 9,
@@ -91,9 +157,19 @@ const mockProducts = [
   {
     id: "107",
     name: "Wireless Earbuds",
+    description: "True wireless earbuds with active noise cancellation and touch controls",
+    listPrice: 89.99,
+    brandId: 1, // SoundMax
+    type: 1, // Audio
+    dateManufactured: 1628000000000, // August 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Earbuds",
+      "/placeholder.svg?height=200&width=200&text=Earbuds+Case",
+    ],
+    tags: ["wireless", "earbuds", "noise-cancellation"],
+    // Additional fields for UI display
     brand: "SoundMax",
     category: "Audio",
-    price: 89.99,
     stock: 50,
     image: "/placeholder.svg?height=200&width=200&text=Earbuds",
     commentCount: 11,
@@ -101,9 +177,19 @@ const mockProducts = [
   {
     id: "108",
     name: "Gaming Laptop",
+    description: "High-performance gaming laptop with dedicated GPU and high refresh rate display",
+    listPrice: 1299.99,
+    brandId: 5, // TechPower
+    type: 5, // Computers
+    dateManufactured: 1633000000000, // October 2021
+    resources: [
+      "/placeholder.svg?height=200&width=200&text=Gaming+Laptop",
+      "/placeholder.svg?height=200&width=200&text=Laptop+Open",
+    ],
+    tags: ["gaming", "laptop", "high-performance"],
+    // Additional fields for UI display
     brand: "TechPower",
     category: "Computers",
-    price: 1299.99,
     stock: 10,
     image: "/placeholder.svg?height=200&width=200&text=Gaming+Laptop",
     commentCount: 14,
@@ -359,14 +445,11 @@ export default function AdminProductCommentsPage() {
   const [mediaZoom, setMediaZoom] = useState(1)
   const [editingComment, setEditingComment] = useState<any>(null)
   const [editedContent, setEditedContent] = useState("")
-  const [editedStatus, setEditedStatus] = useState("")
-  const [editedRating, setEditedRating] = useState(0)
   const [deletingComment, setDeletingComment] = useState<any>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
   const [sortOption, setSortOption] = useState("newest")
-  const [statusFilter, setStatusFilter] = useState("all")
   const [productSearchQuery, setProductSearchQuery] = useState("")
 
   // Refs
@@ -403,19 +486,14 @@ export default function AdminProductCommentsPage() {
   // Get comments for selected product
   const productComments = selectedProduct ? mockComments[selectedProduct] || [] : []
 
-  // Filter comments based on search query and status
-  const filteredComments = productComments
-    .filter((comment) => {
-      if (statusFilter === "all") return true
-      return comment.status === statusFilter
-    })
-    .filter((comment) => {
-      if (!searchQuery) return true
-      return (
-        comment.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        comment.userName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    })
+  // Filter comments based on search query
+  const filteredComments = productComments.filter((comment) => {
+    if (!searchQuery) return true
+    return (
+      comment.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      comment.userName.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
 
   // Sort comments
   const sortedComments = [...filteredComments].sort((a, b) => {
@@ -424,12 +502,6 @@ export default function AdminProductCommentsPage() {
     }
     if (sortOption === "oldest") {
       return new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
-    }
-    if (sortOption === "highest-rating") {
-      return b.rating - a.rating
-    }
-    if (sortOption === "lowest-rating") {
-      return a.rating - b.rating
     }
     if (sortOption === "most-likes") {
       return b.likes - a.likes
@@ -442,7 +514,6 @@ export default function AdminProductCommentsPage() {
     setSelectedProduct(productId)
     setSelectedComments([])
     setSearchQuery("")
-    setStatusFilter("all")
     setSortOption("newest")
   }
 
@@ -488,16 +559,12 @@ export default function AdminProductCommentsPage() {
   const handleEditComment = (comment: any) => {
     setEditingComment(comment)
     setEditedContent(comment.content)
-    setEditedStatus(comment.status)
-    setEditedRating(comment.rating)
   }
 
   const handleSaveEdit = () => {
     console.log("Saving edited comment:", {
       ...editingComment,
       content: editedContent,
-      status: editedStatus,
-      rating: editedRating,
     })
     setEditingComment(null)
   }
@@ -565,10 +632,10 @@ export default function AdminProductCommentsPage() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "VND",
-    }).format(price * 23000) // Giả định tỷ giá 23,000 VND/USD
+      currency: "USD",
+    }).format(price)
   }
 
   // Get selected product details
@@ -577,14 +644,14 @@ export default function AdminProductCommentsPage() {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Quản lý bình luận sản phẩm</h1>
+        <h1 className="text-3xl font-bold">Product Comments Management</h1>
         <button
           onClick={handleRefresh}
           className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isRefreshing}
         >
           {isRefreshing ? <Loader className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-          Làm mới
+          Refresh
         </button>
       </div>
 
@@ -602,89 +669,72 @@ export default function AdminProductCommentsPage() {
               </button>
               <div className="flex-shrink-0 mr-4">
                 <img
-                  src={selectedProductDetails?.image || "/placeholder.svg"}
+                  src={selectedProductDetails?.resources?.[0] || selectedProductDetails?.image || "/placeholder.svg"}
                   alt={selectedProductDetails?.name}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold">{selectedProductDetails?.name}</h2>
+                <div className="mt-1 text-sm text-gray-500 line-clamp-2">{selectedProductDetails?.description}</div>
+                
                 <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-medium">Thương hiệu:</span> {selectedProductDetails?.brand}
+                  <span className="font-medium">Type:</span> {selectedProductDetails?.type}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-medium">Danh mục:</span> {selectedProductDetails?.category}
+                  <span className="font-medium">Price:</span> {formatPrice(selectedProductDetails?.listPrice || 0)}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-medium">Giá:</span> {formatPrice(selectedProductDetails?.price || 0)}
+                  <span className="font-medium">Manufactured:</span>{" "}
+                  {selectedProductDetails?.dateManufactured
+                    ? new Date(selectedProductDetails.dateManufactured).toLocaleDateString()
+                    : "Unknown"}
                 </div>
-                <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-medium">Tồn kho:</span> {selectedProductDetails?.stock} sản phẩm
-                </div>
+                {selectedProductDetails?.tags && selectedProductDetails.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {selectedProductDetails.tags.map((tag, index) => (
+                      <span key={index} className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className="mt-2 flex items-center">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     <MessageSquare className="w-3 h-3 mr-1" />
-                    {productComments.length} bình luận
+                    {productComments.length} comments
                   </span>
                 </div>
               </div>
             </div>
+            {selectedProductDetails?.resources && selectedProductDetails.resources.length > 1 && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Product Resources:</h3>
+                <div className="flex overflow-x-auto space-x-2 pb-2">
+                  {selectedProductDetails.resources.map((resource, index) => (
+                    <img
+                      key={index}
+                      src={resource || "/placeholder.svg"}
+                      alt={`${selectedProductDetails.name} resource ${index + 1}`}
+                      className="h-16 w-16 object-cover rounded-md flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Comments management */}
           <div className="bg-white rounded-lg shadow">
             {/* Filters and search */}
             <div className="flex flex-wrap items-center justify-between p-4 border-b">
-              <div className="flex space-x-1 overflow-x-auto pb-2 md:pb-0">
-                <button
-                  onClick={() => setStatusFilter("all")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    statusFilter === "all"
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  Tất cả
-                </button>
-                <button
-                  onClick={() => setStatusFilter("pending")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    statusFilter === "pending"
-                      ? "bg-yellow-50 text-yellow-700"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  Chờ duyệt
-                </button>
-                <button
-                  onClick={() => setStatusFilter("approved")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    statusFilter === "approved"
-                      ? "bg-green-50 text-green-700"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  Đã duyệt
-                </button>
-                <button
-                  onClick={() => setStatusFilter("rejected")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    statusFilter === "rejected"
-                      ? "bg-red-50 text-red-700"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  Từ chối
-                </button>
-              </div>
-
               <div className="flex items-center space-x-2 mt-2 md:mt-0">
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm bình luận..."
+                    placeholder="Search comments..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -698,7 +748,7 @@ export default function AdminProductCommentsPage() {
                     className="flex items-center px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <Filter className="w-4 h-4 mr-2" />
-                    Sắp xếp
+                    Sort
                     <ChevronDown className="w-4 h-4 ml-2" />
                   </button>
                   {filterDropdownOpen && (
@@ -713,7 +763,7 @@ export default function AdminProductCommentsPage() {
                             sortOption === "newest" ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
-                          Mới nhất
+                          Newest
                         </button>
                         <button
                           onClick={() => {
@@ -724,33 +774,7 @@ export default function AdminProductCommentsPage() {
                             sortOption === "oldest" ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
-                          Cũ nhất
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortOption("highest-rating")
-                            setFilterDropdownOpen(false)
-                          }}
-                          className={`block px-4 py-2 text-sm w-full text-left ${
-                            sortOption === "highest-rating"
-                              ? "bg-blue-50 text-blue-700"
-                              : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          Đánh giá cao nhất
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortOption("lowest-rating")
-                            setFilterDropdownOpen(false)
-                          }}
-                          className={`block px-4 py-2 text-sm w-full text-left ${
-                            sortOption === "lowest-rating"
-                              ? "bg-blue-50 text-blue-700"
-                              : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          Đánh giá thấp nhất
+                          Oldest
                         </button>
                         <button
                           onClick={() => {
@@ -761,7 +785,7 @@ export default function AdminProductCommentsPage() {
                             sortOption === "most-likes" ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
-                          Nhiều lượt thích nhất
+                          Most Likes
                         </button>
                       </div>
                     </div>
@@ -774,29 +798,15 @@ export default function AdminProductCommentsPage() {
             {selectedComments.length > 0 && (
               <div className="bg-gray-50 p-3 flex items-center justify-between border-b">
                 <div className="text-sm">
-                  Đã chọn {selectedComments.length} {selectedComments.length === 1 ? "bình luận" : "bình luận"}
+                  Selected {selectedComments.length} {selectedComments.length === 1 ? "comment" : "comments"}
                 </div>
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleBulkAction("approve")}
-                    className="flex items-center px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Duyệt tất cả
-                  </button>
-                  <button
-                    onClick={() => handleBulkAction("reject")}
-                    className="flex items-center px-3 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Từ chối tất cả
-                  </button>
                   <button
                     onClick={() => handleBulkAction("delete")}
                     className="flex items-center px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Xóa tất cả
+                    Delete All
                   </button>
                 </div>
               </div>
@@ -822,37 +832,25 @@ export default function AdminProductCommentsPage() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Người dùng
+                      User
                     </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Nội dung
+                      Content
                     </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Đánh giá
+                      Created Date
                     </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Trạng thái
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Ngày tạo
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Thao tác
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -860,7 +858,7 @@ export default function AdminProductCommentsPage() {
                   {sortedComments.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
-                        Không tìm thấy bình luận nào
+                        No comments found
                       </td>
                     </tr>
                   ) : (
@@ -890,45 +888,29 @@ export default function AdminProductCommentsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 line-clamp-2 max-w-xs">{comment.content}</div>
+                          <div className="text-sm text-gray-900 mb-2">{comment.content}</div>
                           {comment.hasMedia && (
-                            <button
-                              onClick={() => handleViewMedia(comment)}
-                              className="mt-1 inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
-                            >
-                              <ImageIcon className="w-3 h-3 mr-1" />
-                              {comment.mediaCount} {comment.mediaCount === 1 ? "ảnh" : "ảnh"}
-                            </button>
+                            <div className="grid grid-cols-3 gap-2 mt-2">
+                              {comment.media.slice(0, 3).map((url: string, index: number) => (
+                                <div
+                                  key={index}
+                                  className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
+                                  onClick={() => handleViewMedia(comment, index)}
+                                >
+                                  <img
+                                    src={url || "/placeholder.svg"}
+                                    alt={`Media ${index + 1}`}
+                                    className="object-cover w-full h-full"
+                                  />
+                                  {index === 2 && comment.media.length > 3 && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                                      <span className="text-white font-medium">+{comment.media.length - 3}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i < comment.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              comment.status === "approved"
-                                ? "bg-green-100 text-green-800"
-                                : comment.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {comment.status === "approved"
-                              ? "Đã duyệt"
-                              : comment.status === "pending"
-                                ? "Chờ duyệt"
-                                : "Từ chối"}
-                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(comment.dateCreated)}
@@ -952,7 +934,7 @@ export default function AdminProductCommentsPage() {
                                     className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
                                   >
                                     <Eye className="w-4 h-4 mr-2" />
-                                    Xem chi tiết
+                                    View Details
                                   </button>
                                   <button
                                     onClick={() => {
@@ -962,32 +944,8 @@ export default function AdminProductCommentsPage() {
                                     className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
                                   >
                                     <Edit className="w-4 h-4 mr-2" />
-                                    Chỉnh sửa
+                                    Edit
                                   </button>
-                                  {comment.status !== "approved" && (
-                                    <button
-                                      onClick={() => {
-                                        handleChangeStatus(comment.id, "approved")
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                                      Duyệt
-                                    </button>
-                                  )}
-                                  {comment.status !== "rejected" && (
-                                    <button
-                                      onClick={() => {
-                                        handleChangeStatus(comment.id, "rejected")
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
-                                    >
-                                      <XCircle className="w-4 h-4 mr-2 text-red-500" />
-                                      Từ chối
-                                    </button>
-                                  )}
                                   <button
                                     onClick={() => {
                                       handleDeleteComment(comment)
@@ -996,7 +954,7 @@ export default function AdminProductCommentsPage() {
                                     className="flex items-center px-4 py-2 text-sm w-full text-left text-red-600 hover:bg-gray-100"
                                   >
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Xóa
+                                    Delete
                                   </button>
                                 </div>
                               </div>
@@ -1014,8 +972,8 @@ export default function AdminProductCommentsPage() {
             {productComments.length === 0 && (
               <div className="py-12 flex flex-col items-center justify-center">
                 <MessageSquare className="w-16 h-16 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">Không có bình luận nào</h3>
-                <p className="mt-1 text-sm text-gray-500">Sản phẩm này chưa có bình luận nào.</p>
+                <h3 className="text-lg font-medium text-gray-900">No comments found</h3>
+                <p className="mt-1 text-sm text-gray-500">This product has no comments yet.</p>
               </div>
             )}
           </div>
@@ -1029,7 +987,7 @@ export default function AdminProductCommentsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Tìm kiếm sản phẩm..."
+                placeholder="Search products..."
                 value={productSearchQuery}
                 onChange={(e) => setProductSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1041,8 +999,8 @@ export default function AdminProductCommentsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.length === 0 ? (
               <div className="col-span-full py-12 flex flex-col items-center justify-center">
-                <h3 className="text-lg font-medium text-gray-900">Không tìm thấy sản phẩm nào</h3>
-                <p className="mt-1 text-sm text-gray-500">Thử tìm kiếm với từ khóa khác.</p>
+                <h3 className="text-lg font-medium text-gray-900">No products found</h3>
+                <p className="mt-1 text-sm text-gray-500">Try searching with different keywords.</p>
               </div>
             ) : (
               filteredProducts.map((product) => (
@@ -1053,7 +1011,7 @@ export default function AdminProductCommentsPage() {
                 >
                   <div className="h-48 overflow-hidden">
                     <img
-                      src={product.image || "/placeholder.svg"}
+                      src={product.resources[0] || product.image || "/placeholder.svg"}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform hover:scale-105"
                     />
@@ -1061,16 +1019,25 @@ export default function AdminProductCommentsPage() {
                   <div className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
                     <div className="mt-1 flex items-center justify-between">
-                      <span className="text-sm text-gray-500">{product.brand}</span>
-                      <span className="text-sm font-medium text-gray-900">{formatPrice(product.price)}</span>
+                      <span className="text-sm font-medium text-gray-900">{formatPrice(product.listPrice)}</span>
                     </div>
+                    <div className="mt-2 text-xs text-gray-500 line-clamp-2">{product.description}</div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">{product.category}</span>
+                      <span className="text-xs text-gray-500">Type: {product.type}</span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                         <MessageSquare className="w-3 h-3 mr-1" />
                         {product.commentCount}
                       </span>
                     </div>
+                    {product.tags && product.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {product.tags.slice(0, 3).map((tag, index) => (
+                          <span key={index} className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -1092,8 +1059,11 @@ export default function AdminProductCommentsPage() {
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <MessageSquare className="h-6 w-6 text-blue-600" />
+                  </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Chi tiết bình luận</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Comment Details</h3>
                     <div className="flex items-start space-x-4 mb-4">
                       <div className="flex-shrink-0">
                         <img
@@ -1117,35 +1087,22 @@ export default function AdminProductCommentsPage() {
                           }`}
                         >
                           {viewingComment.status === "approved"
-                            ? "Đã duyệt"
+                            ? "Approved"
                             : viewingComment.status === "pending"
-                              ? "Chờ duyệt"
-                              : "Từ chối"}
+                              ? "Pending"
+                              : "Rejected"}
                         </span>
                       </div>
                     </div>
                     <div className="border-t border-gray-200 pt-4">
-                      <div className="mb-2">
-                        <span className="text-sm font-medium text-gray-700">Đánh giá:</span>
-                        <div className="flex mt-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < viewingComment.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
                       <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Nội dung:</p>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Content:</p>
                         <p className="text-sm text-gray-900 whitespace-pre-wrap">{viewingComment.content}</p>
                       </div>
                       {viewingComment.hasMedia && (
                         <div className="mt-4">
                           <p className="text-sm font-medium text-gray-700 mb-2">Media:</p>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 gap-2">
                             {viewingComment.media.map((url: string, index: number) => (
                               <div
                                 key={index}
@@ -1173,7 +1130,7 @@ export default function AdminProductCommentsPage() {
                         </div>
                         <div className="flex items-center">
                           <MessageSquare className="w-4 h-4 mr-1" />
-                          <span>{viewingComment.replies} phản hồi</span>
+                          <span>{viewingComment.replies} replies</span>
                         </div>
                       </div>
                     </div>
@@ -1186,34 +1143,8 @@ export default function AdminProductCommentsPage() {
                   onClick={() => setViewingComment(null)}
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Đóng
+                  Close
                 </button>
-                {viewingComment.status !== "approved" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleChangeStatus(viewingComment.id, "approved")
-                      setViewingComment(null)
-                    }}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Duyệt
-                  </button>
-                )}
-                {viewingComment.status !== "rejected" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleChangeStatus(viewingComment.id, "rejected")
-                      setViewingComment(null)
-                    }}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Từ chối
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -1229,7 +1160,7 @@ export default function AdminProductCommentsPage() {
               {/* Header */}
               <div className="flex items-center justify-between p-4 text-white">
                 <h3 className="text-lg font-medium">
-                  Media từ {viewingMedia.userName} ({currentMediaIndex + 1}/{viewingMedia.media.length})
+                  Media from {viewingMedia.userName} ({currentMediaIndex + 1}/{viewingMedia.media.length})
                 </h3>
                 <button onClick={() => setViewingMedia(null)} className="text-white hover:text-gray-300">
                   <X className="w-6 h-6" />
@@ -1309,8 +1240,11 @@ export default function AdminProductCommentsPage() {
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <Edit className="h-6 w-6 text-blue-600" />
+                  </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Chỉnh sửa bình luận</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Comment</h3>
                     <div className="flex items-start space-x-4 mb-4">
                       <div className="flex-shrink-0">
                         <img
@@ -1326,40 +1260,8 @@ export default function AdminProductCommentsPage() {
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label htmlFor="rating" className="block text-sm font-medium text-gray-700">
-                          Đánh giá
-                        </label>
-                        <select
-                          id="rating"
-                          value={editedRating}
-                          onChange={(e) => setEditedRating(Number(e.target.value))}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        >
-                          <option value={1}>1 Sao</option>
-                          <option value={2}>2 Sao</option>
-                          <option value={3}>3 Sao</option>
-                          <option value={4}>4 Sao</option>
-                          <option value={5}>5 Sao</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                          Trạng thái
-                        </label>
-                        <select
-                          id="status"
-                          value={editedStatus}
-                          onChange={(e) => setEditedStatus(e.target.value)}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        >
-                          <option value="pending">Chờ duyệt</option>
-                          <option value="approved">Đã duyệt</option>
-                          <option value="rejected">Từ chối</option>
-                        </select>
-                      </div>
-                      <div>
                         <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-                          Nội dung
+                          Content
                         </label>
                         <textarea
                           id="content"
@@ -1379,14 +1281,14 @@ export default function AdminProductCommentsPage() {
                   onClick={handleSaveEdit}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Lưu thay đổi
+                  Save Changes
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingComment(null)}
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             </div>
@@ -1411,10 +1313,10 @@ export default function AdminProductCommentsPage() {
                     <Trash2 className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">Xóa bình luận</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">Delete Comment</h3>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        Bạn có chắc chắn muốn xóa bình luận này? Hành động này không thể hoàn tác.
+                        Are you sure you want to delete this comment? This action cannot be undone.
                       </p>
                     </div>
                     <div className="mt-3 p-3 bg-gray-50 rounded-md">
@@ -1429,14 +1331,14 @@ export default function AdminProductCommentsPage() {
                   onClick={confirmDelete}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Xóa
+                  Delete
                 </button>
                 <button
                   type="button"
                   onClick={() => setDeletingComment(null)}
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             </div>
