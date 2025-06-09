@@ -21,9 +21,7 @@ export default function AddressManagement({
   addresses,
   refetchAddresses,
 }: AddressManagementProps) {
-  const [newAddress, setNewAddress] = useState<
-    Omit<Address, "id" | "isDefault">
-  >({
+  const [newAddress, setNewAddress] = useState<any>({
     name: "",
     phone: "",
     address: "",

@@ -1,16 +1,11 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
 import Comment from "./Comment";
-import { useQuery, useMutation } from "@connectrpc/connect-query";
-import {
-  getUser,
-  updateComment,
-  deleteComment,
-} from "shopnexus-protobuf-gen-ts";
+import { useQuery } from "@connectrpc/connect-query";
+import { getUser } from "shopnexus-protobuf-gen-ts";
 
 export interface Comment {
   id: bigint;
@@ -20,8 +15,8 @@ export interface Comment {
   upvote: number;
   downvote: number;
   score: number;
-  dateCreated: String;
-  dateUpdated?: String;
+  dateCreated: string;
+  dateUpdated?: string;
   resources?: string[];
 }
 
@@ -40,9 +35,9 @@ const CommentList = ({
 }: CommentListProps) => {
   const { data: me } = useQuery(getUser);
   const [visibleCount, setVisibleCount] = useState(2);
-  const [voteStatus, setVoteStatus] = useState<
-    Map<bigint, "up" | "down" | null>
-  >(new Map());
+  const [, setVoteStatus] = useState<Map<bigint, "up" | "down" | null>>(
+    new Map()
+  );
   const [replyingTo, setReplyingTo] = useState<bigint | null>(null);
   const [editingComment, setEditingComment] = useState<bigint | null>(null);
 

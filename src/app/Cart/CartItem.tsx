@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -138,19 +139,9 @@ export default function CartItem({
                 <Minus className="h-4 w-4" />
               </button>
 
-              <input
-                type="number"
-                value={localQuantity}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  if (!isNaN(value) && value > 0) {
-                    setLocalQuantity(value);
-                    onUpdateQuantity(value);
-                  }
-                }}
-                min="1"
-                className="w-12 text-center py-1.5 font-medium focus:outline-none"
-              />
+              <span className="w-12 text-center py-1.5 font-medium">
+                {localQuantity}
+              </span>
 
               <button
                 onClick={handleIncrement}

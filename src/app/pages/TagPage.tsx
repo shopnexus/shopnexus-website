@@ -4,9 +4,7 @@ import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import ProductCard from "../../components/ProductCard";
 import CategoryLayout from "../../components/CategoryLayout";
-import { Tag, TrendingUp, ShoppingBag, Star } from "lucide-react";
-import { useQuery } from "@connectrpc/connect-query";
-import { getTag, listProductModels } from "shopnexus-protobuf-gen-ts";
+import { Tag } from "lucide-react";
 
 const container = {
   hidden: { opacity: 0 },
@@ -71,9 +69,9 @@ const mockProducts = [
 export default function TagPage() {
   const { tagSlug } = useParams<{ tagSlug: string }>();
 
-  const { data: tag } = useQuery(getTag, {
-    tag: tagSlug ?? "",
-  });
+  // const { data: tag } = useQuery(getTag, {
+  //   tag: tagSlug ?? "",
+  // });
 
   // Filter products by tagSlug
   const products = mockProducts.filter((product) =>
