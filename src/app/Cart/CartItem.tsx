@@ -103,7 +103,10 @@ export default function CartItem({
         id={`item-${String(product.id)}`}
       />
 
-      <Link to={`/product/${product.id}`} className="relative group">
+      <Link
+        to={`/product/${product.productModelId}`}
+        className="relative group"
+      >
         <div className="h-24 w-24 rounded-md overflow-hidden bg-gray-100">
           <img
             src={productModel.resources[0] || "/placeholder.svg"}
@@ -114,7 +117,7 @@ export default function CartItem({
       </Link>
 
       <div className="ml-4 flex-grow">
-        <Link to={`/product/${product.id}`}>
+        <Link to={`/product/${product.productModelId}`}>
           <h3 className="text-lg font-medium hover:text-primary transition-colors">
             {productModel.name}
           </h3>
@@ -135,9 +138,19 @@ export default function CartItem({
                 <Minus className="h-4 w-4" />
               </button>
 
-              <span className="w-12 text-center py-1.5 font-medium">
-                {localQuantity}
-              </span>
+              <input
+                type="number"
+                value={localQuantity}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (!isNaN(value) && value > 0) {
+                    setLocalQuantity(value);
+                    onUpdateQuantity(value);
+                  }
+                }}
+                min="1"
+                className="w-12 text-center py-1.5 font-medium focus:outline-none"
+              />
 
               <button
                 onClick={handleIncrement}
