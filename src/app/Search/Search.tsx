@@ -111,7 +111,7 @@ export default function Search() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[800px]">
       {/* Top Navigation Search Bar */}
       {/* <div className="mb-8 sticky top-0 z-10 bg-white py-4 shadow-sm">
         <div className="relative">
@@ -186,7 +186,7 @@ export default function Search() {
               </label>
               <input
                 type="number"
-                value={searchParams.listPriceFrom}
+                defaultValue={searchParams.listPriceFrom}
                 onChange={(e) =>
                   handleInputChange("listPriceFrom", e.target.value)
                 }
@@ -201,7 +201,7 @@ export default function Search() {
               </label>
               <input
                 type="number"
-                value={searchParams.listPriceTo}
+                defaultValue={searchParams.listPriceTo}
                 onChange={(e) =>
                   handleInputChange("listPriceTo", e.target.value)
                 }
@@ -261,7 +261,7 @@ export default function Search() {
       </div>
 
       {productModels?.data?.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center">
           <p className="text-gray-500">
             No products found matching your criteria
           </p>
