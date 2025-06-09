@@ -2,14 +2,9 @@
 
 import type React from "react";
 
-import { useState, useRef, createRef } from "react";
-import { ArrowLeft, X, Upload, CheckCircle } from "lucide-react";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { useState, useEffect } from "react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   createRefund,
   getPayment,
@@ -18,10 +13,7 @@ import {
 } from "shopnexus-protobuf-gen-ts";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import FileUpload from "./ui/FileUpload";
-import {
-  CreateRefundRequest,
-  RefundMethod,
-} from "shopnexus-protobuf-gen-ts/pb/payment/v1/refund_pb";
+import { RefundMethod } from "shopnexus-protobuf-gen-ts/pb/payment/v1/refund_pb";
 export interface RefundInfo {
   id: string;
   paymentId: string;
@@ -57,28 +49,6 @@ export interface PaymentProductItem {
   productInfo?: ProductInfor | null;
 }
 
-//test data
-const dataModel: RefundInfo = {
-  id: "2",
-  paymentId: "3",
-  method: "REFUND_METHOD_DROP_OFF",
-  status: "STATUS_SUCCESS",
-  reason:
-    "Sub comedo voluptates uredo deorsum universe peior carus aestas adipisci.",
-  dateCreated: "1743808940828",
-  dateUpdated: "1743808940828",
-  resources: [
-    "https://loremflickr.com/800/600?lock=3346652999366532",
-    "https://picsum.photos/seed/alIPKkY4Vp/800/600?grayscale&blur=8",
-    "https://picsum.photos/seed/b0yMS3yqA/800/600?blur=1",
-    "https://picsum.photos/seed/FqcOQm4uhU/800/600?blur=3",
-    "https://picsum.photos/seed/U6WUuEL1/800/600?grayscale",
-    "https://picsum.photos/seed/v1iD8SXxS/800/600?blur=5",
-    "https://picsum.photos/seed/Wtws7H3Ft/800/600?grayscale&blur=9",
-    "https://picsum.photos/seed/X8XFwhkQ/800/600?blur=7",
-  ],
-};
-
 const RefundProduct: React.FC = () => {
   const [searchParams] = useSearchParams();
   const payment_id = searchParams.get("id");
@@ -91,7 +61,7 @@ const RefundProduct: React.FC = () => {
     address: string;
     resources: string[];
   }>({
-    productOnPaymentId: BigInt(product_id || "0"),
+    productOnPaymentId: BigInt(0),
     method: RefundMethod.UNSPECIFIED,
     reason: "",
     address: "",
@@ -101,11 +71,6 @@ const RefundProduct: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data: paymentResponse } = useQuery(getPayment, {
-    id: BigInt(payment_id || "0"),
-  });
-  const paymentInfo = paymentResponse?.data;
   const { data: productResponse } = useQuery(getProduct, {
     id: BigInt(product_id || "0"),
   });
@@ -113,11 +78,23 @@ const RefundProduct: React.FC = () => {
   const { data: productModelResponse } = useQuery(getProductModel, {
     id: product?.productModelId,
   });
-  const productModel = productModelResponse?.data;
+  const { data: paymentResponse } = useQuery(getPayment, {
+    id: BigInt(payment_id || "0"),
+  });
+  const paymentInfo = paymentResponse?.data;
   const paymentItem = paymentInfo?.products.find(
-    (product) => product.id === BigInt(product_id || "0")
+    (product) => product.itemQuantity?.itemId === BigInt(product_id || "0")
   );
+  console.log(paymentInfo?.products);
+  const productModel = productModelResponse?.data;
   const { mutateAsync: mutateCreateRefund } = useMutation(createRefund);
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      productOnPaymentId: BigInt(paymentItem?.id || 0),
+    }));
+  }, [paymentItem]);
 
   const reasons = [
     "Product is defective",
@@ -206,6 +183,9 @@ const RefundProduct: React.FC = () => {
     } catch (error) {
       console.error("Error submitting refund:", error);
       setMessage("Failed to submit refund request");
+      alert(
+        "An error occurred while submitting your refund request. Please try again later."
+      );
     } finally {
       setIsSubmitting(false);
     }
