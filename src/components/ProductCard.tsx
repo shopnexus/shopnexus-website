@@ -106,7 +106,7 @@ export default function ProductCard({ id }: ProductCardProps) {
       </div>
 
       {/* Bottom section: price + sold count */}
-      <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-100">
+      <div className="mt-auto pt-4 flex justify-between items-center">
         <p className="text-sm font-bold text-blue-600">
           {productModel?.listPrice.toLocaleString("vi-VN")} ₫
         </p>
