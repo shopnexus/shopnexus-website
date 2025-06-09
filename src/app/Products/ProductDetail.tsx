@@ -698,7 +698,7 @@ const ProductDetail: React.FC = () => {
                   key={tag}
                   className="px-2 py-1 text-sm bg-gray-100 rounded-full"
                 >
-                  {tag}
+                  <Link to={`/tags/${tag}`}>{tag}</Link>
                 </span>
               ))}
             </div>
