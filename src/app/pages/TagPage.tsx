@@ -5,20 +5,22 @@ import { motion } from "framer-motion";
 import ProductCard from "../../components/ProductCard";
 import CategoryLayout from "../../components/CategoryLayout";
 import { Tag, TrendingUp, ShoppingBag, Star } from "lucide-react";
+import { useQuery } from "@connectrpc/connect-query";
+import { getTag, listProductModels } from "shopnexus-protobuf-gen-ts";
 
 const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const item = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
+  show: { opacity: 1, y: 0 },
 };
 
 const mockProducts = [
@@ -69,6 +71,10 @@ const mockProducts = [
 export default function TagPage() {
   const { tagSlug } = useParams<{ tagSlug: string }>();
 
+  const { data: tag } = useQuery(getTag, {
+    tag: tagSlug ?? "",
+  });
+
   // Filter products by tagSlug
   const products = mockProducts.filter((product) =>
     product.tags.includes(tagSlug ?? "")
@@ -81,13 +87,11 @@ export default function TagPage() {
     .join(" ");
 
   const tagTitle = `${capitalizeTitle} Collection`;
-  const tagDescription = "Discover our curated collection of high-quality products, carefully selected to match your style and preferences.";
+  const tagDescription =
+    "Discover our curated collection of high-quality products, carefully selected to match your style and preferences.";
 
   return (
-    <CategoryLayout
-      title={tagTitle}
-      description={tagDescription}
-    >
+    <CategoryLayout title={tagTitle} description={tagDescription}>
       {products.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
@@ -97,7 +101,9 @@ export default function TagPage() {
           <div className="inline-block p-4 bg-gray-100 rounded-full mb-4">
             <Tag className="w-8 h-8 text-gray-400" />
           </div>
-          <p className="text-gray-500 text-lg">No products found with this tag.</p>
+          <p className="text-gray-500 text-lg">
+            No products found with this tag.
+          </p>
         </motion.div>
       ) : (
         <motion.div
