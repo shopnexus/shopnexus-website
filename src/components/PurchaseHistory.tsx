@@ -159,9 +159,14 @@ const PurchaseHistory: React.FC = () => {
 
                   {/* Order Items */}
                   <div className="p-4">
-                    {payment.products.map((item, idx) => (
-                      <PurchaseHistoryItem key={idx} item={item} />
-                    ))}
+                    {payment.products.length > 0 && (
+                      <PurchaseHistoryItem item={payment.products[0]} />
+                    )}
+                    {payment.products.length > 1 && (
+                      <div className="text-center mt-2 text-sm text-gray-500">
+                        +{payment.products.length - 1} more items
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
@@ -190,7 +195,7 @@ const PurchaseHistory: React.FC = () => {
                           d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                         ></path>
                       </svg>
-                      Detail
+                      View Details
                     </button>
                   </div>
                 </div>
