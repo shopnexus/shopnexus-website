@@ -180,12 +180,10 @@ const RefundProduct: React.FC = () => {
 
       setIsSuccess(true);
       setMessage("Request Submitted!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting refund:", error);
       setMessage("Failed to submit refund request");
-      alert(
-        "An error occurred while submitting your refund request. Please try again later."
-      );
+      alert(error.message);
     } finally {
       setIsSubmitting(false);
     }
