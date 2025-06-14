@@ -22,439 +22,13 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
-import { listProductModels } from "shopnexus-protobuf-gen-ts";
-import { ProductModelEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/product_model_pb";
-//form data product model
-interface ProductModelFormData {
-  name: string;
-  description: string;
-  listPrice: number;
-  brandId: number;
-  type: number;
-  dateManufactured: number;
-  resources: string[];
-  tags: string[];
-}
-// Mock data for products with ProductModelFormData structure
-const mockProducts = [
-  {
-    id: "101",
-    name: "Wireless Headphones",
-    description:
-      "Premium wireless headphones with noise cancellation and long battery life",
-    listPrice: 129.99,
-    brandId: 1, // SoundMax
-    type: 1, // Audio
-    dateManufactured: 1620000000000, // May 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Headphones",
-      "/placeholder.svg?height=200&width=200&text=Headphones+Side",
-    ],
-    tags: ["wireless", "noise-cancellation", "premium"],
-    // Additional fields for UI display
-    brand: "SoundMax",
-    category: "Audio",
-    stock: 45,
-    image: "/placeholder.svg?height=200&width=200&text=Headphones",
-    commentCount: 12,
-  },
-  {
-    id: "102",
-    name: "Smart Watch",
-    description: "Advanced smartwatch with health monitoring and GPS tracking",
-    listPrice: 199.99,
-    brandId: 2, // TechWear
-    type: 2, // Wearables
-    dateManufactured: 1630000000000, // August 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Smart+Watch",
-      "/placeholder.svg?height=200&width=200&text=Watch+Features",
-    ],
-    tags: ["smartwatch", "fitness", "gps"],
-    // Additional fields for UI display
-    brand: "TechWear",
-    category: "Wearables",
-    stock: 28,
-    image: "/placeholder.svg?height=200&width=200&text=Smart+Watch",
-    commentCount: 8,
-  },
-  {
-    id: "103",
-    name: "Bluetooth Speaker",
-    description:
-      "Portable Bluetooth speaker with waterproof design and 360° sound",
-    listPrice: 79.99,
-    brandId: 1, // SoundMax
-    type: 1, // Audio
-    dateManufactured: 1625000000000, // June 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Speaker",
-      "/placeholder.svg?height=200&width=200&text=Speaker+Features",
-    ],
-    tags: ["bluetooth", "waterproof", "portable"],
-    // Additional fields for UI display
-    brand: "SoundMax",
-    category: "Audio",
-    stock: 60,
-    image: "/placeholder.svg?height=200&width=200&text=Speaker",
-    commentCount: 5,
-  },
-  {
-    id: "104",
-    name: "Gaming Mouse",
-    description:
-      "High-precision gaming mouse with customizable RGB lighting and programmable buttons",
-    listPrice: 59.99,
-    brandId: 3, // GameTech
-    type: 3, // Gaming
-    dateManufactured: 1622000000000, // May 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Gaming+Mouse",
-      "/placeholder.svg?height=200&width=200&text=Mouse+RGB",
-    ],
-    tags: ["gaming", "rgb", "programmable"],
-    // Additional fields for UI display
-    brand: "GameTech",
-    category: "Gaming",
-    stock: 32,
-    image: "/placeholder.svg?height=200&width=200&text=Gaming+Mouse",
-    commentCount: 15,
-  },
-  {
-    id: "105",
-    name: "4K Monitor",
-    description: "Ultra-sharp 4K monitor with HDR support and wide color gamut",
-    listPrice: 349.99,
-    brandId: 4, // ViewClear
-    type: 4, // Monitors
-    dateManufactured: 1615000000000, // March 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=4K+Monitor",
-      "/placeholder.svg?height=200&width=200&text=Monitor+Side",
-    ],
-    tags: ["4k", "hdr", "professional"],
-    // Additional fields for UI display
-    brand: "ViewClear",
-    category: "Monitors",
-    stock: 18,
-    image: "/placeholder.svg?height=200&width=200&text=4K+Monitor",
-    commentCount: 7,
-  },
-  {
-    id: "106",
-    name: "Mechanical Keyboard",
-    description:
-      "Mechanical gaming keyboard with tactile switches and customizable backlighting",
-    listPrice: 129.99,
-    brandId: 3, // GameTech
-    type: 3, // Gaming
-    dateManufactured: 1618000000000, // April 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Keyboard",
-      "/placeholder.svg?height=200&width=200&text=Keyboard+Lighting",
-    ],
-    tags: ["mechanical", "gaming", "rgb"],
-    // Additional fields for UI display
-    brand: "GameTech",
-    category: "Gaming",
-    stock: 25,
-    image: "/placeholder.svg?height=200&width=200&text=Keyboard",
-    commentCount: 9,
-  },
-  {
-    id: "107",
-    name: "Wireless Earbuds",
-    description:
-      "True wireless earbuds with active noise cancellation and touch controls",
-    listPrice: 89.99,
-    brandId: 1, // SoundMax
-    type: 1, // Audio
-    dateManufactured: 1628000000000, // August 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Earbuds",
-      "/placeholder.svg?height=200&width=200&text=Earbuds+Case",
-    ],
-    tags: ["wireless", "earbuds", "noise-cancellation"],
-    // Additional fields for UI display
-    brand: "SoundMax",
-    category: "Audio",
-    stock: 50,
-    image: "/placeholder.svg?height=200&width=200&text=Earbuds",
-    commentCount: 11,
-  },
-  {
-    id: "108",
-    name: "Gaming Laptop",
-    description:
-      "High-performance gaming laptop with dedicated GPU and high refresh rate display",
-    listPrice: 1299.99,
-    brandId: 5, // TechPower
-    type: 5, // Computers
-    dateManufactured: 1633000000000, // October 2021
-    resources: [
-      "/placeholder.svg?height=200&width=200&text=Gaming+Laptop",
-      "/placeholder.svg?height=200&width=200&text=Laptop+Open",
-    ],
-    tags: ["gaming", "laptop", "high-performance"],
-    // Additional fields for UI display
-    brand: "TechPower",
-    category: "Computers",
-    stock: 10,
-    image: "/placeholder.svg?height=200&width=200&text=Gaming+Laptop",
-    commentCount: 14,
-  },
-];
-
-// Mock data for comments
-const mockComments = {
-  "101": [
-    {
-      id: "1",
-      productId: "101",
-      userId: "user1",
-      userName: "John Doe",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "These headphones are amazing! The sound quality is excellent and they're very comfortable to wear for long periods.",
-      rating: 5,
-      status: "approved",
-      hasMedia: true,
-      mediaCount: 2,
-      media: [
-        "/placeholder.svg?height=400&width=400&text=Headphones+Photo+1",
-        "/placeholder.svg?height=400&width=400&text=Headphones+Photo+2",
-      ],
-      dateCreated: "2023-05-15T10:30:00Z",
-      likes: 24,
-      dislikes: 2,
-      replies: 3,
-    },
-    {
-      id: "4",
-      productId: "101",
-      userId: "user4",
-      userName: "Emily Wilson",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "Good headphones for the price. Not the best I've used but definitely worth what I paid.",
-      rating: 4,
-      status: "approved",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-05-18T16:20:00Z",
-      likes: 12,
-      dislikes: 1,
-      replies: 2,
-    },
-    {
-      id: "9",
-      productId: "101",
-      userId: "user9",
-      userName: "Thomas Wright",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "The battery life is not as advertised. They only last about 4 hours on a full charge.",
-      rating: 3,
-      status: "pending",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-06-02T09:15:00Z",
-      likes: 5,
-      dislikes: 3,
-      replies: 1,
-    },
-  ],
-  "102": [
-    {
-      id: "2",
-      productId: "102",
-      userId: "user2",
-      userName: "Jane Smith",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "I'm disappointed with this watch. The battery life is much shorter than advertised and the screen scratches easily.",
-      rating: 2,
-      status: "pending",
-      hasMedia: true,
-      mediaCount: 1,
-      media: ["/placeholder.svg?height=400&width=400&text=Watch+Scratch+Photo"],
-      dateCreated: "2023-05-16T14:45:00Z",
-      likes: 3,
-      dislikes: 7,
-      replies: 1,
-    },
-    {
-      id: "10",
-      productId: "102",
-      userId: "user10",
-      userName: "Olivia Martinez",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "The fitness tracking features are accurate and the sleep monitoring is very helpful.",
-      rating: 4,
-      status: "approved",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-06-05T11:30:00Z",
-      likes: 8,
-      dislikes: 1,
-      replies: 0,
-    },
-  ],
-  "103": [
-    {
-      id: "3",
-      productId: "103",
-      userId: "user3",
-      userName: "Robert Johnson",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "This speaker has good sound but the Bluetooth connection is unstable. It keeps disconnecting from my phone.",
-      rating: 3,
-      status: "rejected",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-05-17T09:15:00Z",
-      likes: 8,
-      dislikes: 5,
-      replies: 0,
-    },
-  ],
-  "104": [
-    {
-      id: "5",
-      productId: "104",
-      userId: "user5",
-      userName: "Michael Brown",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "Perfect for gaming! The response time is excellent and the customizable buttons are very useful.",
-      rating: 5,
-      status: "approved",
-      hasMedia: true,
-      mediaCount: 3,
-      media: [
-        "/placeholder.svg?height=400&width=400&text=Mouse+Photo+1",
-        "/placeholder.svg?height=400&width=400&text=Mouse+Photo+2",
-        "/placeholder.svg?height=400&width=400&text=Mouse+Photo+3",
-      ],
-      dateCreated: "2023-05-19T11:10:00Z",
-      likes: 35,
-      dislikes: 0,
-      replies: 5,
-    },
-    {
-      id: "11",
-      productId: "104",
-      userId: "user11",
-      userName: "William Taylor",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "The mouse is a bit small for my hands, but the performance is great.",
-      rating: 4,
-      status: "approved",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-06-08T14:20:00Z",
-      likes: 6,
-      dislikes: 2,
-      replies: 1,
-    },
-  ],
-  "105": [
-    {
-      id: "6",
-      productId: "105",
-      userId: "user6",
-      userName: "Sarah Davis",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "The colors on this monitor are not accurate. Not recommended for graphic design work.",
-      rating: 2,
-      status: "pending",
-      hasMedia: true,
-      mediaCount: 1,
-      media: ["/placeholder.svg?height=400&width=400&text=Monitor+Color+Issue"],
-      dateCreated: "2023-05-20T13:25:00Z",
-      likes: 4,
-      dislikes: 9,
-      replies: 1,
-    },
-  ],
-  "106": [
-    {
-      id: "7",
-      productId: "106",
-      userId: "user7",
-      userName: "David Wilson",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "The keys have a nice tactile feel and the RGB lighting is customizable and bright.",
-      rating: 5,
-      status: "approved",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-05-22T10:15:00Z",
-      likes: 18,
-      dislikes: 1,
-      replies: 2,
-    },
-  ],
-  "107": [
-    {
-      id: "8",
-      productId: "107",
-      userId: "user8",
-      userName: "Lisa Anderson",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "Great sound quality and comfortable fit. The noise cancellation is decent for the price.",
-      rating: 4,
-      status: "approved",
-      hasMedia: false,
-      mediaCount: 0,
-      media: [],
-      dateCreated: "2023-05-25T15:40:00Z",
-      likes: 14,
-      dislikes: 2,
-      replies: 1,
-    },
-  ],
-  "108": [
-    {
-      id: "12",
-      productId: "108",
-      userId: "user12",
-      userName: "James Miller",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      content:
-        "Excellent performance for gaming and multitasking. The cooling system is effective even under heavy load.",
-      rating: 5,
-      status: "approved",
-      hasMedia: true,
-      mediaCount: 2,
-      media: [
-        "/placeholder.svg?height=400&width=400&text=Laptop+Photo+1",
-        "/placeholder.svg?height=400&width=400&text=Laptop+Photo+2",
-      ],
-      dateCreated: "2023-06-10T09:30:00Z",
-      likes: 22,
-      dislikes: 1,
-      replies: 3,
-    },
-  ],
-};
+import { listComments, listProductModels } from "shopnexus-protobuf-gen-ts";
+import { CommentEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
 
 export default function AdminProductCommentsPage() {
   // State
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<bigint | null>(null);
   const [selectedComments, setSelectedComments] = useState<string[]>([]);
   const [viewingComment, setViewingComment] = useState<any>(null);
   const [viewingMedia, setViewingMedia] = useState<any>(null);
@@ -469,6 +43,7 @@ export default function AdminProductCommentsPage() {
   const [sortOption, setSortOption] = useState("newest");
   const [productSearchQuery, setProductSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [userDataMap, setUserDataMap] = useState<Record<string, any>>({});
 
   const itemsPerPage = 10;
 
@@ -555,40 +130,162 @@ export default function AdminProductCommentsPage() {
     };
   }, []);
 
-  // Get comments for selected product
-  const productComments = selectedProduct
-    ? mockComments[selectedProduct] || []
-    : [];
+  const { data: commentData } = useQuery(listComments, {
+    destId: selectedProduct ? BigInt(selectedProduct) : undefined,
+  });
+  const productComments = commentData?.data || [];
 
   // Filter comments based on search query
   const filteredComments = productComments.filter((comment) => {
     if (!searchQuery) return true;
     return (
-      comment.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      comment.userName.toLowerCase().includes(searchQuery.toLowerCase())
+      comment.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      comment.userId.toString().includes(searchQuery.toLowerCase())
     );
   });
 
   // Sort comments
   const sortedComments = [...filteredComments].sort((a, b) => {
     if (sortOption === "newest") {
-      return (
-        new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
-      );
+      return Number(b.dateCreated - a.dateCreated);
     }
     if (sortOption === "oldest") {
-      return (
-        new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
-      );
+      return Number(a.dateCreated - b.dateCreated);
     }
     if (sortOption === "most-likes") {
-      return b.likes - a.likes;
+      return Number(b.upvote - a.upvote);
     }
     return 0;
   });
 
+  // Update comment rendering to use proper types
+  const renderComment = (comment: CommentEntity) => {
+    const userData = userDataMap[comment.userId.toString()];
+
+    return (
+      <tr key={comment.id.toString()} className="hover:bg-gray-50">
+        <td className="px-6 py-4 whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={selectedComments.includes(comment.id.toString())}
+            onChange={(e) =>
+              handleSelectComment(comment.id.toString(), e.target.checked)
+            }
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 h-8 w-8 relative">
+              <img
+                className="h-8 w-8 rounded-full object-cover"
+                src={userData?.avatar || "/placeholder.svg"}
+                alt={userData?.name || "User"}
+              />
+            </div>
+            <div className="ml-3">
+              <div className="text-sm font-medium text-gray-900">
+                {userData?.name || "Unknown User"}
+              </div>
+              <div className="text-xs text-gray-500">
+                ID: {comment.userId.toString()}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="text-sm text-gray-900 mb-2">{comment.body}</div>
+          {comment.resources && comment.resources.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              {comment.resources
+                .slice(0, 3)
+                .map((url: string, index: number) => (
+                  <div
+                    key={index}
+                    className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
+                    onClick={() => handleViewMedia(comment, index)}
+                  >
+                    <img
+                      src={url || "/placeholder.svg"}
+                      alt={`Media ${index + 1}`}
+                      className="object-cover w-full h-full"
+                    />
+                    {index === 2 && comment.resources.length > 3 && (
+                      <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          +{comment.resources.length - 3}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {new Date(Number(comment.dateCreated)).toLocaleString()}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <div
+            className="relative"
+            ref={dropdownOpen === comment.id.toString() ? dropdownRef : null}
+          >
+            <button
+              onClick={() =>
+                setDropdownOpen(
+                  dropdownOpen === comment.id.toString()
+                    ? null
+                    : comment.id.toString()
+                )
+              }
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+            {dropdownOpen === comment.id.toString() && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      handleViewComment(comment);
+                      setDropdownOpen(null);
+                    }}
+                    className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleEditComment(comment);
+                      setDropdownOpen(null);
+                    }}
+                    className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleDeleteComment(comment);
+                      setDropdownOpen(null);
+                    }}
+                    className="flex items-center px-4 py-2 text-sm w-full text-left text-red-600 hover:bg-gray-100"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
   // Handlers
-  const handleSelectProduct = (productId: string) => {
+  const handleSelectProduct = (productId: bigint) => {
     setSelectedProduct(productId);
     setSelectedComments([]);
     setSearchQuery("");
@@ -602,7 +299,9 @@ export default function AdminProductCommentsPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedComments(sortedComments.map((comment) => comment.id));
+      setSelectedComments(
+        sortedComments.map((comment) => comment.id.toString())
+      );
     } else {
       setSelectedComments([]);
     }
@@ -656,10 +355,10 @@ export default function AdminProductCommentsPage() {
     setDeletingComment(null);
   };
 
-  const handleChangeStatus = (commentId: string, status: string) => {
-    console.log(`Changing comment ${commentId} status to ${status}`);
-    // In a real app, you would update the comment status via API
-  };
+  // const handleChangeStatus = (commentId: string, status: string) => {
+  //   console.log(`Changing comment ${commentId} status to ${status}`);
+  //   // In a real app, you would update the comment status via API
+  // };
 
   const handleBulkAction = (action: string) => {
     console.log(
@@ -714,11 +413,11 @@ export default function AdminProductCommentsPage() {
     }).format(date);
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price?: bigint) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-    }).format(price);
+    }).format(price ?? 0);
   };
 
   // Get selected product details
@@ -759,9 +458,7 @@ export default function AdminProductCommentsPage() {
               <div className="flex-shrink-0 mr-4">
                 <img
                   src={
-                    selectedProductDetails?.resources?.[0] ||
-                    selectedProductDetails?.image ||
-                    "/placeholder.svg"
+                    selectedProductDetails?.resources?.[0] || "/placeholder.svg"
                   }
                   alt={selectedProductDetails?.name}
                   className="w-24 h-24 object-cover rounded-lg"
@@ -777,17 +474,17 @@ export default function AdminProductCommentsPage() {
 
                 <div className="mt-1 text-sm text-gray-500">
                   <span className="font-medium">Type:</span>{" "}
-                  {selectedProductDetails?.type}
+                  {selectedProductDetails?.type.toString()}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
                   <span className="font-medium">Price:</span>{" "}
-                  {formatPrice(selectedProductDetails?.listPrice || 0)}
+                  {formatPrice(selectedProductDetails?.listPrice)}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
                   <span className="font-medium">Manufactured:</span>{" "}
                   {selectedProductDetails?.dateManufactured
                     ? new Date(
-                        selectedProductDetails.dateManufactured
+                        selectedProductDetails.dateManufactured.toString()
                       ).toLocaleDateString()
                     : "Unknown"}
                 </div>
@@ -985,133 +682,7 @@ export default function AdminProductCommentsPage() {
                       </td>
                     </tr>
                   ) : (
-                    sortedComments.map((comment) => (
-                      <tr key={comment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <input
-                            type="checkbox"
-                            checked={selectedComments.includes(comment.id)}
-                            onChange={(e) =>
-                              handleSelectComment(comment.id, e.target.checked)
-                            }
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-8 w-8 relative">
-                              <img
-                                className="h-8 w-8 rounded-full object-cover"
-                                src={comment.userAvatar || "/placeholder.svg"}
-                                alt={comment.userName}
-                              />
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-sm font-medium text-gray-900">
-                                {comment.userName}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                ID: {comment.userId}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 mb-2">
-                            {comment.content}
-                          </div>
-                          {comment.hasMedia && (
-                            <div className="grid grid-cols-3 gap-2 mt-2">
-                              {comment.media
-                                .slice(0, 3)
-                                .map((url: string, index: number) => (
-                                  <div
-                                    key={index}
-                                    className="relative aspect-square rounded-md overflow-hidden cursor-pointer"
-                                    onClick={() =>
-                                      handleViewMedia(comment, index)
-                                    }
-                                  >
-                                    <img
-                                      src={url || "/placeholder.svg"}
-                                      alt={`Media ${index + 1}`}
-                                      className="object-cover w-full h-full"
-                                    />
-                                    {index === 2 &&
-                                      comment.media.length > 3 && (
-                                        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                                          <span className="text-white font-medium">
-                                            +{comment.media.length - 3}
-                                          </span>
-                                        </div>
-                                      )}
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(comment.dateCreated)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div
-                            className="relative"
-                            ref={
-                              dropdownOpen === comment.id ? dropdownRef : null
-                            }
-                          >
-                            <button
-                              onClick={() =>
-                                setDropdownOpen(
-                                  dropdownOpen === comment.id
-                                    ? null
-                                    : comment.id
-                                )
-                              }
-                              className="text-gray-400 hover:text-gray-600"
-                            >
-                              <MoreHorizontal className="w-5 h-5" />
-                            </button>
-                            {dropdownOpen === comment.id && (
-                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                <div className="py-1">
-                                  <button
-                                    onClick={() => {
-                                      handleViewComment(comment);
-                                      setDropdownOpen(null);
-                                    }}
-                                    className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
-                                  >
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    View Details
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleEditComment(comment);
-                                      setDropdownOpen(null);
-                                    }}
-                                    className="flex items-center px-4 py-2 text-sm w-full text-left text-gray-700 hover:bg-gray-100"
-                                  >
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleDeleteComment(comment);
-                                      setDropdownOpen(null);
-                                    }}
-                                    className="flex items-center px-4 py-2 text-sm w-full text-left text-red-600 hover:bg-gray-100"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    sortedComments.map(renderComment)
                   )}
                 </tbody>
               </table>
@@ -1161,57 +732,10 @@ export default function AdminProductCommentsPage() {
               </div>
             ) : (
               filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => handleSelectProduct(product.id)}
-                >
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={
-                        product.resources[0] ||
-                        product.image ||
-                        "/placeholder.svg"
-                      }
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-                      {product.name}
-                    </h3>
-                    <div className="mt-1 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">
-                        {formatPrice(product.listPrice)}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-xs text-gray-500 line-clamp-2">
-                      {product.description}
-                    </div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        Type: {product.type}
-                      </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        <MessageSquare className="w-3 h-3 mr-1" />
-                        {product.commentCount}
-                      </span>
-                    </div>
-                    {product.tags && product.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {product.tags.slice(0, 3).map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <Item
+                  handleSelectProduct={handleSelectProduct}
+                  product={product}
+                ></Item>
               ))
             )}
           </div>
@@ -1577,4 +1101,67 @@ export default function AdminProductCommentsPage() {
       )}
     </div>
   );
+}
+
+function Item({ product, handleSelectProduct }) {
+  const { data: commentData } = useQuery(listComments, {
+    destId: product.id,
+  });
+  const comments = commentData?.data || [];
+
+  return (
+    <div
+      key={product.id}
+      className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => handleSelectProduct(product.id)}
+    >
+      <div className="h-48 overflow-hidden">
+        <img
+          src={product.resources[0] || "/placeholder.svg"}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform hover:scale-105"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+          {product.name}
+        </h3>
+        <div className="mt-1 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-900">
+            {formatPrice(product.listPrice)}
+          </span>
+        </div>
+        <div className="mt-2 text-xs text-gray-500 line-clamp-2">
+          {product.description}
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-xs text-gray-500">Type: {product.type}</span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+            <MessageSquare className="w-3 h-3 mr-1" />
+            {comments.length}
+          </span>
+        </div>
+        {product.tags && product.tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {product.tags.slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// vnd
+function formatPrice(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(price);
 }

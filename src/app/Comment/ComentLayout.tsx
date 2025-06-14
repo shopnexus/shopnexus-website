@@ -14,6 +14,7 @@ import {
   useQuery,
 } from "@connectrpc/connect-query";
 import { getUser } from "shopnexus-protobuf-gen-ts";
+import { CommentType } from "shopnexus-protobuf-gen-ts/pb/product/v1/comment_pb";
 
 const CommentLayout: React.FC<{
   dest_id: bigint;
@@ -22,6 +23,7 @@ const CommentLayout: React.FC<{
     listComments,
     {
       destId: dest_id,
+      type: CommentType.PRODUCT_MODEL,
       pagination: {
         limit: 100,
         page: 1,

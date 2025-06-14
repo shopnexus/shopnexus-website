@@ -31,7 +31,7 @@ const AdminLogin: React.FC = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAdmin", "true");
 
-      window.location.href = "/admin";
+      window.location.href = "/admin/product-models";
     } catch (err: any) {
       let errorMessage = "An error occurred during login";
 

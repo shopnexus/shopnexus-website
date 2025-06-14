@@ -13,6 +13,7 @@ import {
 import {
   createAddress,
   createPayment,
+  getAppliedSales,
   getCart,
   getProduct,
   getProductModel,
@@ -26,6 +27,7 @@ import { AddressSelectionModal } from "../app/Cart/AddressSelectionModal";
 import { PaymentMethod } from "shopnexus-protobuf-gen-ts/pb/payment/v1/payment_pb";
 import { AddressEntity } from "shopnexus-protobuf-gen-ts/pb/account/v1/address_pb";
 import { useLocation } from "react-router-dom";
+import { SaleEntity } from "shopnexus-protobuf-gen-ts/pb/product/v1/sale_pb";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -44,6 +46,10 @@ export default function Checkout() {
   const cartItems = (cartResponse?.items ?? []).filter((item) =>
     selectedItems.includes(item.itemId)
   );
+  // const {data:saleData} = useQuery(getAppliedSales, {
+  //   productId: itemid,
+  // })
+  // const sales = saleData?.data
 
   const [shippingAddress, setShippingAddress] = useState<AddressEntity>();
   const [paymentMethod, setPaymentMethod] = useState("vnpay");
@@ -92,7 +98,7 @@ export default function Checkout() {
     }, 0);
   };
 
-  const shippingFee = 30000;
+  const shippingFee = 0;
   const subtotal = calculateSubtotal();
   const total = subtotal + shippingFee;
 
@@ -310,6 +316,72 @@ export default function Checkout() {
   );
 }
 
+function SaleDetails({
+  sale,
+  originalPrice,
+  finalPrice,
+}: {
+  sale: SaleEntity;
+  originalPrice: number;
+  finalPrice: number;
+}) {
+  const getSaleType = () => {
+    if (sale.discountPercent) {
+      return `${sale.discountPercent}% off`;
+    } else if (sale.discountPrice) {
+      return `Fixed price: ${formatCurrency(Number(sale.discountPrice))}`;
+    }
+    return "";
+  };
+
+  const getSaleScope = () => {
+    if (sale.productModelId) return "Product";
+    if (sale.brandId) return "Brand";
+    if (sale.tag) return `Tag: ${sale.tag}`;
+    return "";
+  };
+
+  const savings = originalPrice - finalPrice;
+  const savingsPercentage = (savings / originalPrice) * 100;
+
+  return (
+    <div className="mt-1 text-xs bg-green-50 p-2 rounded border border-green-100">
+      <div className="flex items-center gap-1 text-green-700">
+        <span className="font-medium">Sale:</span>
+        <span>{getSaleType()}</span>
+      </div>
+      <div className="text-green-600">
+        {getSaleScope()}
+        {sale.maxDiscountPrice > BigInt(0) && (
+          <span className="ml-1">
+            (Max discount: {formatCurrency(Number(sale.maxDiscountPrice))})
+          </span>
+        )}
+      </div>
+      <div className="mt-1 pt-1 border-t border-green-100">
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Original:</span>
+          <span className="text-gray-600 line-through">
+            {formatCurrency(originalPrice)}
+          </span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-green-700 font-medium">Final:</span>
+          <span className="text-green-700 font-medium">
+            {formatCurrency(finalPrice)}
+          </span>
+        </div>
+        <div className="flex justify-between items-center text-green-600">
+          <span>You save:</span>
+          <span>
+            {formatCurrency(savings)} ({savingsPercentage.toFixed(0)}%)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CartItem({
   item,
   updatePrice,
@@ -325,9 +397,61 @@ function CartItem({
     id: product?.productModelId,
   });
   const productModel = productModelResponse?.data;
+  const { data: saleData } = useQuery(getAppliedSales, {
+    productId: item.itemId,
+  });
 
-  const price = Number(productModel?.listPrice) || 0;
+  const originalPrice = Number(productModel?.listPrice) || 0;
+
+  // Calculate sale price
+  const calculateSalePrice = (originalPrice: number) => {
+    if (!saleData?.data || saleData.data.length === 0) return originalPrice;
+
+    const activeSale = saleData.data.find((sale) => {
+      // Check if sale applies to this product
+      return (
+        sale.productModelId === product?.productModelId ||
+        sale.brandId === productModel?.brandId ||
+        (sale.tag && productModel?.tags?.includes(sale.tag))
+      );
+    });
+
+    if (!activeSale) return originalPrice;
+
+    let finalPrice = originalPrice;
+
+    if (activeSale.discountPercent) {
+      const discountAmount = (originalPrice * activeSale.discountPercent) / 100;
+      finalPrice = originalPrice - discountAmount;
+    } else if (activeSale.discountPrice) {
+      finalPrice = Number(activeSale.discountPrice);
+    }
+
+    // Apply max discount price limit if set
+    if (activeSale.maxDiscountPrice > BigInt(0)) {
+      const maxDiscount = Number(activeSale.maxDiscountPrice);
+      const discount = originalPrice - finalPrice;
+      if (discount > maxDiscount) {
+        finalPrice = originalPrice - maxDiscount;
+      }
+    }
+
+    return finalPrice;
+  };
+
+  const price = calculateSalePrice(originalPrice);
   const totalPrice = price * Number(item.quantity);
+  const hasSale = price < originalPrice;
+
+  // Find active sale for display
+  const activeSale = saleData?.data?.find((sale) => {
+    return (
+      sale.productModelId === product?.productModelId ||
+      sale.brandId === productModel?.brandId ||
+      (sale.tag && productModel?.tags?.includes(sale.tag))
+    );
+  });
+
   useEffect(() => {
     updatePrice(item.itemId, price);
   }, [price]);
@@ -341,9 +465,30 @@ function CartItem({
       />
       <div className="flex-grow">
         <h4 className="font-semibold text-gray-900">{productModel?.name}</h4>
-        <p className="text-sm text-gray-500">
-          {formatCurrency(price)} x {Number(item.quantity)}
-        </p>
+        <div className="text-sm">
+          {hasSale ? (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 line-through">
+                {formatCurrency(originalPrice)}
+              </span>
+              <span className="text-green-600 font-medium">
+                {formatCurrency(price)}
+              </span>
+              <span className="text-gray-500">x {Number(item.quantity)}</span>
+            </div>
+          ) : (
+            <p className="text-gray-500">
+              {formatCurrency(price)} x {Number(item.quantity)}
+            </p>
+          )}
+          {activeSale && (
+            <SaleDetails
+              sale={activeSale}
+              originalPrice={originalPrice}
+              finalPrice={price}
+            />
+          )}
+        </div>
       </div>
       <div className="font-medium text-right min-w-[80px]">
         {formatCurrency(totalPrice)}
